@@ -25,14 +25,14 @@ async def on_ready():
 async def on_command_error(ctx, error):
 	if isinstance(error, commands.errors.CommandInvokeError):
 		print("Logging CommandInvokeError: \n" + str(error))
-		choices = ('Whoah there buddy, try talking a little less.', 'Die', 'Stop talking, your words are like sandpaper to my brain.')
+		choices = ('Whoah there buddy, try talking a little less.', 'Die', 'Stop talking, your words are like sandpaper to my brain.', "Perhaps you should take a look at this: https://www.gotoquiz.com/how_retarded_are_you_10")
 		response = choice(choices)
 		await ctx.send(response)
 
 class CustomHelpCommand(commands.MinimalHelpCommand):
 	async def send_pages(self):
 		destination = self.get_destination()
-		e = discord.Embed(color=discord.Color.blurple(), description='')
+		e = discord.Embed(color=discord.Color.dark_blue(), description='')
 		for page in self.paginator.pages:
 			e.description += page
 		await destination.send(embed=e)
