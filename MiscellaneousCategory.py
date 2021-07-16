@@ -37,6 +37,27 @@ class Miscellaneous(commands.Cog):
 			response = "*" + str('{}'.format(' '.join(rockable).replace('*', ''))) + " was crushed with rocks by " + str(ctx.message.author.mention) + "*".lstrip(" ")
 		await ctx.send(response)
 
+	@commands.command(name='slap')
+	async def slap(self, ctx, *slappable: str):
+		"""You can finally slap someone through the internet."""
+		with open('bot_actions_after_shot.json', 'r') as f:
+			data = json.load(f)
+			maxIndex = 0
+			for i in data:
+				maxIndex = maxIndex + 1
+			random = randint(0, maxIndex - 1)
+		if str(slappable) == "()":
+			response = "Well, are you going to slap someone or not?"
+		elif "(''," in str(slappable).translate({ord(i): None for i in '*'}):
+			response = "Try again when you can coherently form a word."
+		elif "<@!865380885649031178>" in str('{}'.format(' '.join(slappable).replace('*', ''))):
+			response = "*" + str(ctx.message.author.mention) + " was shot by " + str(ctx.bot.user.mention) + " while " + str(data[random - 1]["content"]) + "*"
+		elif "<@!417794810284474378>" in str('{}'.format(' '.join(slappable).replace('*', ''))) or "<@!509490815236833280>" in str('{}'.format(' '.join(slappable).replace('*', ''))) or "<@!567446167827513350>" in str('{}'.format(' '.join(slappable).replace('*', ''))):
+			response = "*" + str(ctx.bot.user.mention) + " intervened and shot " + str('{}'.format(' '.join(slappable).replace('*', ''))) + " while " + str(data[random - 1]["content"]) + "*"
+		else:
+			response = "*" + str('{}'.format(' '.join(slappable).replace('*', ''))) + " was slapped by " + str(ctx.message.author.mention) + " at Mach " + str(randint(1,9)) + ". They started crying.*".lstrip(" ")
+		await ctx.send(response)
+
 	@commands.command(name='quote')
 	async def quote(self, ctx, *ID: int):
 		"""Get a quote by number. Or a random one if you don't provide that."""

@@ -1,3 +1,4 @@
+from random import randint
 import discord
 from discord.ext import commands
 from datetime import date
@@ -48,4 +49,25 @@ class Utility(commands.Cog):
 	async def website(self, ctx):
 		"""Get our website URL."""
 		response = "Our website can be located at https://titan-mk4.dynv6.net." 
+		await ctx.send(response)
+
+	@commands.command(name='flipcoin')
+	async def flipcoin(self, ctx):
+		"""Flip a coin."""
+		if randint(0,1) == 0:
+			value = "Heads"
+		else:
+			value = "Tails"
+		response = "Result: **" + value + ".**"
+		await ctx.send(response)
+
+	@commands.command(name='rolldice')
+	async def rolldice(self, ctx, *sides:int):
+		"""Roll a 6 sided die. Alternatively, pass in the number of sides."""
+		if str(sides) == "()":
+			response = "Result: **" + str(randint(1,6)) + ".**"
+		elif sides[0] > 1:
+			response = "Result: **" + str(randint(1,sides[0])) + ".**"
+		else:
+			response = "You need to give me a number greater than 1, dingus."
 		await ctx.send(response)
