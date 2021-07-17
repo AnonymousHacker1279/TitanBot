@@ -1,7 +1,9 @@
+from os import system
 from random import randint
 import discord
 from discord.ext import commands
 from datetime import date
+import psutil
 
 class Utility(commands.Cog):
 	"""Get some work done with a utility function."""
@@ -70,4 +72,15 @@ class Utility(commands.Cog):
 			response = "Result: **" + str(randint(1,sides[0])) + ".**"
 		else:
 			response = "You need to give me a number greater than 1, dingus."
+		await ctx.send(response)
+
+	@commands.command(name='system')
+	async def system(self, ctx):
+		"""Get system information, such as CPU usage."""
+		cpu_usage = psutil.cpu_percent(interval=1)
+		cpu_count = psutil.cpu_count()
+		system_memory = psutil.virtual_memory()[2]
+		total_system_memory = round(psutil.virtual_memory()[0]/(1024 * 1024 * 1024), 2)
+		response = ">>> CPU Metrics: **" + str(cpu_usage) + "% usage, " + str(cpu_count) + " cores**\n"
+		response += "Memory Metrics: **" + str(system_memory) + "% usage, " + str(total_system_memory) + " total GB**"
 		await ctx.send(response)

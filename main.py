@@ -25,7 +25,7 @@ async def on_ready():
 async def on_command_error(ctx, error):
 	if isinstance(error, commands.errors.CommandInvokeError):
 		print("Logging CommandInvokeError: \n" + str(error))
-		choices = ('Whoah there buddy, try talking a little less.', 'Die', 'Stop talking, your words are like sandpaper to my brain.', "Perhaps you should take a look at this: https://www.gotoquiz.com/how_retarded_are_you_10")
+		choices = ('Whoah there buddy, try talking a little less.', 'Die', 'Stop talking, your words are like sandpaper to my brain.', 'Perhaps you should take a look at this: https://www.gotoquiz.com/how_retarded_are_you_10')
 		response = choice(choices)
 		await ctx.send(response)
 

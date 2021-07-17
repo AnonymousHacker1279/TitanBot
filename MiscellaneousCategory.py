@@ -101,6 +101,52 @@ class Miscellaneous(commands.Cog):
 		
 		await ctx.send(response)
 
+	@commands.command(name='searchquotes')
+	async def searchquotes(self, ctx, author: str, page=1):
+		"""Search for quotes by author. Additionally, pass the page number. Five quotes per page are displayed."""
+
+		# Open JSON list
+		with open('quote_list.json', 'r') as f:
+			data = json.load(f)
+			maxIndex = 0
+			authorQuoteIndex = []
+			# Get the maximum index, and an index of all the author's quotes
+			for i in data:
+				maxIndex = maxIndex + 1
+				if author in i['author']:
+					authorQuoteIndex.append(maxIndex)
+			# First line of response: Author + total quotes
+			response = ">>> " + author + " is currently credited with **" + str(len(authorQuoteIndex)) + "** quotes.\n"
+			# Check if first page
+			if page == 1:
+				if len(authorQuoteIndex) != 0:
+					# List the first 5 quotes if the length of the index isn't zero
+					response += "Listing the first five quotes by this author: \n\n"
+					iteration = 0
+					# Iterate through the index and build a response
+					for i in authorQuoteIndex:
+						response += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(authorQuoteIndex[iteration]) + "**\n"
+						iteration = iteration + 1
+						if iteration >= 5:
+							break
+			else:
+				# Check if there are enough quotes to fill a page
+				if len(authorQuoteIndex) <= 5 or len(authorQuoteIndex) <= (page - 1 * 5):
+					response += "This author doesn't have enough quotes to reach this page."
+				else:
+					# List the next 5 by page number
+					response += "Listing the next five quotes by this author (**Page " + str(page) + "**): \n\n"
+					# Set the iteration by multiplying the page number by 5. First, shift left 1 (as indexes start at 0)
+					iteration = (page - 1) * 5
+					# Iterate through the index and build a response
+					for i in authorQuoteIndex:
+						response += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(authorQuoteIndex[iteration]) + "**\n"
+						iteration = iteration + 1
+						if iteration >= 5:
+							break
+		# Send response
+		await ctx.send(response)
+
 	@commands.command(name='removequote')
 	@commands.guild_only()
 	async def removequote(self, ctx, ID: int):
@@ -134,10 +180,28 @@ class Miscellaneous(commands.Cog):
 		await ctx.send(response)
 
 	@commands.command(name='bruh')
-	async def bruh(self, ctx):
-		"""Bruh moment."""
-		response = "https://cdn.discordapp.com/attachments/694603367531544617/865641424665837618/Bruh_Sound_Effect_2.mp3"
-		await ctx.send(response)
+	async def bruh(self, ctx, *speed):
+		"""Bruh moment. Speed can be 'realslow', 'slow' or 'fast'. Must be in a voice channel."""
+		if str(ctx.bot.voice_clients) == "[]":
+			if ctx.author.voice == None:
+				response = "You must be in a voice channel to use this command."
+				await ctx.send(response)
+			else:
+				channel = ctx.author.voice.channel
+				voice = await channel.connect()
+				if "slow" in str(speed):
+					FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-filter:a "atempo=0.5" -vn'}
+				elif "fast" in str(speed):
+					FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-filter:a "atempo=2" -vn'}
+				elif "realslow" in str(speed):
+					FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-filter:a "atempo=0.5,atempo=0.5" -vn'}
+				else:
+					FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-filter:a "atempo=1" -vn'}
+				voice.play(discord.FFmpegPCMAudio(source='https://cdn.discordapp.com/attachments/694603367531544617/865641424665837618/Bruh_Sound_Effect_2.mp3', **FFMPEG_OPTIONS))
+				while voice.is_playing():
+					await asyncio.sleep(1)
+				if len(ctx.bot.voice_clients) != 0:
+					await ctx.voice_client.disconnect()
 
 	@commands.command(name='oldspice')
 	async def oldspice(self, ctx, *speed):
