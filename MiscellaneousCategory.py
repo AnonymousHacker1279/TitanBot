@@ -88,16 +88,33 @@ class Miscellaneous(commands.Cog):
 	async def addquote(self, ctx, author: str, *quote: str):
 		"""Someone said something stupid? Make them remember it by quoting them."""
 
-		with open('quote_list.json', 'r') as f:
+		isBanned = False
+		with open('noquote_users.json', 'r') as f:
 			data = json.load(f)
-		
-		with open('quote_list.json', 'w') as f:
-			quoteDictionary = {"content": str('{}'.format(' '.join(quote))) , "author": str(author)}
-			data = list(data)
-			data.append(quoteDictionary)
-			json.dump(data, f, indent=4)
-		
-		response = "Added quote to archive."
+			maxIndex = 0
+			userIndex = None
+			modifiedUserMention = str(ctx.message.author.mention)[ : 2] + "!" + str(ctx.message.author.mention)[2 : ]
+			print(modifiedUserMention)
+			for i in data:
+				maxIndex = maxIndex + 1
+				if str(modifiedUserMention) in i['user']:
+					userIndex = maxIndex
+			if userIndex != None:
+				isBanned = True
+
+		if isBanned == False:
+			with open('quote_list.json', 'r') as f:
+				data = json.load(f)
+			
+			with open('quote_list.json', 'w') as f:
+				quoteDictionary = {"content": str('{}'.format(' '.join(quote))) , "author": str(author)}
+				data = list(data)
+				data.append(quoteDictionary)
+				json.dump(data, f, indent=4)
+			
+			response = "Added quote to archive."
+		else:
+			response = "You're not allowed to add quotes. Peasant."
 		
 		await ctx.send(response)
 
@@ -225,29 +242,6 @@ class Miscellaneous(commands.Cog):
 					await asyncio.sleep(1)
 				if len(ctx.bot.voice_clients) != 0:
 						await ctx.voice_client.disconnect()
-
-	@commands.command(name='littleman')
-	async def littleman(self, ctx, *speed):
-		"""M A N L E T. Speed can be 'slow' or 'fast'. Must be in a voice channel."""
-
-		if str(ctx.bot.voice_clients) == "[]":
-			if ctx.author.voice == None:
-				response = "You must be in a voice channel to use this command."
-				await ctx.send(response)
-			else:
-				channel = ctx.author.voice.channel
-				voice = await channel.connect()
-				if "slow" in str(speed):
-					FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-filter:a "atempo=0.5" -vn'}
-				elif "fast" in str(speed):
-					FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-filter:a "atempo=2" -vn'}
-				else:
-					FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-filter:a "atempo=1" -vn'}
-				voice.play(discord.FFmpegPCMAudio(source='https://cdn.discordapp.com/attachments/694603367531544617/865692091458781204/littleman.mp3', **FFMPEG_OPTIONS))
-				while voice.is_playing():
-					await asyncio.sleep(1)
-				if len(ctx.bot.voice_clients) != 0:
-					await ctx.voice_client.disconnect()
 
 	@commands.command(name='totalquotes')
 	async def totalquotes(self, ctx):

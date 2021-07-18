@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 from datetime import date
 import psutil
+import requests
 
 class Utility(commands.Cog):
 	"""Get some work done with a utility function."""
@@ -28,7 +29,7 @@ class Utility(commands.Cog):
 		"""Learn about me."""
 		response = "I'm an extremely intelligent software designed to make your lives harder.\n"
 		response += "Providing useless features to Titan Programming since 7/15/21.\n\n"
-		response += "See $help for command information."
+		response += "See $help for command information. Or don't."
 		await ctx.send(response)
 
 	@commands.command(name='age')
@@ -51,6 +52,16 @@ class Utility(commands.Cog):
 	async def website(self, ctx):
 		"""Get our website URL."""
 		response = "Our website can be located at https://titan-mk4.dynv6.net." 
+		await ctx.send(response)
+
+	@commands.command(name="websitestatus")
+	async def websitestatus(self, ctx):
+		"""Check the status of our website."""
+		request = requests.get('https://titan-mk4.dynv6.net')
+		if (request.status_code == 200):
+			response = "The website seems to be available. HTTP status code returned: **" + str(request.status_code) + "**"
+		else:
+			response = "The website seems to be down, or otherwise experiencing issues. HTTP status code returned: **" + str(request.status_code) + "**"
 		await ctx.send(response)
 
 	@commands.command(name='flipcoin')

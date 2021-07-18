@@ -28,6 +28,10 @@ async def on_command_error(ctx, error):
 		choices = ('Whoah there buddy, try talking a little less.', 'Die', 'Stop talking, your words are like sandpaper to my brain.', 'Perhaps you should take a look at this: https://www.gotoquiz.com/how_retarded_are_you_10')
 		response = choice(choices)
 		await ctx.send(response)
+	else:
+		print("Logging Error: \n" + str(error))
+		response = "Something isn't right. Most likely this is my father's fault in programming me, otherwise screw you."
+		await ctx.send(response)
 
 class CustomHelpCommand(commands.MinimalHelpCommand):
 	async def send_pages(self):
