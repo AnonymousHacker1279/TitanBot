@@ -1,10 +1,11 @@
-from os import system
+from CheckCommandUtils import CheckCommandPerms, CheckNoUserPings
 from random import randint
 import discord
 from discord.ext import commands
 from datetime import date
 import psutil
 import requests
+import json
 
 class Utility(commands.Cog):
 	"""Get some work done with a utility function."""
@@ -95,3 +96,34 @@ class Utility(commands.Cog):
 		response = ">>> CPU Metrics: **" + str(cpu_usage) + "% usage, " + str(cpu_count) + " cores**\n"
 		response += "Memory Metrics: **" + str(system_memory) + "% usage, " + str(total_system_memory) + " total GB**"
 		await ctx.send(response)
+
+	@commands.command(name='nopings')
+	@commands.guild_only()
+	async def nopings(self, ctx):
+		"""Disable pings from bot responses."""
+		if await CheckCommandPerms(ctx) == False:
+			with open('noping_users.json', 'r') as f:
+				data = json.load(f)
+				modifiedData = list(data)
+				maxIndex = 0
+				userIndex = None
+				flag = True
+				for i in data:
+					maxIndex = maxIndex + 1
+					if ctx.message.author.mention in i['user']:
+						userIndex = maxIndex
+				if userIndex != None:
+					modifiedData.remove(data[userIndex - 1])
+					flag = False
+				else:
+					userDictionary = {"user": ctx.message.author.mention}
+					modifiedData.append(userDictionary)
+					flag = True
+
+			with open('noping_users.json', 'w') as f:
+				json.dump(modifiedData, f, indent=4)
+				if flag == True:
+					response = "You have disabled bot pings."
+				else:
+					response = "You have enabled bot pings."
+			await ctx.send(response)
