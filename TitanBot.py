@@ -2,9 +2,10 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-import Framework.ModuleSystem.Modules as ModuleSystem
-import Framework.Commands.Quotes as Quotes
-import Framework.Commands.HelpCommand as HelpCommand
+from Framework.Commands.UserConfig import UserConfig
+from Framework.ModuleSystem.Modules import ModuleSystem
+from Framework.Commands.Quotes import Quotes
+from Framework.Commands.HelpCommand import Help
 
 class TitanBot(discord.Client):
 
@@ -22,9 +23,10 @@ class TitanBot(discord.Client):
 		print(f'{bot.user} has connected to Discord!')
 		await bot.change_presence(activity=discord.Game('Inflicting pain on humans'))
 
-	bot.help_command = HelpCommand.Help()
+	bot.help_command = Help()
 
-	bot.add_cog(ModuleSystem.ModuleSystem())
-	bot.add_cog(Quotes.Quotes())
+	bot.add_cog(ModuleSystem())
+	bot.add_cog(UserConfig())
+	bot.add_cog(Quotes())
 
 	bot.run(TOKEN)

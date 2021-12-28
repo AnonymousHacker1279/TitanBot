@@ -11,10 +11,18 @@
                 "noquote"
             ]
         },
+		"userConfig": {
+            "enabled": true,
+            "displayName": "User Configuration",
+            "description": "The user configuration system allows users to toggle specific functions in bot actions, such as being pinged in responses.",
+            "commands": [
+                "togglepings"
+            ]
+        },
         "fun": {
             "enabled": false,
             "displayName": "Fun",
-            "description": "The 'Fun' system simply allows users to mess with each other",
+            "description": "The 'Fun' system simply allows users to mess with each other.",
             "commands": [
                 "stab",
                 "slap",
