@@ -19,20 +19,33 @@ class Quotes(commands.Cog):
 			embed.description = "This module has been disabled."
 		else:
 			# Check if an ID is provided, if not get a random quote
-			if id == None:
-				with open(Utilities.get_quotes_directory(), 'r') as f:
-					data = json.load(f)
+			with open(Utilities.get_quotes_directory(), 'r') as f:
+				data = json.load(f)
 
 				maxIndex = 0
 				for _ in data:
 					maxIndex = maxIndex + 1
+			if id == None:
 				random = randint(0, maxIndex - 1)
 				author = data[random]["author"]
 
 				embed.title = "Quote #" + str(random)
 				embed.description = '> *"' + data[random]["content"] + '"*\n'
 				embed.description += " - " + author
-			elif id <= 0:
-				embed.title = "Cannot get quote"
-				embed.description = "You must pass an ID above zero."
+			else:
+				try:
+					if int(id) <= 0:
+						embed.title = "Cannot get quote"
+						embed.description = "You must pass an ID above zero."
+					elif int(id) > maxIndex - 1:
+						embed.title = "Cannot get quote"
+						embed.description = "You are asking for a quote above the number of quotes I have."
+					else:
+						embed.title = "Quote #" + id
+						embed.description = '> *"' + data[int(id) - 1]["content"] + '"*\n'
+						embed.description += " - " + data[int(id) - 1]["author"]
+				except ValueError:
+					embed.title = "Cannot get quote"
+					embed.description = "You must pass a valid ID."
+				
 		await ctx.send(embed = embed)
