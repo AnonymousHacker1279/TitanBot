@@ -3,6 +3,7 @@
         "quotes": {
             "enabled": true,
             "displayName": "Quotes",
+            "id": "quotes",
             "description": "The quote system allows users to add quotes to a user.",
             "commands": [
                 "addquote",
@@ -11,9 +12,10 @@
                 "noquote"
             ]
         },
-		"userConfig": {
+        "userConfig": {
             "enabled": true,
             "displayName": "User Configuration",
+            "id": "userConfig",
             "description": "The user configuration system allows users to toggle specific functions in bot actions, such as being pinged in responses.",
             "commands": [
                 "togglepings"
@@ -22,6 +24,7 @@
         "fun": {
             "enabled": false,
             "displayName": "Fun",
+            "id": "fun",
             "description": "The 'Fun' system simply allows users to mess with each other.",
             "commands": [
                 "stab",

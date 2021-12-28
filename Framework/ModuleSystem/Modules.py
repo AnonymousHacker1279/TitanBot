@@ -6,6 +6,7 @@ from ..GeneralUtilities import GeneralUtilities as Utilities
 class ModuleSystem(commands.Cog):
 
 	@commands.command(name='moduleInfo')
+	@commands.guild_only()
 	async def module_info(self, ctx, module=None):
 		"""Get module information. Lists all modules and their status by default. Specify a specific module to get detailed information."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -30,7 +31,7 @@ class ModuleSystem(commands.Cog):
 
 				# For each item in the module list, get the display name and its status
 				for i in moduleList:
-					line = " - " + data["moduleConfiguration"][i]["displayName"] + " Module: "
+					line = " - " + data["moduleConfiguration"][i]["displayName"] + " Module (" + data["moduleConfiguration"][i]["id"] + "): "
 					if data["moduleConfiguration"][i]["enabled"] == True:
 						line += "Enabled :white_check_mark:"
 					else:
@@ -52,11 +53,12 @@ class ModuleSystem(commands.Cog):
 				embed.description += "Commands: " + str(data["moduleConfiguration"][module]["commands"]) + "\n"
 			else:
 				# No module was found, so let the user know
-				embed.description = "No module was found of the name '" + str(module) + "'"
+				embed.description = "No module was found of the ID '" + str(module) + "'"
 
 		await ctx.send(embed = embed)
 
 	@commands.command(name='toggleModuleState')
+	@commands.guild_only()
 	async def toggle_module_state(self, ctx, module=None):
 		"""Toggle the state of a module. Pass the ID of the module you wish to toggle."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
