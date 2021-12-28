@@ -2,6 +2,7 @@ import json
 from discord.ext import commands
 import discord
 from ..GeneralUtilities import GeneralUtilities as Utilities
+from ..GeneralUtilities.CommandAccess import CommandAccess
 
 class ModuleSystem(commands.Cog):
 
@@ -62,6 +63,11 @@ class ModuleSystem(commands.Cog):
 	async def toggle_module_state(self, ctx, module=None):
 		"""Toggle the state of a module. Pass the ID of the module you wish to toggle."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+
+		if await CommandAccess.check_user_is_wizard(ctx) == None:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have access to use this command."
+
 		embed.title = "Module System: Toggle Module State"
 
 		# Open the settings file
