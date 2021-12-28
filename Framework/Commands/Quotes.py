@@ -22,7 +22,7 @@ class Quotes(commands.Cog):
 				embed.set_image(url = content)
 				embed.description = author
 			else:
-				embed.description = '> *"' + content + '"*\n'
+				embed.description = '> "' + content + '"\n'
 				embed.description += " - " + author
 
 			authorUser = await ctx.bot.fetch_user(int(author.lstrip("<@!").rstrip(">")))
@@ -70,7 +70,7 @@ class Quotes(commands.Cog):
 
 	@commands.command(name='totalQuotes')
 	@commands.guild_only()
-	async def totalQuotes(self, ctx, id=None):
+	async def totalQuotes(self, ctx):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -89,4 +89,32 @@ class Quotes(commands.Cog):
 			embed.title = "Total Quotes"
 			embed.description = "I have " + str(maxIndex) + " quotes in my archives."
 			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
+		await ctx.send(embed = embed)
+
+	@commands.command(name='addQuote')
+	@commands.guild_only()
+	async def addQuote(self, ctx, quote:str, author:str):
+		"""Did someone say something stupid? Make them remember it with a quote."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		if await CommandAccess.CommandAccess.check_module_enabled("quotes") == False:
+			embed.title = "Cannot use this module"
+			embed.description = "This module has been disabled."
+		else:
+			# TODO: noQuote checks will need to be here; also, will noQuote only prevent addQuote or other quote functions?
+			with open(Utilities.get_quotes_directory(), 'r') as f:
+				data = json.load(f)
+
+			maxIndex = 0
+			for _ in data:
+				maxIndex = maxIndex + 1
+			maxIndex = maxIndex - 1
+
+			with open(Utilities.get_quotes_directory(), 'w') as f:
+				quoteDictionary = {"content": quote , "author": author}
+				data.append(quoteDictionary)
+				json.dump(data, f, indent=4)
+			
+			embed.title = "Quote Added"
+			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
 		await ctx.send(embed = embed)
