@@ -1,20 +1,25 @@
 {
-	"moduleConfiguration": {
-		"quotes": {
-			"enabled": true,
-			"displayName": "Quotes",
-			"description": "The quote system allows users to add quotes to a user.",
-			"commands": [
-				"addquote", "quote", "removequote", "noquote"
-			]
-		},
-		"fun": {
-			"enabled": false,
-			"displayName": "Fun",
-			"description": "The 'Fun' system simply allows users to mess with each other",
-			"commands": [
-				"stab", "slap", "rock"
-			]
-		}
-	}
+    "moduleConfiguration": {
+        "quotes": {
+            "enabled": true,
+            "displayName": "Quotes",
+            "description": "The quote system allows users to add quotes to a user.",
+            "commands": [
+                "addquote",
+                "quote",
+                "removequote",
+                "noquote"
+            ]
+        },
+        "fun": {
+            "enabled": false,
+            "displayName": "Fun",
+            "description": "The 'Fun' system simply allows users to mess with each other",
+            "commands": [
+                "stab",
+                "slap",
+                "rock"
+            ]
+        }
+    }
 }

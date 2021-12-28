@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import Framework.ModuleSystem.Modules as ModuleSystem
+import Framework.Commands.Quotes as Quotes
 import Framework.Commands.HelpCommand as HelpCommand
 
 class TitanBot(discord.Client):
@@ -24,5 +25,6 @@ class TitanBot(discord.Client):
 	bot.help_command = HelpCommand.Help()
 
 	bot.add_cog(ModuleSystem.ModuleSystem())
+	bot.add_cog(Quotes.Quotes())
 
 	bot.run(TOKEN)

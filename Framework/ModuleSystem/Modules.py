@@ -63,37 +63,38 @@ class ModuleSystem(commands.Cog):
 		embed.title = "Module System: Toggle Module State"
 
 		# Open the settings file
-		with open(Utilities.get_module_settings_directory(), 'r+') as f:
+		with open(Utilities.get_module_settings_directory(), 'r') as f:
 			data = json.load(f)
 
-			# Initialize variables
-			totalModules = 0
-			moduleList = []
+		# Initialize variables
+		totalModules = 0
+		moduleList = []
 
-			# Get the total modules and build a list
-			for i in data["moduleConfiguration"]:
-				totalModules = totalModules + 1
-				moduleList.append(i)
+		# Get the total modules and build a list
+		for i in data["moduleConfiguration"]:
+			totalModules = totalModules + 1
+			moduleList.append(i)
 
-			# Default action
-			if module == None:
-				# No module was specified, so throw an error.
-				embed.description = "No module was specified. "
-			# Check if the module is in the list
-			elif module in str(moduleList):
-				# Set the title with the module display name
-				embed.title = "Module System: Toggled state of " + data["moduleConfiguration"][module]["displayName"]
-				# Toggle the state of the module
-				if data["moduleConfiguration"][module]["enabled"] == True:
-					data["moduleConfiguration"][module]["enabled"] = False
-					line = "Disabled :negative_squared_cross_mark:"
-				else:
-					data["moduleConfiguration"][module]["enabled"] = True
-					line = "Enabled :white_check_mark:"
-				json.dump(data, f, indent=4)
-				embed.description += line + "\n"
+		# Default action
+		if module == None:
+			# No module was specified, so throw an error.
+			embed.description = "No module was specified. "
+		# Check if the module is in the list
+		elif module in str(moduleList):
+			# Set the title with the module display name
+			embed.title = "Module System: Toggled state of " + data["moduleConfiguration"][module]["displayName"]
+			# Toggle the state of the module
+			if data["moduleConfiguration"][module]["enabled"] == True:
+				data["moduleConfiguration"][module]["enabled"] = False
+				line = "The module state has changed. New state:\nDisabled :negative_squared_cross_mark:"
 			else:
-				# No module was found, so let the user know
-				embed.description = "No module was found of the name '" + str(module) + "'"
+				data["moduleConfiguration"][module]["enabled"] = True
+				line = "The module state has changed. New state:\nEnabled :white_check_mark:"
+			with open(Utilities.get_module_settings_directory(), 'w') as f:
+				json.dump(data, f, indent=4)
+			embed.description += line + "\n"
+		else:
+			# No module was found, so let the user know
+			embed.description = "No module was found of the name '" + str(module) + "'"
 
 		await ctx.send(embed = embed)
