@@ -48,6 +48,8 @@ class ModuleSystem(commands.Cog):
 				else:
 					line = "Disabled :negative_squared_cross_mark:"
 				embed.description += line + "\n"
+				if data["moduleConfiguration"][module]["forceEnabled"] == True:
+					embed.description += "**This module is force enabled, and cannot be disabled via commands.**\n"
 				# Get description
 				embed.description += "Description: *" + data["moduleConfiguration"][module]["description"] + "*\n"
 				# Get commands
@@ -89,18 +91,23 @@ class ModuleSystem(commands.Cog):
 			embed.description = "No module was specified. "
 		# Check if the module is in the list
 		elif module in str(moduleList):
-			# Set the title with the module display name
-			embed.title = "Module System: Toggled state of " + data["moduleConfiguration"][module]["displayName"]
-			# Toggle the state of the module
-			if data["moduleConfiguration"][module]["enabled"] == True:
-				data["moduleConfiguration"][module]["enabled"] = False
-				line = "The module state has changed. New state:\nDisabled :negative_squared_cross_mark:"
+			# Check if the module is force enabled
+			if data["moduleConfiguration"][module]["forceEnabled"] == True:
+				embed.title = "Module System: Failed to toggle state of " + data["moduleConfiguration"][module]["displayName"]
+				embed.description = "This module is force enabled, and cannot be disabled via commands."
 			else:
-				data["moduleConfiguration"][module]["enabled"] = True
-				line = "The module state has changed. New state:\nEnabled :white_check_mark:"
-			with open(Utilities.get_module_settings_directory(), 'w') as f:
-				json.dump(data, f, indent=4)
-			embed.description += line + "\n"
+				# Set the title with the module display name
+				embed.title = "Module System: Toggled state of " + data["moduleConfiguration"][module]["displayName"]
+				# Toggle the state of the module
+				if data["moduleConfiguration"][module]["enabled"] == True:
+					data["moduleConfiguration"][module]["enabled"] = False
+					line = "The module state has changed. New state:\nDisabled :negative_squared_cross_mark:"
+				else:
+					data["moduleConfiguration"][module]["enabled"] = True
+					line = "The module state has changed. New state:\nEnabled :white_check_mark:"
+				with open(Utilities.get_module_settings_directory(), 'w') as f:
+					json.dump(data, f, indent=4)
+				embed.description += line + "\n"
 		else:
 			# No module was found, so let the user know
 			embed.description = "No module was found of the name '" + str(module) + "'"

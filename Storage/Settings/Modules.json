@@ -2,6 +2,7 @@
     "moduleConfiguration": {
         "quotes": {
             "enabled": true,
+            "forceEnabled": false,
             "displayName": "Quotes",
             "id": "quotes",
             "description": "The quote system allows users to add quotes to a user.",
@@ -15,6 +16,7 @@
         },
         "userConfig": {
             "enabled": true,
+            "forceEnabled": false,
             "displayName": "User Configuration",
             "id": "userConfig",
             "description": "The user configuration system allows users to toggle specific functions in bot actions, such as being pinged in responses.",
@@ -24,6 +26,7 @@
         },
         "fun": {
             "enabled": false,
+            "forceEnabled": false,
             "displayName": "Fun",
             "id": "fun",
             "description": "The 'Fun' system simply allows users to mess with each other.",
@@ -31,6 +34,16 @@
                 "stab",
                 "slap",
                 "rock"
+            ]
+        },
+        "moderator": {
+            "enabled": true,
+            "forceEnabled": true,
+            "displayName": "Moderator",
+            "id": "moderator",
+            "description": "The moderator system provides management commands to users with adequate permissions.",
+            "commands": [
+                "toggleAddQuote"
             ]
         }
     }
