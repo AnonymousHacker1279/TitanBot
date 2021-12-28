@@ -6,10 +6,11 @@
             "id": "quotes",
             "description": "The quote system allows users to add quotes to a user.",
             "commands": [
-                "addquote",
+                "addQuote",
                 "quote",
-                "removequote",
-                "noquote"
+                "removeQuote",
+                "noQuote",
+                "totalQuotes"
             ]
         },
         "userConfig": {
@@ -18,7 +19,7 @@
             "id": "userConfig",
             "description": "The user configuration system allows users to toggle specific functions in bot actions, such as being pinged in responses.",
             "commands": [
-                "togglepings"
+                "togglePings"
             ]
         },
         "fun": {

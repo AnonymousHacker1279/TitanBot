@@ -42,6 +42,7 @@ class Quotes(commands.Cog):
 				maxIndex = 0
 				for _ in data:
 					maxIndex = maxIndex + 1
+				maxIndex = maxIndex - 1
 			if id == None:
 				random = randint(0, maxIndex)
 				author = data[random]["author"]
@@ -65,4 +66,27 @@ class Quotes(commands.Cog):
 					embed.title = "Cannot get quote"
 					embed.description = "You must pass a valid ID."
 				
+		await ctx.send(embed = embed)
+
+	@commands.command(name='totalQuotes')
+	@commands.guild_only()
+	async def totalQuotes(self, ctx, id=None):
+		"""Get the total number of quotes available."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		if await CommandAccess.CommandAccess.check_module_enabled("quotes") == False:
+			embed.title = "Cannot use this module"
+			embed.description = "This module has been disabled."
+		else:
+			with open(Utilities.get_quotes_directory(), 'r') as f:
+				data = json.load(f)
+
+			maxIndex = 0
+			for _ in data:
+				maxIndex = maxIndex + 1
+			maxIndex = maxIndex - 1
+			
+			embed.title = "Total Quotes"
+			embed.description = "I have " + str(maxIndex) + " quotes in my archives."
+			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
 		await ctx.send(embed = embed)
