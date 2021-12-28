@@ -1,6 +1,6 @@
 from discord.ext import commands
 import discord
-from ..GeneralUtilities import CommandAccess
+from ..GeneralUtilities.CommandAccess import CommandAccess
 from ..GeneralUtilities import GeneralUtilities as Utilities
 import json
 from random import randint
@@ -31,7 +31,7 @@ class Quotes(commands.Cog):
 			return embed
 
 
-		if await CommandAccess.CommandAccess.check_module_enabled("quotes") == False:
+		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
 		else:
@@ -52,19 +52,16 @@ class Quotes(commands.Cog):
 
 			else:
 				try:
-					if int(id) < 0:
+					if int(id) < 0 or int(id) > maxIndex:
 						embed.title = "Cannot get quote"
-						embed.description = "You must pass an ID that is not less than zero."
-					elif int(id) > maxIndex:
-						embed.title = "Cannot get quote"
-						embed.description = "You are asking for a quote above the number of quotes I have."
+						embed.description = "Invalid quote ID. It must not be less than zero and must be less than the total number of quotes."
 					else:
 						content = data[int(id)]["content"]
 						author = data[int(id)]["author"]
 						embed = await prepareQuote(author, content, id)
 				except ValueError:
 					embed.title = "Cannot get quote"
-					embed.description = "You must pass a valid ID."
+					embed.description = "The quote ID must be a number."
 				
 		await ctx.send(embed = embed)
 
@@ -74,7 +71,7 @@ class Quotes(commands.Cog):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if await CommandAccess.CommandAccess.check_module_enabled("quotes") == False:
+		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
 		else:
@@ -97,7 +94,7 @@ class Quotes(commands.Cog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if await CommandAccess.CommandAccess.check_module_enabled("quotes") == False:
+		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
 		else:
@@ -117,4 +114,46 @@ class Quotes(commands.Cog):
 			
 			embed.title = "Quote Added"
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
+		await ctx.send(embed = embed)
+
+	@commands.command(name='removeQuote')
+	@commands.guild_only()
+	async def removeQuote(self, ctx, id=None):
+		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		if await CommandAccess.check_module_enabled("quotes") == False:
+			embed.title = "Cannot use this module"
+			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_wizard(ctx) == None:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have access to use this command."
+		else:
+			if id == None:
+				embed.title = "Failed to remove quote"
+				embed.description = "You must pass a quote ID to remove."
+
+			with open(Utilities.get_quotes_directory(), 'r') as f:
+				data = json.load(f)
+
+			maxIndex = 0
+			for _ in data:
+				maxIndex = maxIndex + 1
+			maxIndex = maxIndex - 1
+
+			try:
+				if int(id) < 0 or int(id) > maxIndex:
+					embed.title = "Failed to remove quote"
+					embed.description = "You must pass a quote ID to remove."
+				else:
+					with open(Utilities.get_quotes_directory(), 'w') as f:
+						data.remove(data[int(id)])
+						json.dump(data, f, indent=4)
+				
+				embed.title = "Quote Removed"
+				embed.description = "The quote has been purged from my archives. Total Quotes: **" + str(maxIndex - 1) + ".**"
+			except ValueError:
+				embed.title = "Failed to remove quote"
+				embed.description = "The quote ID must be a number."
+
 		await ctx.send(embed = embed)

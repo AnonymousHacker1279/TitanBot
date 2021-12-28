@@ -2,7 +2,7 @@ import json
 from discord.ext import commands
 import discord
 from ..GeneralUtilities import GeneralUtilities as Utilities
-from ..GeneralUtilities import CommandAccess
+from ..GeneralUtilities.CommandAccess import CommandAccess
 
 class UserConfig(commands.Cog):
 	@commands.command(name='togglePings')
@@ -10,7 +10,7 @@ class UserConfig(commands.Cog):
 	async def module_info(self, ctx, status=None):
 		"""Toggle pings from bot responses. Pass 'status' to see your current status."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if await CommandAccess.CommandAccess.check_module_enabled("userConfig") == False:
+		if await CommandAccess.check_module_enabled("userConfig") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
 		else:
