@@ -25,7 +25,7 @@
             ]
         },
         "fun": {
-            "enabled": false,
+            "enabled": true,
             "forceEnabled": false,
             "displayName": "Fun",
             "id": "fun",

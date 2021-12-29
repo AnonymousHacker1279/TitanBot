@@ -6,6 +6,7 @@ import json
 
 
 class RevokeAccess(commands.Cog):
+	"""Limit feature access for users who misbehave."""
 
 	@commands.command(name='revokeCommandAccess')
 	@commands.guild_only()

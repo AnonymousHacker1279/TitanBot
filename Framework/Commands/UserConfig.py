@@ -6,6 +6,8 @@ from ..GeneralUtilities import CommandAccess
 
 
 class UserConfig(commands.Cog):
+	"""Custom configuration for each user."""
+
 	@commands.command(name='togglePings')
 	@commands.guild_only()
 	async def module_info(self, ctx, status=None):

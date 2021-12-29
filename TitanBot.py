@@ -2,6 +2,8 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+
+from Framework.Commands.Fun import Fun
 from Framework.Commands.UserConfig import UserConfig
 from Framework.ModuleSystem.Modules import ModuleSystem
 from Framework.Commands.Quotes import Quotes
@@ -22,6 +24,7 @@ bot.help_command = Help()
 bot.add_cog(ModuleSystem())
 bot.add_cog(UserConfig())
 bot.add_cog(Quotes())
+bot.add_cog(Fun())
 bot.add_cog(RevokeAccess())
 
 

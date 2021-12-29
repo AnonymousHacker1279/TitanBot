@@ -9,6 +9,7 @@ import math
 
 
 class Quotes(commands.Cog):
+	"""Remember the silly stuff people say."""
 
 	@commands.command(name='quote')
 	@commands.guild_only()
