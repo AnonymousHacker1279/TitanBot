@@ -27,8 +27,11 @@ class Quotes(commands.Cog):
 				embed.description = '> "' + pContent + '"\n'
 				embed.description += " - " + pAuthor
 
-			authorUser = await ctx.bot.fetch_user(int(pAuthor.lstrip("<@!").rstrip(">")))
-			embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
+			try:
+				authorUser = await ctx.bot.fetch_user(int(pAuthor.lstrip("<@!").rstrip(">")))
+				embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
+			except (NotFound, ValueError):
+				embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
 
 			return embed
 
@@ -109,7 +112,6 @@ class Quotes(commands.Cog):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
 		else:
-			# TODO: noQuote checks will need to be here; also, will noQuote only prevent addQuote or other quote functions?
 			with open(Utilities.get_quotes_directory(), 'r') as f:
 				data = json.load(f)
 
