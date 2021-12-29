@@ -13,6 +13,9 @@ class UserConfig(commands.Cog):
 		if await CommandAccess.check_module_enabled("userConfig") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "togglePings") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
 		else:
 			embed.title = "Toggle Pings"
 

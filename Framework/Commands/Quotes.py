@@ -35,6 +35,9 @@ class Quotes(commands.Cog):
 		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "quote") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
 		else:
 			# Check if an ID is provided, if not get a random quote
 			with open(Utilities.get_quotes_directory(), 'r') as f:
@@ -75,6 +78,9 @@ class Quotes(commands.Cog):
 		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "totalQuotes") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
 		else:
 			with open(Utilities.get_quotes_directory(), 'r') as f:
 				data = json.load(f)
@@ -98,6 +104,9 @@ class Quotes(commands.Cog):
 		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "addQuote") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
 		else:
 			# TODO: noQuote checks will need to be here; also, will noQuote only prevent addQuote or other quote functions?
 			with open(Utilities.get_quotes_directory(), 'r') as f:
@@ -126,6 +135,9 @@ class Quotes(commands.Cog):
 		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "removeQuote") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
 		elif await CommandAccess.check_user_is_wizard(ctx) == None:
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have access to use this command."
@@ -169,6 +181,9 @@ class Quotes(commands.Cog):
 		if await CommandAccess.check_module_enabled("quotes") == False:
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "searchQuotes") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
 		else:
 			# Check if an author was provided
 			if quoteAuthor == None:
@@ -212,7 +227,7 @@ class Quotes(commands.Cog):
 							iteration = 0
 							# Iterate through the index and build a response
 							for i in authorQuoteIndex:
-								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(authorQuoteIndex[iteration]) + "**\n"
+								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(authorQuoteIndex[iteration] - 1) + "**\n"
 								iteration = iteration + 1
 								if iteration >= 5:
 									break

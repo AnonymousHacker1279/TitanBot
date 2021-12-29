@@ -11,6 +11,11 @@ class ModuleSystem(commands.Cog):
 	async def module_info(self, ctx, module=None):
 		"""Get module information. Lists all modules and their status by default. Specify a specific module to get detailed information."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+
+		if await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "moduleInfo") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
+
 		embed.title = "Module System: Information"
 
 		# Open the settings file
@@ -66,7 +71,10 @@ class ModuleSystem(commands.Cog):
 		"""Toggle the state of a module. Pass the ID of the module you wish to toggle."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		if await CommandAccess.check_user_is_wizard(ctx) == None:
+		if await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "toggleModuleState") == True:
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
+		elif await CommandAccess.check_user_is_wizard(ctx) == None:
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have access to use this command."
 

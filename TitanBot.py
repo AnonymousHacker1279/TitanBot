@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from Framework.Commands.UserConfig import UserConfig
 from Framework.ModuleSystem.Modules import ModuleSystem
 from Framework.Commands.Quotes import Quotes
+from Framework.Commands.RevokeCommandAccess import RevokeCommandAccess
 from Framework.Commands.HelpCommand import Help
 
 class TitanBot(discord.Client):
@@ -28,5 +29,6 @@ class TitanBot(discord.Client):
 	bot.add_cog(ModuleSystem())
 	bot.add_cog(UserConfig())
 	bot.add_cog(Quotes())
+	bot.add_cog(RevokeCommandAccess())
 
 	bot.run(TOKEN)
