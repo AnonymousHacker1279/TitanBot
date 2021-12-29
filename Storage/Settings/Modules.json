@@ -44,7 +44,9 @@
             "description": "The moderator system provides management commands to users with adequate permissions.",
             "commands": [
                 "revokeCommandAccess",
-                "viewRevokedCommands"
+                "viewRevokedCommands",
+                "revokeModuleAccess",
+                "viewRevokedModules"
             ]
         }
     }

@@ -12,36 +12,40 @@ class Quotes(commands.Cog):
 
 	@commands.command(name='quote')
 	@commands.guild_only()
-	async def quote(self, ctx, id=None):
+	async def quote(self, ctx, quoteID=None):
 		"""Get a random quote, if an ID isn't provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		async def prepare_quote(pAuthor, pContent, pId):
-			embed.title = "Quote #" + pId
-
-			if "https://" in pContent:
-				embed.set_image(url=pContent)
-				embed.description = pAuthor
-			else:
-				embed.description = '> "' + pContent + '"\n'
-				embed.description += " - " + pAuthor
-
-			try:
-				authorUser = await ctx.bot.fetch_user(int(pAuthor.lstrip("<@!").rstrip(">")))
-				embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
-			except (NotFound, ValueError):
-				embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
-
-			return embed
-
 		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
+			embed.title = "Cannot use this module"
+			embed.description = "You do not have access to use this module."
 		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "quote"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
 		else:
+
+			async def prepare_quote(pAuthor, pContent, pId):
+				embed.title = "Quote #" + pId
+
+				if "https://" in pContent:
+					embed.set_image(url=pContent)
+					embed.description = pAuthor
+				else:
+					embed.description = '> "' + pContent + '"\n'
+					embed.description += " - " + pAuthor
+
+				try:
+					authorUser = await ctx.bot.fetch_user(int(pAuthor.lstrip("<@!").rstrip(">")))
+					embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
+				except (NotFound, ValueError):
+					embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
+
+				return embed
+
 			# Check if an ID is provided, if not get a random quote
 			with open(Utilities.get_quotes_directory(), 'r') as f:
 				data = json.load(f)
@@ -50,7 +54,7 @@ class Quotes(commands.Cog):
 				for _ in data:
 					maxIndex = maxIndex + 1
 				maxIndex = maxIndex - 1
-			if id is None:
+			if quoteID is None:
 				random = randint(0, maxIndex)
 				author = data[random]["author"]
 				content = data[random]["content"]
@@ -59,14 +63,14 @@ class Quotes(commands.Cog):
 
 			else:
 				try:
-					if int(id) < 0 or int(id) > maxIndex:
+					if int(quoteID) < 0 or int(quoteID) > maxIndex:
 						embed.title = "Cannot get quote"
 						embed.description = "Invalid quote ID. It must not be less than zero and must be less than the " \
 							"total number of quotes. "
 					else:
-						content = data[int(id)]["content"]
-						author = data[int(id)]["author"]
-						embed = await prepare_quote(author, content, id)
+						content = data[int(quoteID)]["content"]
+						author = data[int(quoteID)]["author"]
+						embed = await prepare_quote(author, content, quoteID)
 				except ValueError:
 					embed.title = "Cannot get quote"
 					embed.description = "The quote ID must be a number."
@@ -82,6 +86,9 @@ class Quotes(commands.Cog):
 		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
+			embed.title = "Cannot use this module"
+			embed.description = "You do not have access to use this module."
 		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "totalQuotes"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
@@ -108,6 +115,9 @@ class Quotes(commands.Cog):
 		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
+			embed.title = "Cannot use this module"
+			embed.description = "You do not have access to use this module."
 		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "addQuote"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
@@ -138,6 +148,9 @@ class Quotes(commands.Cog):
 		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
+			embed.title = "Cannot use this module"
+			embed.description = "You do not have access to use this module."
 		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "removeQuote"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
@@ -185,6 +198,9 @@ class Quotes(commands.Cog):
 		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
+			embed.title = "Cannot use this module"
+			embed.description = "You do not have access to use this module."
 		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "searchQuotes"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."

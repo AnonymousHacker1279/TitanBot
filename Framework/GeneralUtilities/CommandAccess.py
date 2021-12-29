@@ -37,3 +37,18 @@ async def check_user_is_banned_from_command(user: str, command: str):
 			return True
 		maxIndex = maxIndex + 1
 	return False
+
+
+async def check_user_is_banned_from_module(user: str, module: str):
+	# Check if a user is banned from using a module
+	with open(Utilities.get_revoked_modules_directory(), 'r') as f:
+		data = json.load(f)
+
+	# Check if the user is banned from using the module
+	maxIndex = 0
+	user = user.lstrip("<@!").rstrip(">")
+	for _ in data:
+		if user in data[maxIndex]["user"] and module in data[maxIndex]["revokedModules"]:
+			return True
+		maxIndex = maxIndex + 1
+	return False

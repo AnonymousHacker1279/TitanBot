@@ -15,3 +15,7 @@ def get_quotes_directory():
 
 def get_revoked_commands_directory():
 	return os.path.abspath(os.getcwd() + "/Storage/Settings/UserAccess/Commands/RevokedCommands.json")
+
+
+def get_revoked_modules_directory():
+	return os.path.abspath(os.getcwd() + "/Storage/Settings/UserAccess/Modules/RevokedModules.json")

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from Framework.Commands.UserConfig import UserConfig
 from Framework.ModuleSystem.Modules import ModuleSystem
 from Framework.Commands.Quotes import Quotes
-from Framework.Commands.RevokeCommandAccess import RevokeCommandAccess
+from Framework.Commands.RevokeAccess import RevokeAccess
 from Framework.Commands.HelpCommand import Help
 
 
@@ -22,7 +22,7 @@ bot.help_command = Help()
 bot.add_cog(ModuleSystem())
 bot.add_cog(UserConfig())
 bot.add_cog(Quotes())
-bot.add_cog(RevokeCommandAccess())
+bot.add_cog(RevokeAccess())
 
 
 @bot.event
