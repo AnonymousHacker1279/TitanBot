@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 
+
 class Help(commands.MinimalHelpCommand):
 	async def send_pages(self):
 		destination = self.get_destination()

@@ -2,7 +2,8 @@ import json
 from discord.ext import commands
 import discord
 from ..GeneralUtilities import GeneralUtilities as Utilities
-from ..GeneralUtilities.CommandAccess import CommandAccess
+from ..GeneralUtilities import CommandAccess
+
 
 class UserConfig(commands.Cog):
 	@commands.command(name='togglePings')
@@ -10,10 +11,10 @@ class UserConfig(commands.Cog):
 	async def module_info(self, ctx, status=None):
 		"""Toggle pings from bot responses. Pass 'status' to see your current status."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if await CommandAccess.check_module_enabled("userConfig") == False:
+		if not await CommandAccess.check_module_enabled("userConfig"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "togglePings") == True:
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "togglePings"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
 		else:
@@ -32,9 +33,9 @@ class UserConfig(commands.Cog):
 					line += "Disabled :negative_squared_cross_mark:"
 				else:
 					line += "Enabled :white_check_mark:"
-				
+
 				embed.description = line + "\n"
-			elif status == None:
+			elif status is None:
 				# Set the title
 				embed.title = "Toggle User Configuration: Pings"
 				# Get status
@@ -47,9 +48,9 @@ class UserConfig(commands.Cog):
 
 				with open(Utilities.get_user_config_disabled_pings_directory(), 'w') as f:
 					json.dump(data, f, indent=4)
-				
+
 				embed.description = line + "\n"
 			else:
 				embed.description = "Invalid argument passed, see ``$help togglePings``."
 
-		await ctx.send(embed = embed)
+		await ctx.send(embed=embed)

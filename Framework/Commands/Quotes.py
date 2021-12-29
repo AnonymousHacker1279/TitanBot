@@ -1,14 +1,15 @@
 from discord.errors import NotFound
 from discord.ext import commands
 import discord
-from ..GeneralUtilities.CommandAccess import CommandAccess
+from ..GeneralUtilities import CommandAccess
 from ..GeneralUtilities import GeneralUtilities as Utilities
 import json
 from random import randint
 import math
 
+
 class Quotes(commands.Cog):
-	
+
 	@commands.command(name='quote')
 	@commands.guild_only()
 	async def quote(self, ctx, id=None):
@@ -16,26 +17,25 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		async def prepare_quote(author, content, id):
-			embed.title = "Quote #" + id
-			
-			if "https://" in content:
-				embed.set_image(url = content)
-				embed.description = author
-			else:
-				embed.description = '> "' + content + '"\n'
-				embed.description += " - " + author
+		async def prepare_quote(pAuthor, pContent, pId):
+			embed.title = "Quote #" + pId
 
-			authorUser = await ctx.bot.fetch_user(int(author.lstrip("<@!").rstrip(">")))
-			embed.set_thumbnail(url = (authorUser.avatar_url.BASE + authorUser.avatar_url._url))
+			if "https://" in pContent:
+				embed.set_image(url=pContent)
+				embed.description = pAuthor
+			else:
+				embed.description = '> "' + pContent + '"\n'
+				embed.description += " - " + pAuthor
+
+			authorUser = await ctx.bot.fetch_user(int(pAuthor.lstrip("<@!").rstrip(">")))
+			embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
 
 			return embed
 
-
-		if await CommandAccess.check_module_enabled("quotes") == False:
+		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "quote") == True:
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "quote"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
 		else:
@@ -47,7 +47,7 @@ class Quotes(commands.Cog):
 				for _ in data:
 					maxIndex = maxIndex + 1
 				maxIndex = maxIndex - 1
-			if id == None:
+			if id is None:
 				random = randint(0, maxIndex)
 				author = data[random]["author"]
 				content = data[random]["content"]
@@ -58,7 +58,8 @@ class Quotes(commands.Cog):
 				try:
 					if int(id) < 0 or int(id) > maxIndex:
 						embed.title = "Cannot get quote"
-						embed.description = "Invalid quote ID. It must not be less than zero and must be less than the total number of quotes."
+						embed.description = "Invalid quote ID. It must not be less than zero and must be less than the " \
+							"total number of quotes. "
 					else:
 						content = data[int(id)]["content"]
 						author = data[int(id)]["author"]
@@ -66,8 +67,8 @@ class Quotes(commands.Cog):
 				except ValueError:
 					embed.title = "Cannot get quote"
 					embed.description = "The quote ID must be a number."
-				
-		await ctx.send(embed = embed)
+
+		await ctx.send(embed=embed)
 
 	@commands.command(name='totalQuotes')
 	@commands.guild_only()
@@ -75,10 +76,10 @@ class Quotes(commands.Cog):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if await CommandAccess.check_module_enabled("quotes") == False:
+		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "totalQuotes") == True:
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "totalQuotes"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
 		else:
@@ -89,22 +90,22 @@ class Quotes(commands.Cog):
 			for _ in data:
 				maxIndex = maxIndex + 1
 			maxIndex = maxIndex - 1
-			
+
 			embed.title = "Total Quotes"
 			embed.description = "I have " + str(maxIndex) + " quotes in my archives."
 			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
-		await ctx.send(embed = embed)
+		await ctx.send(embed=embed)
 
 	@commands.command(name='addQuote')
 	@commands.guild_only()
-	async def add_quote(self, ctx, quote:str, author:str):
+	async def add_quote(self, ctx, quote: str, author: str):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if await CommandAccess.check_module_enabled("quotes") == False:
+		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "addQuote") == True:
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "addQuote"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
 		else:
@@ -118,13 +119,13 @@ class Quotes(commands.Cog):
 			maxIndex = maxIndex - 1
 
 			with open(Utilities.get_quotes_directory(), 'w') as f:
-				quoteDictionary = {"content": quote , "author": author}
+				quoteDictionary = {"content": quote, "author": author}
 				data.append(quoteDictionary)
 				json.dump(data, f, indent=4)
-			
+
 			embed.title = "Quote Added"
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
-		await ctx.send(embed = embed)
+		await ctx.send(embed=embed)
 
 	@commands.command(name='removeQuote')
 	@commands.guild_only()
@@ -132,17 +133,17 @@ class Quotes(commands.Cog):
 		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if await CommandAccess.check_module_enabled("quotes") == False:
+		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "removeQuote") == True:
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "removeQuote"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
-		elif await CommandAccess.check_user_is_wizard(ctx) == None:
+		elif await CommandAccess.check_user_is_wizard(ctx) is None:
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have access to use this command."
 		else:
-			if id == None:
+			if id is None:
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
 
@@ -162,14 +163,15 @@ class Quotes(commands.Cog):
 					with open(Utilities.get_quotes_directory(), 'w') as f:
 						data.remove(data[int(id)])
 						json.dump(data, f, indent=4)
-				
+
 				embed.title = "Quote Removed"
-				embed.description = "The quote has been purged from my archives. Total Quotes: **" + str(maxIndex - 1) + ".**"
+				embed.description = "The quote has been purged from my archives. Total Quotes: **" + str(
+					maxIndex - 1) + ".**"
 			except ValueError:
 				embed.title = "Failed to remove quote"
 				embed.description = "The quote ID must be a number."
 
-		await ctx.send(embed = embed)
+		await ctx.send(embed=embed)
 
 	@commands.command(name='searchQuotes')
 	@commands.guild_only()
@@ -178,15 +180,15 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		if await CommandAccess.check_module_enabled("quotes") == False:
+		if not await CommandAccess.check_module_enabled("quotes"):
 			embed.title = "Cannot use this module"
 			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "searchQuotes") == True:
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "searchQuotes"):
 			embed.title = "Cannot use this command"
 			embed.description = "You do not have permission to use this command."
 		else:
 			# Check if an author was provided
-			if quoteAuthor == None:
+			if quoteAuthor is None:
 				embed.title = "Cannot search quotes"
 				embed.description = "You must provide an author"
 			quoteAuthor = str(quoteAuthor)
@@ -203,7 +205,7 @@ class Quotes(commands.Cog):
 					if quoteAuthor in i['author']:
 						authorQuoteIndex.append(maxIndex)
 				maxIndex = maxIndex - 1
-			
+
 			try:
 				if int(page) < 1:
 					embed.title = "Cannot search quotes"
@@ -213,7 +215,7 @@ class Quotes(commands.Cog):
 					try:
 						authorUser = await ctx.bot.fetch_user(int(quoteAuthor.lstrip("<@!").rstrip(">")))
 						authorDisplayName = authorUser.display_name
-						embed.set_thumbnail(url = (authorUser.avatar_url.BASE + authorUser.avatar_url._url))
+						embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
 					except (NotFound, ValueError):
 						embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
 
@@ -227,7 +229,8 @@ class Quotes(commands.Cog):
 							iteration = 0
 							# Iterate through the index and build a response
 							for i in authorQuoteIndex:
-								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(authorQuoteIndex[iteration] - 1) + "**\n"
+								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(
+									authorQuoteIndex[iteration] - 1) + "**\n"
 								iteration = iteration + 1
 								if iteration >= 5:
 									break
@@ -237,7 +240,8 @@ class Quotes(commands.Cog):
 						# Check if there are enough quotes to fill a page
 						if len(authorQuoteIndex) <= 5 or len(authorQuoteIndex) <= ((page - 1) * 5):
 							embed.description += "This author doesn't have enough quotes to reach this page. \n"
-							embed.description += "They have **" + str(math.ceil(len(authorQuoteIndex) / 5)) + "** pages of quotes."
+							embed.description += "They have **" + str(
+								math.ceil(len(authorQuoteIndex) / 5)) + "** pages of quotes."
 						else:
 							# List the next 5 by page number
 							embed.description += "Listing the next five quotes by this author (**Page " + str(page) + "**): \n\n"
@@ -247,7 +251,8 @@ class Quotes(commands.Cog):
 							currentQuotesOnPage = 0
 							remainingQuotes = len(authorQuoteIndex) - iteration
 							while remainingQuotes > 0:
-								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(authorQuoteIndex[iteration]) + "**\n"
+								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(
+									authorQuoteIndex[iteration]) + "**\n"
 								iteration = iteration + 1
 								remainingQuotes = remainingQuotes - 1
 								currentQuotesOnPage = currentQuotesOnPage + 1
@@ -257,5 +262,5 @@ class Quotes(commands.Cog):
 			except ValueError:
 				embed.title = "Cannot search quotes"
 				embed.description = "The page must be a number."
-				
-		await ctx.send(embed = embed)
+
+		await ctx.send(embed=embed)

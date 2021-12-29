@@ -43,7 +43,8 @@
             "id": "moderator",
             "description": "The moderator system provides management commands to users with adequate permissions.",
             "commands": [
-                "revokeCommandAccess"
+                "revokeCommandAccess",
+                "viewRevokedCommands"
             ]
         }
     }
