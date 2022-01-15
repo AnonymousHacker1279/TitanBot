@@ -2,6 +2,7 @@ import json
 from datetime import date
 from random import randint
 
+import psutil as psutil
 import requests as requests
 from discord.ext import commands
 import discord
@@ -156,5 +157,63 @@ class Utility(commands.Cog):
 			embed.description += "What's new, in the latest version: \n```txt\n" + \
 								changelog + "```\n"
 			embed.set_footer(text="AnonymousHacker1279, " + str(date.today().year))
+
+		await ctx.send(embed=embed)
+
+	@commands.command(name='totalUsers')
+	@commands.guild_only()
+	async def total_users(self, ctx):
+		"""Get the total number of users in the server."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		if not await CommandAccess.check_module_enabled("utility"):
+			embed.title = "Cannot use this module"
+			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
+			embed.title = "Cannot use this module"
+			embed.description = "You do not have access to use this module."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "totalUsers"):
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
+		else:
+			embed.title = "Total Users"
+			embed.description = "There are **" + str(ctx.guild.member_count) + "** users here."
+
+		await ctx.send(embed=embed)
+
+	@commands.command(name='status')
+	@commands.guild_only()
+	async def status(self, ctx):
+		"""Get the current system status."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		if not await CommandAccess.check_module_enabled("utility"):
+			embed.title = "Cannot use this module"
+			embed.description = "This module has been disabled."
+		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
+			embed.title = "Cannot use this module"
+			embed.description = "You do not have access to use this module."
+		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "status"):
+			embed.title = "Cannot use this command"
+			embed.description = "You do not have permission to use this command."
+		else:
+			embed.title = "System Status"
+
+			cpuUsage = psutil.cpu_percent(interval=1)
+			cpuCount = psutil.cpu_count()
+			systemMemoryUsage = psutil.virtual_memory()[2]
+			totalSystemMemory = round(psutil.virtual_memory()[0] / (1024 * 1024 * 1024), 2)
+
+			embed.description = "CPU Information: **" \
+								+ str(cpuUsage) + "% usage, " \
+								+ str(cpuCount) + " cores**\n"
+			embed.description += "Memory Information: **"\
+								+ str(systemMemoryUsage) + "% usage, "\
+								+ str(totalSystemMemory) + " total GB**\n"
+
+			if cpuUsage > 70:
+				embed.description += ":warning: High CPU usage, responsiveness may be degraded.\n"
+			if systemMemoryUsage > 80:
+				embed.description += ":warning: High memory usage, responsiveness may be degraded.\n"
 
 		await ctx.send(embed=embed)
