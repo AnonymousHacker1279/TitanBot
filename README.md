@@ -20,7 +20,7 @@ you will need to provide the server.
 You will need to create a `.env` file in the root of the operating folder. This stores environment
 variables that TitanBot needs. The file should look somewhat like this:
 
-```env
+```txt
 DISCORD_TOKEN=<your bot token>
 DISCORD_GUILD=<a guild for your bot>
 WIZARD_ROLE=<a role ID to denote users that can access higher level functions>
