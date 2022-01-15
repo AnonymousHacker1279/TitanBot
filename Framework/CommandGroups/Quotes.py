@@ -1,11 +1,12 @@
+import json
+import math
+from random import randint
+
+import discord
 from discord.errors import NotFound
 from discord.ext import commands
-import discord
-from ..GeneralUtilities import CommandAccess
-from ..GeneralUtilities import GeneralUtilities as Utilities
-import json
-from random import randint
-import math
+
+from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
 
 
 class Quotes(commands.Cog):
@@ -18,16 +19,8 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		if not await CommandAccess.check_module_enabled("quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "quote"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
+		if not failedPermissionCheck:
 
 			async def prepare_quote(pAuthor, pContent, pId):
 				embed.title = "Quote #" + pId
@@ -84,16 +77,8 @@ class Quotes(commands.Cog):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "totalQuotes"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "totalQuotes")
+		if not failedPermissionCheck:
 			with open(Utilities.get_quotes_directory(), 'r') as f:
 				data = json.load(f)
 
@@ -113,16 +98,8 @@ class Quotes(commands.Cog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "addQuote"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "addQuote")
+		if not failedPermissionCheck:
 			with open(Utilities.get_quotes_directory(), 'r') as f:
 				data = json.load(f)
 
@@ -146,19 +123,8 @@ class Quotes(commands.Cog):
 		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "removeQuote"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		elif await CommandAccess.check_user_is_wizard(ctx) is None:
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have access to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "removeQuote", True)
+		if not failedPermissionCheck:
 			if id is None:
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
@@ -196,16 +162,8 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		if not await CommandAccess.check_module_enabled("quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "quotes"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "searchQuotes"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "searchQuotes")
+		if not failedPermissionCheck:
 			# Check if an author was provided
 			if quoteAuthor is None:
 				embed.title = "Cannot search quotes"

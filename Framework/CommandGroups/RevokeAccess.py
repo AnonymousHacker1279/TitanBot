@@ -1,8 +1,9 @@
-from discord.ext import commands
-import discord
-from ..GeneralUtilities import CommandAccess
-from ..GeneralUtilities import GeneralUtilities as Utilities
 import json
+
+import discord
+from discord.ext import commands
+
+from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
 
 
 class RevokeAccess(commands.Cog):
@@ -14,19 +15,8 @@ class RevokeAccess(commands.Cog):
 		"""Revoke access to a specific command. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "revokeCommandAccess"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have access to use this command."
-		elif await CommandAccess.check_user_is_wizard(ctx) is None:
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have access to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revokeCommandAccess", True)
+		if not failedPermissionCheck:
 			# Ensure the user and command arguments are provided
 			if user is None or command is None:
 				embed.title = "Failed to revoke command access"
@@ -80,16 +70,8 @@ class RevokeAccess(commands.Cog):
 		"""See revoked commands for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "viewRevokedCommands"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "viewRevokedCommands")
+		if not failedPermissionCheck:
 			# Check if a user is provided
 			if user is None:
 				user = ctx.message.author.mention
@@ -122,19 +104,8 @@ class RevokeAccess(commands.Cog):
 		"""Revoke access to an entire module. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "revokeModuleAccess"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have access to use this command."
-		elif await CommandAccess.check_user_is_wizard(ctx) is None:
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have access to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revokeModuleAccess", True)
+		if not failedPermissionCheck:
 			# Ensure the user and module arguments are provided
 			if user is None or module is None:
 				embed.title = "Failed to revoke module access"
@@ -188,16 +159,8 @@ class RevokeAccess(commands.Cog):
 		"""See revoked modules for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "moderator"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "viewRevokedModules"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "viewRevokedModules")
+		if not failedPermissionCheck:
 			# Check if a user is provided
 			if user is None:
 				user = ctx.message.author.mention

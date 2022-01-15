@@ -1,8 +1,9 @@
 import json
-from discord.ext import commands
+
 import discord
-from ..GeneralUtilities import GeneralUtilities as Utilities
-from ..GeneralUtilities import CommandAccess
+from discord.ext import commands
+
+from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
 
 
 class UserConfig(commands.Cog):
@@ -13,16 +14,8 @@ class UserConfig(commands.Cog):
 	async def module_info(self, ctx, status=None):
 		"""Toggle pings from bot responses. Pass 'status' to see your current status."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("userConfig"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "userConfig"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "togglePings"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "userConfig", "togglePings")
+		if not failedPermissionCheck:
 			embed.title = "Toggle Pings"
 
 			# Open the settings file

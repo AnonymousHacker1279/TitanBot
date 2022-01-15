@@ -1,8 +1,10 @@
-from ..GeneralUtilities import GeneralUtilities as Utilities
 import json
+import os
+
 from discord import utils
 from dotenv import load_dotenv
-import os
+
+from ..GeneralUtilities import GeneralUtilities as Utilities
 
 load_dotenv()
 WIZARD_ROLE = os.getenv('WIZARD_ROLE')

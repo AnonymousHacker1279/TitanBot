@@ -2,14 +2,13 @@ import discord
 from discord.ext import commands
 
 from Framework.CommandGroups.Fun import Fun
+from Framework.CommandGroups.Help import Help
+from Framework.CommandGroups.Quotes import Quotes
+from Framework.CommandGroups.RevokeAccess import RevokeAccess
 from Framework.CommandGroups.UserConfig import UserConfig
 from Framework.CommandGroups.Utility import Utility
 from Framework.GeneralUtilities import Constants
 from Framework.ModuleSystem.Modules import ModuleSystem
-from Framework.CommandGroups.Quotes import Quotes
-from Framework.CommandGroups.RevokeAccess import RevokeAccess
-from Framework.CommandGroups.Help import Help
-
 
 intents = discord.Intents.default()
 intents.members = True

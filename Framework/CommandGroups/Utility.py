@@ -2,12 +2,12 @@ import json
 from datetime import date
 from random import randint
 
+import discord
 import psutil as psutil
 import requests as requests
 from discord.ext import commands
-import discord
 
-from ..GeneralUtilities import CommandAccess, Constants
+from ..GeneralUtilities import Constants, PermissionHandler
 
 
 class Utility(commands.Cog):
@@ -19,16 +19,8 @@ class Utility(commands.Cog):
 		"""See the length of time I have existed."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "age"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "age")
+		if not failedPermissionCheck:
 			birthDate = date(2021, 7, 15)
 			todayDate = date.today()
 			delta = todayDate - birthDate
@@ -45,16 +37,8 @@ class Utility(commands.Cog):
 		"""Flip a coin."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "coinFlip"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "coinFlip")
+		if not failedPermissionCheck:
 			embed.title = "Coin Flip"
 			if randint(0, 1) == 0:
 				value = "Heads"
@@ -70,16 +54,8 @@ class Utility(commands.Cog):
 		"""Roll a die. Defaults to six sides if not specified."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "rollDie"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "rollDie")
+		if not failedPermissionCheck:
 			embed.title = "Roll Die"
 			if len(sides) == 0:
 				embed.description = "Result: **" + str(randint(1, 6)) + ".**"
@@ -97,16 +73,8 @@ class Utility(commands.Cog):
 		"""Get the latency of the bot."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "ping"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "ping")
+		if not failedPermissionCheck:
 			embed.title = "Bot Latency"
 			latency = round(ctx.bot.latency * 1000)
 			embed.description = "Current Bot Latency: **" + str(latency) + " ms**\n"
@@ -125,16 +93,8 @@ class Utility(commands.Cog):
 		"""Learn about me."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "about"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "about")
+		if not failedPermissionCheck:
 			embed.title = "About Me"
 			embed.description = "I'm **TitanBot**, an intelligent software built by **AnonymousHacker1279.**\n"
 			embed.description += "Providing features to servers since 7/15/21.\n\n"
@@ -166,16 +126,8 @@ class Utility(commands.Cog):
 		"""Get the total number of users in the server."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "totalUsers"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "totalUsers")
+		if not failedPermissionCheck:
 			embed.title = "Total Users"
 			embed.description = "There are **" + str(ctx.guild.member_count) + "** users here."
 
@@ -187,16 +139,8 @@ class Utility(commands.Cog):
 		"""Get the current system status."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		if not await CommandAccess.check_module_enabled("utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "This module has been disabled."
-		elif await CommandAccess.check_user_is_banned_from_module(ctx.message.author.mention, "utility"):
-			embed.title = "Cannot use this module"
-			embed.description = "You do not have access to use this module."
-		elif await CommandAccess.check_user_is_banned_from_command(ctx.message.author.mention, "status"):
-			embed.title = "Cannot use this command"
-			embed.description = "You do not have permission to use this command."
-		else:
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "status")
+		if not failedPermissionCheck:
 			embed.title = "System Status"
 
 			cpuUsage = psutil.cpu_percent(interval=1)
