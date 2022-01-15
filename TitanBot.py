@@ -1,19 +1,15 @@
-import os
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 
-from Framework.Commands.Fun import Fun
-from Framework.Commands.UserConfig import UserConfig
+from Framework.CommandGroups.Fun import Fun
+from Framework.CommandGroups.UserConfig import UserConfig
+from Framework.CommandGroups.Utility import Utility
+from Framework.GeneralUtilities import Constants
 from Framework.ModuleSystem.Modules import ModuleSystem
-from Framework.Commands.Quotes import Quotes
-from Framework.Commands.RevokeAccess import RevokeAccess
-from Framework.Commands.HelpCommand import Help
+from Framework.CommandGroups.Quotes import Quotes
+from Framework.CommandGroups.RevokeAccess import RevokeAccess
+from Framework.CommandGroups.Help import Help
 
-
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD = os.getenv('DISCORD_GUILD')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -25,6 +21,7 @@ bot.add_cog(ModuleSystem())
 bot.add_cog(UserConfig())
 bot.add_cog(Quotes())
 bot.add_cog(Fun())
+bot.add_cog(Utility())
 bot.add_cog(RevokeAccess())
 
 
@@ -34,4 +31,4 @@ async def on_ready():
 	await bot.change_presence(activity=discord.Game('Inflicting pain on humans'))
 
 
-bot.run(TOKEN)
+bot.run(Constants.TOKEN)

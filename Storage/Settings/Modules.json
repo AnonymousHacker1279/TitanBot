@@ -31,9 +31,23 @@
             "id": "fun",
             "description": "The 'Fun' system simply allows users to mess with each other.",
             "commands": [
-                "stab",
-                "slap",
-                "rock"
+                "stab"
+            ]
+        },
+        "utility": {
+            "enabled": true,
+            "forceEnabled": false,
+            "displayName": "Utility",
+            "id": "utility",
+            "description": "The utility system provides useful tools and functionalities.",
+            "commands": [
+                "about",
+                "age",
+                "flipCoin",
+                "rollDie",
+                "system",
+                "totalUsers",
+                "ping"
             ]
         },
         "moderator": {

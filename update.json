@@ -1,7 +1,7 @@
 {
-    "latest": "v0.0.1",
-    "v0.0.1": {
+    "latest": "v2.0.0-indev",
+    "v2.0.0-indev": {
         "changelog": "In-dev build as part of the TitanBot v2.x rewrite.",
-        "versionTag": "alpha"
+        "versionTag": "indev"
     }
 }
