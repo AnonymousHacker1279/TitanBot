@@ -1,0 +1,7 @@
+{
+    "latest": "v0.0.1",
+    "v0.0.1": {
+        "changelog": "In-dev build as part of the TitanBot v2.x rewrite.",
+        "versionTag": "alpha"
+    }
+}
