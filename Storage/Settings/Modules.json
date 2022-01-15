@@ -31,7 +31,8 @@
             "id": "fun",
             "description": "The 'Fun' system simply allows users to mess with each other.",
             "commands": [
-                "stab"
+                "stab",
+                "spotify"
             ]
         },
         "utility": {

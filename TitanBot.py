@@ -12,6 +12,7 @@ from Framework.ModuleSystem.Modules import ModuleSystem
 
 intents = discord.Intents.default()
 intents.members = True
+intents.presences = True
 bot = commands.Bot(command_prefix='$', intents=intents)
 
 bot.help_command = Help()
