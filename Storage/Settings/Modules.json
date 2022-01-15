@@ -45,7 +45,7 @@
                 "age",
                 "flipCoin",
                 "rollDie",
-                "system",
+                "status",
                 "totalUsers",
                 "ping"
             ]
