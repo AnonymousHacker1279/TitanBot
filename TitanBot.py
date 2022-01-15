@@ -30,4 +30,25 @@ async def on_ready():
 	await bot.change_presence(activity=discord.Game('Inflicting pain on humans'))
 
 
+@bot.event
+async def on_command_error(ctx, error):
+	embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+	if isinstance(error, commands.errors.CommandInvokeError):
+		embed.title = "Command Invocation Error"
+		embed.description = "An error occurred while trying to execute the command.\n\n"
+	elif isinstance(error, commands.errors.UserInputError):
+		embed.title = "Invalid Syntax"
+		embed.description = "A command was used improperly. Please see ``$help`` for command usage.\n\n"
+	elif isinstance(error, commands.errors.CommandNotFound):
+		embed.title = "Command Not Found"
+		embed.description = "A matching command could not be found. Please see ``$help`` for commands.\n\n"
+	else:
+		embed.title = "Unspecified Error"
+		embed.description = "An error was thrown during the handling of the command, but I don't know how to handle it.\n\n"
+
+	embed.description += "Error: ``" + str(error) + "``"
+
+	await ctx.send(embed=embed)
+
+
 bot.run(Constants.TOKEN)
