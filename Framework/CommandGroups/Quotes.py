@@ -1,6 +1,7 @@
 import json
 import math
 from random import randint
+import re
 
 import discord
 from discord.errors import NotFound
@@ -25,9 +26,20 @@ class Quotes(commands.Cog):
 			async def prepare_quote(pAuthor, pContent, pId):
 				embed.title = "Quote #" + pId
 
-				if "https://" in pContent:
-					embed.set_image(url=pContent)
-					embed.description = pAuthor
+				links = re.findall('https://[a-zA-Z0-9-./]*', pContent)
+				contentExcludingLinks = ""
+				iteration = 0
+				for _ in links:
+					contentExcludingLinks = re.sub(pattern=links[iteration], repl="", string=pContent)
+					iteration += 1
+				if len(links) != 0:
+					if contentExcludingLinks == "":
+						embed.set_image(url=links[0])
+						embed.description = pAuthor
+					else:
+						embed.description = '> "' + pContent + '"\n'
+						embed.description += " - " + pAuthor
+						embed.set_image(url=links[0])
 				else:
 					embed.description = '> "' + pContent + '"\n'
 					embed.description += " - " + pAuthor
@@ -119,13 +131,13 @@ class Quotes(commands.Cog):
 
 	@commands.command(name='removeQuote')
 	@commands.guild_only()
-	async def remove_quote(self, ctx, id=None):
+	async def remove_quote(self, ctx, quoteID=None):
 		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "removeQuote", True)
 		if not failedPermissionCheck:
-			if id is None:
+			if quoteID is None:
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
 
@@ -138,12 +150,12 @@ class Quotes(commands.Cog):
 			maxIndex = maxIndex - 1
 
 			try:
-				if int(id) < 0 or int(id) > maxIndex:
+				if int(quoteID) < 0 or int(quoteID) > maxIndex:
 					embed.title = "Failed to remove quote"
 					embed.description = "You must pass a quote ID to remove."
 				else:
 					with open(Utilities.get_quotes_directory(), 'w') as f:
-						data.remove(data[int(id)])
+						data.remove(data[int(quoteID)])
 						json.dump(data, f, indent=4)
 
 				embed.title = "Quote Removed"
@@ -181,7 +193,6 @@ class Quotes(commands.Cog):
 					maxIndex = maxIndex + 1
 					if quoteAuthor in i['author']:
 						authorQuoteIndex.append(maxIndex)
-				maxIndex = maxIndex - 1
 
 			try:
 				if int(page) < 1:
@@ -205,7 +216,7 @@ class Quotes(commands.Cog):
 							embed.description += "Listing the first five quotes by this author: \n\n"
 							iteration = 0
 							# Iterate through the index and build a response
-							for i in authorQuoteIndex:
+							for _ in authorQuoteIndex:
 								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(
 									authorQuoteIndex[iteration] - 1) + "**\n"
 								iteration = iteration + 1
