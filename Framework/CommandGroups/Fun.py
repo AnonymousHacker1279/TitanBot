@@ -35,6 +35,7 @@ class Fun(commands.Cog):
 		if not failedPermissionCheck:
 			if user is None:
 				user = ctx.author
+			nonSpotifyActivities = 0
 			if user.activities:
 				for activity in user.activities:
 					if isinstance(activity, Spotify):
@@ -45,6 +46,11 @@ class Fun(commands.Cog):
 						embed.add_field(name="Album", value=activity.album)
 						embed.add_field(name="Duration", value=str(activity.duration).split(".")[0])
 						embed.set_footer(text="Track ID: {}".format(activity.track_id))
+					else:
+						nonSpotifyActivities += 1
+						if nonSpotifyActivities == len(user.activities):
+							embed.title = "Cannot get Spotify status"
+							embed.description = "The user is not listening to Spotify."
 			else:
 				embed.title = "Cannot get Spotify status"
 				embed.description = "The user is not listening to Spotify."
