@@ -26,7 +26,7 @@ class Quotes(commands.Cog):
 			async def prepare_quote(pAuthor, pContent, pId):
 				embed.title = "Quote #" + pId
 
-				links = re.findall('https://[a-zA-Z0-9-./]*', pContent)
+				links = re.findall('https://[a-zA-Z0-9-./_]*', pContent)
 				contentExcludingLinks = ""
 				iteration = 0
 				for _ in links:
