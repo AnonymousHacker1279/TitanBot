@@ -13,7 +13,7 @@ from ..GeneralUtilities import Constants, PermissionHandler
 class Utility(commands.Cog):
 	"""Get some work done with tools and utilities."""
 
-	@commands.command(name='age')
+	@commands.command(name='age', aliases=["a"])
 	@commands.guild_only()
 	async def age(self, ctx):
 		"""See the length of time I have existed."""
@@ -31,7 +31,7 @@ class Utility(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='coinFlip')
+	@commands.command(name='coinFlip', aliases=["cf"])
 	@commands.guild_only()
 	async def coin_flip(self, ctx):
 		"""Flip a coin."""
@@ -48,7 +48,7 @@ class Utility(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='rollDie')
+	@commands.command(name='rollDie', aliases=["rd"])
 	@commands.guild_only()
 	async def roll_die(self, ctx, *sides: int):
 		"""Roll a die. Defaults to six sides if not specified."""
@@ -67,7 +67,7 @@ class Utility(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='ping')
+	@commands.command(name='ping', aliases=["p"])
 	@commands.guild_only()
 	async def ping(self, ctx):
 		"""Get the latency of the bot."""
@@ -87,7 +87,7 @@ class Utility(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='about')
+	@commands.command(name='about', aliases=["ab"])
 	@commands.guild_only()
 	async def about(self, ctx):
 		"""Learn about me."""
@@ -120,7 +120,7 @@ class Utility(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='totalUsers')
+	@commands.command(name='totalUsers', aliases=["tu"])
 	@commands.guild_only()
 	async def total_users(self, ctx):
 		"""Get the total number of users in the server."""
@@ -133,7 +133,7 @@ class Utility(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='status')
+	@commands.command(name='status', aliases=["sts"])
 	@commands.guild_only()
 	async def status(self, ctx):
 		"""Get the current system status."""

@@ -13,7 +13,7 @@ from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
 class Quotes(commands.Cog):
 	"""Remember the silly stuff people say."""
 
-	@commands.command(name='quote')
+	@commands.command(name='quote', aliases=["q"])
 	@commands.guild_only()
 	async def quote(self, ctx, quoteID=None):
 		"""Get a random quote, if an ID isn't provided."""
@@ -60,7 +60,10 @@ class Quotes(commands.Cog):
 				for _ in data:
 					maxIndex = maxIndex + 1
 				maxIndex = maxIndex - 1
-			if quoteID is None:
+			if maxIndex == -1:
+				embed.title = "Failed to Get Quote"
+				embed.description = "I do not have any quotes in my archives."
+			elif quoteID is None:
 				random = randint(0, maxIndex)
 				author = data[random]["author"]
 				content = data[random]["content"]
@@ -83,7 +86,7 @@ class Quotes(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='totalQuotes')
+	@commands.command(name='totalQuotes', aliases=["tq"])
 	@commands.guild_only()
 	async def total_quotes(self, ctx):
 		"""Get the total number of quotes available."""
@@ -100,11 +103,14 @@ class Quotes(commands.Cog):
 			maxIndex = maxIndex - 1
 
 			embed.title = "Total Quotes"
-			embed.description = "I have " + str(maxIndex) + " quotes in my archives."
+			if maxIndex == -1:
+				embed.description = "I have do not have any quotes in my archives."
+			else:
+				embed.description = "I have " + str(maxIndex) + " quotes in my archives."
 			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
 		await ctx.send(embed=embed)
 
-	@commands.command(name='addQuote')
+	@commands.command(name='addQuote', aliases=["aq"])
 	@commands.guild_only()
 	async def add_quote(self, ctx, quote: str, author: str):
 		"""Did someone say something stupid? Make them remember it with a quote."""
@@ -129,7 +135,7 @@ class Quotes(commands.Cog):
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
 		await ctx.send(embed=embed)
 
-	@commands.command(name='removeQuote')
+	@commands.command(name='removeQuote', aliases=["rq"])
 	@commands.guild_only()
 	async def remove_quote(self, ctx, quoteID=None):
 		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
@@ -167,7 +173,7 @@ class Quotes(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='searchQuotes')
+	@commands.command(name='searchQuotes', aliases=["sq"])
 	@commands.guild_only()
 	async def search_quotes(self, ctx, quoteAuthor=None, page=1):
 		"""Search quotes by author. Lists up to 5 per page."""

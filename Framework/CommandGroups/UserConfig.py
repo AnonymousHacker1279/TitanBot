@@ -7,9 +7,9 @@ from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
 
 
 class UserConfig(commands.Cog):
-	"""Custom configuration for each user."""
+	"""Custom configuration for each user. Note: These commands currently have no use and may be removed in the future!"""
 
-	@commands.command(name='togglePings')
+	@commands.command(name='togglePings', aliases=["tp"])
 	@commands.guild_only()
 	async def module_info(self, ctx, status=None):
 		"""Toggle pings from bot responses. Pass 'status' to see your current status."""

@@ -7,7 +7,7 @@ from ..GeneralUtilities import GeniusQuery, PermissionHandler
 class Genius(commands.Cog):
 	"""Interact with the Genius music API."""
 
-	@commands.command(name='searchSongs')
+	@commands.command(name='searchSongs', aliases=["ss"])
 	@commands.guild_only()
 	async def search_songs(self, ctx, artist=None, song=None):
 		"""Search for a song by artist and song name."""
@@ -26,7 +26,7 @@ class Genius(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='getLyricsByURL')
+	@commands.command(name='getLyricsByURL', aliases=["lurl"])
 	@commands.guild_only()
 	async def get_lyrics_by_url(self, ctx, url=None):
 		"""Search for a song by its Genius URL."""
@@ -44,7 +44,7 @@ class Genius(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='getLyricsByID')
+	@commands.command(name='getLyricsByID', aliases=["lid"])
 	@commands.guild_only()
 	async def get_lyrics_by_id(self, ctx, songID=None):
 		"""Search for a song by its Genius ID."""

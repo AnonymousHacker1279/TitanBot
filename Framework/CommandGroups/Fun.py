@@ -8,7 +8,7 @@ from ..GeneralUtilities import PermissionHandler
 class Fun(commands.Cog):
 	"""Have fun with some useless commands."""
 
-	@commands.command(name='stab')
+	@commands.command(name='stab', aliases=["stb"])
 	@commands.guild_only()
 	async def stab(self, ctx, user=None):
 		"""Stab someone, or something."""
@@ -25,7 +25,7 @@ class Fun(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='spotify')
+	@commands.command(name='spotify', aliases=["sp"])
 	@commands.guild_only()
 	async def spotify(self, ctx, user=None):
 		"""Check the status of a user playing music via Spotify. Specify a user, otherwise uses the user executing the command."""

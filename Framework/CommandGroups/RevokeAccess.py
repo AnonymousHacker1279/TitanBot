@@ -9,7 +9,7 @@ from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
 class RevokeAccess(commands.Cog):
 	"""Limit feature access for users who misbehave."""
 
-	@commands.command(name='revokeCommandAccess')
+	@commands.command(name='revokeCommandAccess', aliases=["rca"])
 	@commands.guild_only()
 	async def revoke_command_access(self, ctx, user=None, command=None):
 		"""Revoke access to a specific command. Only available to TitanBot Wizards."""
@@ -64,7 +64,7 @@ class RevokeAccess(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='viewRevokedCommands')
+	@commands.command(name='viewRevokedCommands', aliases=["vrc"])
 	@commands.guild_only()
 	async def view_revoked_commands(self, ctx, user=None):
 		"""See revoked commands for a user. Defaults to the author of the message if no user is provided."""
@@ -98,7 +98,7 @@ class RevokeAccess(commands.Cog):
 
 			await ctx.send(embed=embed)
 
-	@commands.command(name='revokeModuleAccess')
+	@commands.command(name='revokeModuleAccess', aliases=["rma"])
 	@commands.guild_only()
 	async def revoke_module_access(self, ctx, user=None, module=None):
 		"""Revoke access to an entire module. Only available to TitanBot Wizards."""
@@ -153,7 +153,7 @@ class RevokeAccess(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='viewRevokedModules')
+	@commands.command(name='viewRevokedModules', aliases=["vrm"])
 	@commands.guild_only()
 	async def view_revoked_modules(self, ctx, user=None):
 		"""See revoked modules for a user. Defaults to the author of the message if no user is provided."""
