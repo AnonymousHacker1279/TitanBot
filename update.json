@@ -1,5 +1,9 @@
 {
-    "latest": "v2.0.0-indev",
+    "latest": "v2.0.0",
+    "v2.0.0": {
+        "changelog": "Full v2.0 release. Goodbye, legacy! We won't miss you!\n\nWhat's new since the last indev release:\n - Added integration with the Genius music API for getting song lyrics.",
+        "versionTag": "release"
+    },
     "v2.0.0-indev": {
         "changelog": "In-dev build as part of the TitanBot v2.x rewrite.",
         "versionTag": "indev"

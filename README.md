@@ -14,7 +14,7 @@ you will need to provide the server.
 
 #### What TitanBot needs:
 - His own operating folder
-- A Python 3 installation (currently built with `3.10`, older versions may work but aren't verified)
+- A Python 3 installation (currently built with `3.10.1`, older versions may work but aren't verified)
 - Some `pip` modules; Python will tell you what you need when it crashes on startup :)
 
 You will need to create a `.env` file in the root of the operating folder. This stores environment
@@ -24,8 +24,9 @@ variables that TitanBot needs. The file should look somewhat like this:
 DISCORD_TOKEN=<your bot token>
 DISCORD_GUILD=<a guild for your bot>
 WIZARD_ROLE=<a role ID to denote users that can access higher level functions>
-BOT_VERSION=v0.0.1
+BOT_VERSION=v2.0.0
 BOT_UPDATE_LOCATION=https://raw.githubusercontent.com/AnonymousHacker1279/TitanBot/v2.x/update.json
+GENIUS_API_TOKEN=<a Genius API token, if you want to use the Genius music module>
 ```
 
 You will need to replace any text within `<>` with your own data. `BOT_VERSION` represents the current

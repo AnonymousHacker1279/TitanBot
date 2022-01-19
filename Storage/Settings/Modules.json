@@ -51,6 +51,18 @@
                 "ping"
             ]
         },
+        "genius": {
+            "enabled": true,
+            "forceEnabled": false,
+            "displayName": "Genius",
+            "id": "genius",
+            "description": "The Genius system allows you to interact with the Genius music API.",
+            "commands": [
+                "searchSongs",
+                "getLyricsByURL",
+                "getLyricsByID"
+            ]
+        },
         "moderator": {
             "enabled": true,
             "forceEnabled": true,

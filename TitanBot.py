@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from Framework.CommandGroups.Fun import Fun
+from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.RevokeAccess import RevokeAccess
@@ -22,6 +23,7 @@ bot.add_cog(UserConfig())
 bot.add_cog(Quotes())
 bot.add_cog(Fun())
 bot.add_cog(Utility())
+bot.add_cog(Genius())
 bot.add_cog(RevokeAccess())
 
 
