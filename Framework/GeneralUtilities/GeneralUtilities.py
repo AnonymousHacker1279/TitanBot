@@ -19,3 +19,7 @@ def get_revoked_commands_directory():
 
 def get_revoked_modules_directory():
 	return os.path.abspath(os.getcwd() + "/Storage/Settings/UserAccess/Modules/RevokedModules.json")
+
+
+def get_custom_commands_directory():
+	return os.path.abspath(os.getcwd() + "/Storage/CustomCommands/")

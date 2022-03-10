@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from Framework.CommandGroups.CustomCommands import CustomCommands
 from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
@@ -25,6 +26,7 @@ bot.add_cog(Fun())
 bot.add_cog(Utility())
 bot.add_cog(Genius())
 bot.add_cog(RevokeAccess())
+bot.add_cog(CustomCommands())
 
 
 @bot.event

@@ -63,6 +63,18 @@
                 "getLyricsByID"
             ]
         },
+        "customCommands": {
+            "enabled": true,
+            "forceEnabled": false,
+            "displayName": "Custom Commands",
+            "id": "customCommands",
+            "description": "The Custom Commands system allows you to expand the power of TitanBot by implementing your own features on-the-fly without modifying bot code.",
+            "commands": [
+                "addCommand",
+                "removeCommand",
+                "findCommands"
+            ]
+        },
         "moderator": {
             "enabled": true,
             "forceEnabled": true,
