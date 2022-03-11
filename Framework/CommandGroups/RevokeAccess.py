@@ -25,7 +25,7 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				command = str(command)
 
-				with open(Utilities.get_revoked_commands_directory(), 'r') as f:
+				with open(Utilities.get_revoked_commands_database(), 'r') as f:
 					data = json.load(f)
 
 				maxIndex = 0
@@ -59,7 +59,7 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the command has been revoked from the user."
 
-				with open(Utilities.get_revoked_commands_directory(), 'w') as f:
+				with open(Utilities.get_revoked_commands_database(), 'w') as f:
 					json.dump(data, f, indent=4)
 
 		await ctx.send(embed=embed)
@@ -77,7 +77,7 @@ class RevokeAccess(commands.Cog):
 				user = ctx.message.author.mention
 			user = user.lstrip("<@!").rstrip(">")
 
-			with open(Utilities.get_revoked_commands_directory(), 'r') as f:
+			with open(Utilities.get_revoked_commands_database(), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -114,7 +114,7 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				module = str(module)
 
-				with open(Utilities.get_revoked_modules_directory(), 'r') as f:
+				with open(Utilities.get_revoked_modules_database(), 'r') as f:
 					data = json.load(f)
 
 				maxIndex = 0
@@ -148,7 +148,7 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the module has been revoked from the user."
 
-				with open(Utilities.get_revoked_modules_directory(), 'w') as f:
+				with open(Utilities.get_revoked_modules_database(), 'w') as f:
 					json.dump(data, f, indent=4)
 
 		await ctx.send(embed=embed)
@@ -166,7 +166,7 @@ class RevokeAccess(commands.Cog):
 				user = ctx.message.author.mention
 			user = user.lstrip("<@!").rstrip(">")
 
-			with open(Utilities.get_revoked_modules_directory(), 'r') as f:
+			with open(Utilities.get_revoked_modules_database(), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0

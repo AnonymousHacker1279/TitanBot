@@ -19,7 +19,7 @@ class UserConfig(commands.Cog):
 			embed.title = "Toggle Pings"
 
 			# Open the settings file
-			with open(Utilities.get_user_config_disabled_pings_directory(), 'r') as f:
+			with open(Utilities.get_user_config_disabled_pings_database(), 'r') as f:
 				data = json.load(f)
 
 			if str(status) == "status":
@@ -44,7 +44,7 @@ class UserConfig(commands.Cog):
 					data["disabledPings"].append(ctx.message.author.mention)
 					line = "Bot pings are now disabled."
 
-				with open(Utilities.get_user_config_disabled_pings_directory(), 'w') as f:
+				with open(Utilities.get_user_config_disabled_pings_database(), 'w') as f:
 					json.dump(data, f, indent=4)
 
 				embed.description = line + "\n"

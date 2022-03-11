@@ -23,6 +23,35 @@ EMBED_FEATURES = {
 	}
 }
 
+PASSED_ARGUMENTS = []
+
+
+# Internal functions
+def __purge_embed_dict__():
+	global EMBED_FEATURES
+	EMBED_FEATURES = {
+		"title": "",
+		"description": "",
+		"image_url": "",
+		"footer": "",
+		"color": "",
+		"thumbnail_url": "",
+		"author": {
+			"name": "",
+			"url": "",
+			"image_url": ""
+		},
+		"fields": {
+			"count": 0,
+			"entries": {}
+		}
+	}
+
+
+def __purge_arguments_dict__():
+	global PASSED_ARGUMENTS
+	PASSED_ARGUMENTS = []
+
 
 def set_embed_title(title: str) -> str:
 	EMBED_FEATURES["title"] = title
@@ -102,6 +131,10 @@ def remove_embed_field(name: str):
 	if EMBED_FEATURES["fields"]["count"] != 0:
 		EMBED_FEATURES["fields"]["entries"].pop(name)
 		EMBED_FEATURES["fields"]["count"] = EMBED_FEATURES["fields"]["count"] - 1
+
+
+def get_arguments() -> list:
+	return PASSED_ARGUMENTS
 
 
 # Helper functions go here

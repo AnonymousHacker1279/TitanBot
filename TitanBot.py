@@ -1,3 +1,7 @@
+import json
+import re
+from os.path import isfile
+
 import discord
 from discord.ext import commands
 
@@ -9,7 +13,7 @@ from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.RevokeAccess import RevokeAccess
 from Framework.CommandGroups.UserConfig import UserConfig
 from Framework.CommandGroups.Utility import Utility
-from Framework.GeneralUtilities import Constants
+from Framework.GeneralUtilities import Constants, GeneralUtilities, OsmiumInterconnect
 from Framework.ModuleSystem.Modules import ModuleSystem
 
 intents = discord.Intents.default()
@@ -37,6 +41,7 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
+	is_running_custom_command = False
 	embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 	if isinstance(error, commands.errors.CommandInvokeError):
 		embed.title = "Command Invocation Error"
@@ -45,13 +50,36 @@ async def on_command_error(ctx, error):
 		embed.title = "Invalid Syntax"
 		embed.description = "A command was used improperly. Please see ``$help`` for command usage.\n\n"
 	elif isinstance(error, commands.errors.CommandNotFound):
-		embed.title = "Command Not Found"
-		embed.description = "A matching command could not be found. Please see ``$help`` for commands.\n\n"
+		# If a command is not found, try checking for a custom command.
+		# First, we need to get the command. Unfortunately the method isn't exactly clean...
+		command = re.findall("(\"[\\w\\s]+\")", str(error))[0]
+		command = str(command).lstrip('"').rstrip('"')
+		path = GeneralUtilities.get_custom_commands_directory() + "\\" + command + ".js"
+
+		arguments = re.findall("(\"[\\w\\s]+\")", ctx.message.content)
+
+		with open(GeneralUtilities.get_custom_commands_alias_database(), "r") as f:
+			aliases = json.load(f)
+
+		if isfile(path):
+			with open(path, "r") as f:
+				embed = await OsmiumInterconnect.execute_with_osmium(f.read(), arguments, embed)
+			is_running_custom_command = True
+		else:
+			try:
+				path = GeneralUtilities.get_custom_commands_directory() + "\\" + aliases["aliases"][command] + ".js"
+				with open(path, "r") as f:
+					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), arguments, embed)
+				is_running_custom_command = True
+			except (ValueError, TypeError, KeyError):
+				embed.title = "Command Not Found"
+				embed.description = "A matching command could not be found. Please see ``$help`` for commands.\n\n"
 	else:
 		embed.title = "Unspecified Error"
 		embed.description = "An error was thrown during the handling of the command, but I don't know how to handle it.\n\n"
 
-	embed.description += "Error: ``" + str(error) + "``"
+	if is_running_custom_command is False:
+		embed.description += "Error: ``" + str(error) + "``"
 
 	await ctx.send(embed=embed)
 
