@@ -1,13 +1,11 @@
 import json
 import os
-from collections import Counter, defaultdict
 from os.path import isfile
 
 import discord
 from discord.ext import commands
 
-from ..Osmium import Osmium
-from ..GeneralUtilities import OsmiumInterconnect, PermissionHandler
+from ..GeneralUtilities import OsmiumInterconnect, PermissionHandler, VirusTotalQuery
 from ..GeneralUtilities import GeneralUtilities as Utilities
 
 
@@ -26,18 +24,29 @@ class CustomCommands(commands.Cog):
 		if not failedPermissionCheck:
 			if command_name is not None:
 				if code is not None:
-					with open(Utilities.get_custom_commands_directory() + "/" + command_name + ".js", 'w') as f:
-						# TODO: Before dumping potentially unsafe code, hash and upload to an API like Virushee
-						f.write(code)
-					with open(Utilities.get_custom_commands_alias_database(), 'r') as f:
-						alias_database = json.load(f)
-					with open(Utilities.get_custom_commands_alias_database(), 'w') as f:
-						alias_database["aliases"][alias] = command_name
-						json.dump(alias_database, f, indent=4)
+					# Scan the code for malware first
+					scan_result = await VirusTotalQuery.scan_text(code)
+					if scan_result["THREAT"]:
+						embed.title = "Refusing to Add Custom Command: Malware Detected"
+						embed.description = "A malware scan via VirusTotal determined the submitted code to be **malicious**." \
+											"\n```txt\nMalware Name: " + scan_result["THREAT_NAME"] + "\nSHA-256 Hash: " \
+											"" + scan_result["SHA256"] + "\n```\nThe scan result can be found below:\n" \
+											"https://www.virustotal.com/gui/file/" + scan_result["SHA256"]
 
-					embed.title = "Custom Command Added: " + command_name
-					embed.description = "You can now run the custom command by typing `$" + command_name + "`" \
-										" or by using the alias `$" + alias + "`"
+						embed.set_footer(text="Think something is wrong? Please contact an administrator.")
+
+					if scan_result["THREAT"] is False:
+						with open(await Utilities.get_custom_commands_directory() + "/" + command_name + ".js", 'w') as f:
+							f.write(code)
+						with open(await Utilities.get_custom_commands_alias_database(), 'r') as f:
+							alias_database = json.load(f)
+						with open(await Utilities.get_custom_commands_alias_database(), 'w') as f:
+							alias_database["aliases"][alias] = command_name
+							json.dump(alias_database, f, indent=4)
+
+						embed.title = "Custom Command Added: " + command_name
+						embed.description = "You can now run the custom command by typing `$" + command_name + "`" \
+											" or by using the alias `$" + alias + "`"
 				else:
 					embed.title = "Failed to Add Custom Command"
 					embed.description = "You must provide code to run with the command."
@@ -58,11 +67,11 @@ class CustomCommands(commands.Cog):
 																				shouldCheckForWizard=True)
 		if not failedPermissionCheck:
 			if command_name is not None:
-				path = Utilities.get_custom_commands_directory() + "/" + command_name + ".js"
+				path = await Utilities.get_custom_commands_directory() + "/" + command_name + ".js"
 				if isfile(path):
 					os.remove(path)
 
-				with open(Utilities.get_custom_commands_alias_database(), 'r') as f:
+				with open(await Utilities.get_custom_commands_alias_database(), 'r') as f:
 					alias_database = json.load(f)
 
 					database_commands_list = []
@@ -74,7 +83,7 @@ class CustomCommands(commands.Cog):
 					command_index_position = database_commands_list.index(command_name)
 					alias = database_alias_list[command_index_position]
 
-				with open(Utilities.get_custom_commands_alias_database(), 'w') as f:
+				with open(await Utilities.get_custom_commands_alias_database(), 'w') as f:
 					alias_database["aliases"].pop(alias)
 					json.dump(alias_database, f, indent=4)
 
@@ -97,7 +106,7 @@ class CustomCommands(commands.Cog):
 																				"runJS", shouldCheckForWizard=True)
 		if not failedPermissionCheck:
 			if code is not None:
-				embed = await OsmiumInterconnect.execute_with_osmium(code, arguments=None, embed=embed)
+				embed = await OsmiumInterconnect.execute_with_osmium(code, arguments=[], embed=embed)
 			else:
 				embed.title = "Failed to execute JavaScript"
 				embed.description = "You must provide a block of code to be executed."

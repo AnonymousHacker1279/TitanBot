@@ -53,7 +53,7 @@ class Quotes(commands.Cog):
 				return embed
 
 			# Check if an ID is provided, if not get a random quote
-			with open(Utilities.get_quotes_database(), 'r') as f:
+			with open(await Utilities.get_quotes_database(), 'r') as f:
 				data = json.load(f)
 
 				maxIndex = 0
@@ -94,7 +94,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "totalQuotes")
 		if not failedPermissionCheck:
-			with open(Utilities.get_quotes_database(), 'r') as f:
+			with open(await Utilities.get_quotes_database(), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -118,7 +118,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "addQuote")
 		if not failedPermissionCheck:
-			with open(Utilities.get_quotes_database(), 'r') as f:
+			with open(await Utilities.get_quotes_database(), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -126,7 +126,7 @@ class Quotes(commands.Cog):
 				maxIndex = maxIndex + 1
 			maxIndex = maxIndex - 1
 
-			with open(Utilities.get_quotes_database(), 'w') as f:
+			with open(await Utilities.get_quotes_database(), 'w') as f:
 				quoteDictionary = {"content": quote, "author": author}
 				data.append(quoteDictionary)
 				json.dump(data, f, indent=4)
@@ -147,7 +147,7 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
 
-			with open(Utilities.get_quotes_database(), 'r') as f:
+			with open(await Utilities.get_quotes_database(), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -160,7 +160,7 @@ class Quotes(commands.Cog):
 					embed.title = "Failed to remove quote"
 					embed.description = "You must pass a quote ID to remove."
 				else:
-					with open(Utilities.get_quotes_database(), 'w') as f:
+					with open(await Utilities.get_quotes_database(), 'w') as f:
 						data.remove(data[int(quoteID)])
 						json.dump(data, f, indent=4)
 
@@ -189,7 +189,7 @@ class Quotes(commands.Cog):
 			quoteAuthor = str(quoteAuthor)
 
 			# Get the quote data
-			with open(Utilities.get_quotes_database(), 'r') as f:
+			with open(await Utilities.get_quotes_database(), 'r') as f:
 				data = json.load(f)
 
 				maxIndex = 0

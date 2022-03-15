@@ -15,6 +15,8 @@ async def search_songs(artist: str, song: str):
 	lyrics = querySong.lyrics
 	# Do some cleanup, to get rid of random text at the end
 	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
+	lyrics = re.sub('[0-9]+Embed', "", lyrics)
+	lyrics = re.sub('Embed', "", lyrics)
 	return lyrics, querySong.id
 
 
@@ -24,6 +26,8 @@ async def get_lyrics_by_url(url: str):
 		return "No lyrics found."
 	# Do some cleanup, to get rid of random text at the end
 	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
+	lyrics = re.sub('[0-9]+Embed', "", lyrics)
+	lyrics = re.sub('Embed', "", lyrics)
 	return lyrics
 
 
@@ -33,4 +37,6 @@ async def get_lyrics_by_id(songID: int):
 		return "No lyrics found."
 	# Do some cleanup, to get rid of random text at the end
 	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
+	lyrics = re.sub('[0-9]+Embed', "", lyrics)
+	lyrics = re.sub('Embed', "", lyrics)
 	return lyrics

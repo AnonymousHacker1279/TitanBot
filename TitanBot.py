@@ -54,11 +54,11 @@ async def on_command_error(ctx, error):
 		# First, we need to get the command. Unfortunately the method isn't exactly clean...
 		command = re.findall("(\"[\\w\\s]+\")", str(error))[0]
 		command = str(command).lstrip('"').rstrip('"')
-		path = GeneralUtilities.get_custom_commands_directory() + "\\" + command + ".js"
+		path = await GeneralUtilities.get_custom_commands_directory() + "\\" + command + ".js"
 
 		arguments = re.findall("(\"[\\w\\s]+\")", ctx.message.content)
 
-		with open(GeneralUtilities.get_custom_commands_alias_database(), "r") as f:
+		with open(await GeneralUtilities.get_custom_commands_alias_database(), "r") as f:
 			aliases = json.load(f)
 
 		if isfile(path):
@@ -67,10 +67,11 @@ async def on_command_error(ctx, error):
 			is_running_custom_command = True
 		else:
 			try:
-				path = GeneralUtilities.get_custom_commands_directory() + "\\" + aliases["aliases"][command] + ".js"
+				path = await GeneralUtilities.get_custom_commands_directory() + "\\" + aliases["aliases"][command] + ".js"
 				with open(path, "r") as f:
 					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), arguments, embed)
 				is_running_custom_command = True
+
 			except (ValueError, TypeError, KeyError):
 				embed.title = "Command Not Found"
 				embed.description = "A matching command could not be found. Please see ``$help`` for commands.\n\n"
