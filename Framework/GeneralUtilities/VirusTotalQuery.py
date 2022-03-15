@@ -1,10 +1,10 @@
 import io
 
-from virustotal_python import Virustotal, VirustotalError
+import vt
 
 from Framework.GeneralUtilities import Constants, GeneralUtilities
 
-vt = Virustotal(API_KEY=Constants.VIRUSTOTAL_API_KEY, API_VERSION="v3", TIMEOUT=30)
+vt_client = vt.Client(Constants.VIRUSTOTAL_API_KEY)
 
 
 async def scan_text(text: str):
@@ -19,38 +19,26 @@ async def scan_text(text: str):
 	RETURN_DATA["SHA256"] = text_hash
 
 	# Check if the file has already been submitted, and if so, determine its status
-	existing_file_info = await check_file_info(text_hash, RETURN_DATA)
-
-	if existing_file_info != "NOT_FOUND":
-		return existing_file_info
-
-	# Make a file object with the text so that we can upload it
-	file = io.StringIO(text)
-	files = {
-		"file": file
-	}
-	response = vt.request("files", files=files, method="POST")
-
-	if "popular_threat_classification" in str(response.data):
-		RETURN_DATA["THREAT"] = True
-		if "popular_threat_name" in str(response.data):
-			RETURN_DATA["THREAT_NAME"] = str(response.data["attributes"]["popular_threat_classification"]["suggested_threat_label"])
-		return RETURN_DATA
-
-	return RETURN_DATA
-
-
-async def check_file_info(text_hash: str, return_data: dict):
 	try:
-		response = vt.request(f"files/{text_hash}")
-	except VirustotalError:
-		return "NOT_FOUND"
+		response = await vt_client.get_object_async("/files/" + text_hash)
+		RETURN_DATA = await check_results(response, RETURN_DATA, True)
 
-	if "popular_threat_classification" in str(response.data):
+		return RETURN_DATA
+	except vt.APIError:
+		# Make a file object with the text so that we can upload it for scanning
+		file = io.StringIO(text)
+		response = await vt_client.scan_file_async(file, wait_for_completion=True)
+
+		return await check_results(response, RETURN_DATA, False)
+
+
+async def check_results(response, return_data: dict, check_previous_submissions: bool):
+	if check_previous_submissions:
+		analysis_stats = response.get("last_analysis_stats")
+	else:
+		analysis_stats = response.get("stats")
+	if analysis_stats["malicious"] != 0 or analysis_stats["suspicious"] != 0:
 		return_data["THREAT"] = True
-		if "popular_threat_name" in str(response.data):
-			return_data["THREAT_NAME"] = str(
-				response.data["attributes"]["popular_threat_classification"]["suggested_threat_label"])
-		return return_data
+		return_data["THREAT_NAME"] = response.get("popular_threat_classification")["suggested_threat_label"]
 
 	return return_data
