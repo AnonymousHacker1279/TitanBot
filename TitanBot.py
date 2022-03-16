@@ -13,7 +13,7 @@ from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.RevokeAccess import RevokeAccess
 from Framework.CommandGroups.UserConfig import UserConfig
 from Framework.CommandGroups.Utility import Utility
-from Framework.GeneralUtilities import Constants, GeneralUtilities, OsmiumInterconnect
+from Framework.GeneralUtilities import Constants, GeneralUtilities, OsmiumInterconnect, PermissionHandler
 from Framework.ModuleSystem.Modules import ModuleSystem
 
 intents = discord.Intents.default()
@@ -58,23 +58,35 @@ async def on_command_error(ctx, error):
 
 		arguments = re.findall("(\"[\\w\\s]+\")", ctx.message.content)
 
-		with open(await GeneralUtilities.get_custom_commands_alias_database(), "r") as f:
-			aliases = json.load(f)
+		with open(await GeneralUtilities.get_custom_commands_metadata_database(), "r") as f:
+			metadata = json.load(f)
+			wizard_only = False
+			if command in metadata["wizard_only_commands"]:
+				wizard_only = True
 
 		if isfile(path):
-			with open(path, "r") as f:
-				embed = await OsmiumInterconnect.execute_with_osmium(f.read(), arguments, embed)
+			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+																					command,
+																					shouldCheckForWizard=wizard_only)
+			if not failedPermissionCheck:
+				with open(path, "r") as f:
+					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), arguments, embed)
 			is_running_custom_command = True
 		else:
 			try:
-				path = await GeneralUtilities.get_custom_commands_directory() + "\\" + aliases["aliases"][command] + ".js"
-				with open(path, "r") as f:
-					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), arguments, embed)
+				path = await GeneralUtilities.get_custom_commands_directory() + "\\" + metadata["aliases"][command] + ".js"
+				embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+																						command,
+																						shouldCheckForWizard=wizard_only)
+				if not failedPermissionCheck:
+					with open(path, "r") as f:
+						embed = await OsmiumInterconnect.execute_with_osmium(f.read(), arguments, embed)
 				is_running_custom_command = True
 
 			except (ValueError, TypeError, KeyError):
 				embed.title = "Command Not Found"
 				embed.description = "A matching command could not be found. Please see ``$help`` for commands.\n\n"
+
 	else:
 		embed.title = "Unspecified Error"
 		embed.description = "An error was thrown during the handling of the command, but I don't know how to handle it.\n\n"

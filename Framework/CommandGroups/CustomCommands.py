@@ -14,7 +14,8 @@ class CustomCommands(commands.Cog):
 
 	@commands.command(name='addCommand', aliases=["ac"])
 	@commands.guild_only()
-	async def add_command(self, ctx, command_name: str = None, alias: str = None, code: str = None):
+	async def add_command(self, ctx, command_name: str = None, alias: str = None, wizard_only: bool = False,
+							code: str = None):
 		"""Add a custom command to the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -44,11 +45,13 @@ class CustomCommands(commands.Cog):
 					if scan_result["THREAT"] is False:
 						with open(await Utilities.get_custom_commands_directory() + "/" + command_name + ".js", 'w') as f:
 							f.write(code)
-						with open(await Utilities.get_custom_commands_alias_database(), 'r') as f:
-							alias_database = json.load(f)
-						with open(await Utilities.get_custom_commands_alias_database(), 'w') as f:
-							alias_database["aliases"][alias] = command_name
-							json.dump(alias_database, f, indent=4)
+						with open(await Utilities.get_custom_commands_metadata_database(), 'r') as f:
+							metadata_database = json.load(f)
+						with open(await Utilities.get_custom_commands_metadata_database(), 'w') as f:
+							metadata_database["aliases"][alias] = command_name
+							if wizard_only:
+								metadata_database["wizard_only_commands"].append(command_name)
+							json.dump(metadata_database, f, indent=4)
 
 						embed.title = "Custom Command Added: " + command_name
 						embed.description = "You can now run the custom command by typing `$" + command_name + "`" \
@@ -80,21 +83,23 @@ class CustomCommands(commands.Cog):
 				if isfile(path):
 					os.remove(path)
 
-				with open(await Utilities.get_custom_commands_alias_database(), 'r') as f:
-					alias_database = json.load(f)
+				with open(await Utilities.get_custom_commands_metadata_database(), 'r') as f:
+					metadata_database = json.load(f)
 
 					database_commands_list = []
 					database_alias_list = []
-					for item in alias_database["aliases"]:
+					for item in metadata_database["aliases"]:
 						database_alias_list.append(item)
-						database_commands_list.append(alias_database["aliases"][item])
+						database_commands_list.append(metadata_database["aliases"][item])
 
 					command_index_position = database_commands_list.index(command_name)
 					alias = database_alias_list[command_index_position]
 
-				with open(await Utilities.get_custom_commands_alias_database(), 'w') as f:
-					alias_database["aliases"].pop(alias)
-					json.dump(alias_database, f, indent=4)
+				with open(await Utilities.get_custom_commands_metadata_database(), 'w') as f:
+					metadata_database["aliases"].pop(alias)
+					if command_name in metadata_database["wizard_only_commands"]:
+						metadata_database["wizard_only_commands"].remove(command_name)
+					json.dump(metadata_database, f, indent=4)
 
 				embed.title = "Custom Command Removed: " + command_name
 				embed.description = "The custom command and its aliases have been removed."

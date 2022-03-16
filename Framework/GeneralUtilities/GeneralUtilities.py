@@ -26,8 +26,8 @@ async def get_custom_commands_directory():
 	return os.path.abspath(os.getcwd() + "/Storage/CustomCommands")
 
 
-async def get_custom_commands_alias_database():
-	return os.path.abspath(os.getcwd() + "/Storage/CustomCommands/aliases.json")
+async def get_custom_commands_metadata_database():
+	return os.path.abspath(os.getcwd() + "/Storage/CustomCommands/metadata.json")
 
 
 async def generate_sha256(string: str) -> str:
