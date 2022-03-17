@@ -25,16 +25,16 @@ async def execute_with_osmium(js_code, arguments: list, embed):
 			embed.set_author(name=str(osmium.result["author"]["name"]),
 							url=str(osmium.result["author"]["url"]),
 							icon_url=str(osmium.result["author"]["image_url"]))
-		if osmium.result["fields"]["entries"]["count"] != 0:
+		if osmium.result["fields"]["count"] != 0:
 			for entry in osmium.result["fields"]["entries"]:
 				embed.add_field(name=entry,
 							value=str(osmium.result["fields"]["entries"][entry]["value"]),
 							inline=bool(osmium.result["fields"]["entries"][entry]["inline"]))
 
-		# Do some checking on required embed elements
-		if embed.title == "":
-			embed.title = "Null"
-		if embed.description == "":
-			embed.description = "Null"
+	# Do some checking on required embed elements
+	if embed.title == "":
+		embed.title = "Null"
+	if embed.description == "":
+		embed.description = "Null"
 
 	return embed

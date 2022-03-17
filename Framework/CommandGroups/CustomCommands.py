@@ -5,7 +5,7 @@ from os.path import isfile
 import discord
 from discord.ext import commands
 
-from ..GeneralUtilities import OsmiumInterconnect, PermissionHandler, VirusTotalQuery
+from ..GeneralUtilities import Constants, OsmiumInterconnect, PermissionHandler, VirusTotalQuery
 from ..GeneralUtilities import GeneralUtilities as Utilities
 
 
@@ -25,22 +25,26 @@ class CustomCommands(commands.Cog):
 		if not failedPermissionCheck:
 			if command_name is not None:
 				if code is not None:
-					# Scan the code for malware first
-					embed.title = "Command Addition Pending"
-					embed.description = "Your command is currently being scanned for malware via VirusTotal. " \
-										"This process can take some time, so please be patient."
-					embed.set_footer(text="This window will automatically update once the scan is complete.")
-					message = await ctx.send(embed=embed)
-					scan_result = await VirusTotalQuery.scan_text(code)
-					if scan_result["THREAT"]:
-						embed.title = "Refusing to Add Custom Command: Malware Detected"
-						embed.description = "A malware scan via VirusTotal determined the submitted code to be **malicious**." \
-											"\n```txt\nMalware Name: " + scan_result["THREAT_NAME"] + "\nSHA-256 Hash: " \
-											"" + scan_result["SHA256"] + "\n```\nThe scan result can be found below:\n" \
-											"https://www.virustotal.com/gui/file/" + scan_result["SHA256"]
+					# Scan the code for malware unless disabled
+					message = None
+					if Constants.ENABLE_CUSTOM_COMMANDS_MALWARE_SCANNING == "True":
+						embed.title = "Command Addition Pending"
+						embed.description = "Your command is currently being scanned for malware via VirusTotal. " \
+											"This process can take some time, so please be patient."
+						embed.set_footer(text="This window will automatically update once the scan is complete.")
+						message = await ctx.send(embed=embed)
+						scan_result = await VirusTotalQuery.scan_text(code)
+						if scan_result["THREAT"]:
+							embed.title = "Refusing to Add Custom Command: Malware Detected"
+							embed.description = "A malware scan via VirusTotal determined the submitted code to be **malicious**." \
+												"\n```txt\nMalware Name: " + scan_result["THREAT_NAME"] + "\nSHA-256 Hash: " \
+												"" + scan_result["SHA256"] + "\n```\nThe scan result can be found below:\n" \
+												"https://www.virustotal.com/gui/file/" + scan_result["SHA256"]
 
-						embed.set_footer(text="Think something is wrong? Please contact an administrator.")
-						await message.edit(embed=embed)
+							embed.set_footer(text="Think something is wrong? Please contact an administrator.")
+							await message.edit(embed=embed)
+					else:
+						scan_result = {"THREAT": False}
 
 					if scan_result["THREAT"] is False:
 						with open(await Utilities.get_custom_commands_directory() + "/" + command_name + ".js", 'w') as f:
@@ -57,7 +61,10 @@ class CustomCommands(commands.Cog):
 						embed.description = "You can now run the custom command by typing `$" + command_name + "`" \
 											" or by using the alias `$" + alias + "`"
 						embed.set_footer(text="")
-						await message.edit(embed=embed)
+						if message is not None:
+							await message.edit(embed=embed)
+						else:
+							await ctx.send(embed=embed)
 				else:
 					embed.title = "Failed to Add Custom Command"
 					embed.description = "You must provide code to run with the command."

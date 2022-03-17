@@ -1,11 +1,30 @@
+import ast
+import json
+import multiprocessing
+import threading
+import time
+from multiprocessing import Process
+
 import js2py
 import re
+
+from Framework.GeneralUtilities import Constants
 
 ################################################
 # Osmium version v1.0.0 by AnonymousHacker1279 #
 # All the files within these directories are   #
 # MIT licensed.                                #
 ################################################
+
+
+def execution_handler(js_code, response):
+	response["result"] = None
+	response["error"] = None
+
+	try:
+		response["result"] = str(js2py.eval_js(js_code))
+	except js2py.PyJsException as error:
+		response["error"] = "OSMIUM_ERROR: Failed to execute code. Reason:\n" + str(error)
 
 
 class Osmium:
@@ -15,6 +34,9 @@ class Osmium:
 		self.result = None
 
 		self.arguments = arguments
+
+		self.execution_time_remaining = Constants.CUSTOM_COMMANDS_MAX_EXECUTION_TIME
+		self.execution_complete = False
 
 		if import_whitelist_location is None:
 			import_whitelist_location = "data/lists/import_whitelist.txt"
@@ -42,10 +64,23 @@ class Osmium:
 
 	def execute_js(self, js_code):
 		js_code = self.inject(js_code)
-		try:
-			self.result = js2py.eval_js(js_code)
-		except js2py.PyJsException as error:
-			self.error = "OSMIUM_ERROR: Failed to execute code. Reason:\n" + str(error)
+
+		with multiprocessing.Manager() as manager:
+			response = manager.dict()
+
+			exec_process = Process(target=execution_handler, args=(js_code, response))
+			exec_process.start()
+			exec_process.join(Constants.CUSTOM_COMMANDS_MAX_EXECUTION_TIME)
+			exec_process.terminate()
+
+			try:
+				self.result = ast.literal_eval(response["result"])
+				self.error = response["error"]
+			except ValueError:
+				self.error = "OSMIUM_ERROR: Watchdog terminated execution because it took too much time. The maximum " \
+							"execution time is " + str(Constants.CUSTOM_COMMANDS_MAX_EXECUTION_TIME) + " seconds."
+
+			manager.shutdown()
 
 	def inject(self, js_code):
 		return """
