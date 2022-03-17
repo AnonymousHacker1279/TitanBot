@@ -3,6 +3,7 @@ import os
 from os.path import isfile
 
 import discord
+import requests
 from discord.ext import commands
 
 from ..GeneralUtilities import Constants, OsmiumInterconnect, PermissionHandler, VirusTotalQuery
@@ -24,6 +25,14 @@ class CustomCommands(commands.Cog):
 																				shouldCheckForWizard=True)
 		if not failedPermissionCheck:
 			if command_name is not None:
+				if code is None:
+					try:
+						file_url = ctx.message.attachments[0]
+						file_contents = requests.get(file_url).text
+						code = file_contents
+					except (ValueError, IndexError):
+						embed.title = "Failed to Add Custom Command"
+						embed.description = "You must provide code to run with the command."
 				if code is not None:
 					# Scan the code for malware unless disabled
 					message = None
