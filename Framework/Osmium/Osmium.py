@@ -50,6 +50,7 @@ class Osmium:
 		for line in js_code.splitlines():
 			if "pyimport" in line:
 				stripped_line = re.sub("pyimport ", "", line)
+				stripped_line = stripped_line.rstrip(';')
 				if stripped_line not in self.whitelisted_imports:
 					self.error = "OSMIUM_ERROR: Illegal import detected. Offending import: " + stripped_line
 
@@ -74,7 +75,8 @@ class Osmium:
 			exec_process.terminate()
 
 			try:
-				self.result = ast.literal_eval(response["result"])
+				if response["result"] is not None:
+					self.result = ast.literal_eval(response["result"])
 				self.error = response["error"]
 			except ValueError:
 				self.error = "OSMIUM_ERROR: Watchdog terminated execution because it took too much time. The maximum " \
