@@ -1,5 +1,9 @@
 {
-    "latest": "v2.0.1",
+    "latest": "v2.1.0",
+    "v2.1.0": {
+        "changelog": "Custom commands!\n\nExpand TitanBot to fit your server with custom commands.\nAdditionally, some improvements and minor bugfixes have been included for other functions.",
+        "versionTag": "release"
+    },
     "v2.1.0-indev": {
         "changelog": "Custom commands!\n\nExpand TitanBot to fit your server with custom commands.",
         "versionTag": "indev"
