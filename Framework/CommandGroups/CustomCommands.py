@@ -1,13 +1,13 @@
 import json
 import os
+from datetime import datetime
 from os.path import isfile
 
 import discord
 import requests
 from discord.ext import commands
 
-from ..GeneralUtilities import Constants, OsmiumInterconnect, PermissionHandler, VirusTotalQuery
-from ..GeneralUtilities import GeneralUtilities as Utilities
+from ..GeneralUtilities import Constants, GeneralUtilities as Utilities, PermissionHandler, VirusTotalQuery
 
 
 class CustomCommands(commands.Cog):
@@ -16,7 +16,7 @@ class CustomCommands(commands.Cog):
 	@commands.command(name='addCommand', aliases=["ac"])
 	@commands.guild_only()
 	async def add_command(self, ctx, command_name: str = None, alias: str = None, wizard_only: bool = False,
-							code: str = None):
+							code: str = None, description: str = None):
 		"""Add a custom command to the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -56,20 +56,37 @@ class CustomCommands(commands.Cog):
 						scan_result = {"THREAT": False}
 
 					if scan_result["THREAT"] is False:
+						# Minimize the code to save space
+						code = await Utilities.minimize_js(code)
+
 						with open(await Utilities.get_custom_commands_directory() + "/" + command_name + ".js", 'w') as f:
 							f.write(code)
+
 						with open(await Utilities.get_custom_commands_metadata_database(), 'r') as f:
 							metadata_database = json.load(f)
+
 						with open(await Utilities.get_custom_commands_metadata_database(), 'w') as f:
 							metadata_database["aliases"][alias] = command_name
 							if wizard_only:
 								metadata_database["wizard_only_commands"].append(command_name)
+
+							metadata_database["metadata"][command_name] = {}
+							metadata_database["metadata"][command_name]["date_added"] = datetime.now().isoformat()
+							metadata_database["metadata"][command_name]["author"] = ctx.author.id
+							metadata_database["metadata"][command_name]["size"] = str(len(code.encode('utf-8'))) + " bytes"
+
+							if description is None:
+								metadata_database["metadata"][command_name]["description"] = "No description provided."
+							else:
+								metadata_database["metadata"][command_name]["description"] = description
+
 							json.dump(metadata_database, f, indent=4)
 
 						embed.title = "Custom Command Added: " + command_name
 						embed.description = "You can now run the custom command by typing `$" + command_name + "`" \
 											" or by using the alias `$" + alias + "`"
 						embed.set_footer(text="")
+
 						if message is not None:
 							await message.edit(embed=embed)
 						else:
@@ -108,17 +125,26 @@ class CustomCommands(commands.Cog):
 						database_alias_list.append(item)
 						database_commands_list.append(metadata_database["aliases"][item])
 
-					command_index_position = database_commands_list.index(command_name)
-					alias = database_alias_list[command_index_position]
+					command_exists = True
 
-				with open(await Utilities.get_custom_commands_metadata_database(), 'w') as f:
-					metadata_database["aliases"].pop(alias)
-					if command_name in metadata_database["wizard_only_commands"]:
-						metadata_database["wizard_only_commands"].remove(command_name)
-					json.dump(metadata_database, f, indent=4)
+					try:
+						command_index_position = database_commands_list.index(command_name)
+						alias = database_alias_list[command_index_position]
+					except ValueError:
+						command_exists = False
+						embed.title = "Failed to Get Custom Command Info"
+						embed.description = "A command with the name `" + command_name + "` was not found."
 
-				embed.title = "Custom Command Removed: " + command_name
-				embed.description = "The custom command and its aliases have been removed."
+				if command_exists:
+					with open(await Utilities.get_custom_commands_metadata_database(), 'w') as f:
+						metadata_database["aliases"].pop(alias)
+						if command_name in metadata_database["wizard_only_commands"]:
+							metadata_database["wizard_only_commands"].remove(command_name)
+						metadata_database["metadata"].pop(command_name)
+						json.dump(metadata_database, f, indent=4)
+
+					embed.title = "Custom Command Removed: " + command_name
+					embed.description = "The custom command and its aliases have been removed."
 
 			else:
 				embed.title = "Failed to Remove Custom Command"
@@ -126,19 +152,51 @@ class CustomCommands(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(name='runJS', aliases=["rj"])
+	@commands.command(name='commandInfo', aliases=["ci"])
 	@commands.guild_only()
-	async def run_javascript(self, ctx, code: str = None):
-		"""Directly execute a block of JavaScript. Useful for testing new commands."""
+	async def command_info(self, ctx, command_name: str = None):
+		"""Get information about a custom command."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
-																				"runJS", shouldCheckForWizard=True)
+																				"commandInfo")
 		if not failedPermissionCheck:
-			if code is not None:
-				embed = await OsmiumInterconnect.execute_with_osmium(code, arguments=[], embed=embed)
+			if command_name is not None:
+				with open(await Utilities.get_custom_commands_metadata_database(), 'r') as f:
+					metadata = json.load(f)
+
+					database_commands_list = []
+					database_alias_list = []
+					for item in metadata["aliases"]:
+						database_alias_list.append(item)
+						database_commands_list.append(metadata["aliases"][item])
+
+					command_exists = True
+
+					try:
+						command_index_position = database_commands_list.index(command_name)
+						alias = database_alias_list[command_index_position]
+					except ValueError:
+						command_exists = False
+						embed.title = "Failed to Get Custom Command Info"
+						embed.description = "A command with the name `" + command_name + "` was not found."
+
+				if command_exists:
+					embed.title = "Custom Command Info: " + command_name
+					embed.description = metadata["metadata"][command_name]["description"]
+					embed.add_field(name="Alias", value=alias, inline=False)
+					date = datetime.fromisoformat(metadata["metadata"][command_name]["date_added"])
+					readable_date = str(date.month) + "/" + str(date.day) + "/" + str(date.year) + " at " + str(date.hour) + \
+									":" + str(date.minute) + ":" + str(date.second)
+					embed.add_field(name="Date Added", value=readable_date)
+					command_author = await ctx.bot.fetch_user(metadata["metadata"][command_name]["author"])
+					embed.add_field(name="Author", value=command_author.mention)
+					embed.add_field(name="Size", value=metadata["metadata"][command_name]["size"])
+
+					embed.set_thumbnail(url=(command_author.avatar_url.BASE + command_author.avatar_url._url))
+
 			else:
-				embed.title = "Failed to execute JavaScript"
-				embed.description = "You must provide a block of code to be executed."
+				embed.title = "Failed to Get Custom Command Info"
+				embed.description = "You must specify a command name to get information."
 
 		await ctx.send(embed=embed)

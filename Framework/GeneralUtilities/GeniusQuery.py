@@ -1,5 +1,6 @@
-import lyricsgenius
 import re
+
+import lyricsgenius
 
 from Framework.GeneralUtilities import Constants
 

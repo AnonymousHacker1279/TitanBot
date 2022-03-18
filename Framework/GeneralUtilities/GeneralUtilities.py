@@ -1,5 +1,8 @@
 import os
+import re
 from hashlib import sha256
+
+import requests
 
 
 async def get_module_settings_database():
@@ -32,3 +35,19 @@ async def get_custom_commands_metadata_database():
 
 async def generate_sha256(string: str) -> str:
 	return sha256(string.encode('utf-8')).hexdigest()
+
+
+async def minimize_js(code: str) -> str:
+	# Need to remove all import statements before minimization, since it isn't true JS
+	import_items = re.findall(re.compile(r"pyimport [a-z0-9]*;"), code)
+	js = code
+	for item in import_items:
+		js = js.replace(item, "")
+
+	js = requests.post('https://www.toptal.com/developers/javascript-minifier/raw', data={"input": js}).text
+
+	# Put the imports back at the beginning
+	for item in import_items:
+		js = item + js
+
+	return js

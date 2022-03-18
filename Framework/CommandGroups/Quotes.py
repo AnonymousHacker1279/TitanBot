@@ -1,7 +1,7 @@
 import json
 import math
-from random import randint
 import re
+from random import randint
 
 import discord
 from discord.errors import NotFound

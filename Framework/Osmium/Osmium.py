@@ -1,14 +1,12 @@
 import ast
-import json
 import multiprocessing
-import threading
-import time
+import re
 from multiprocessing import Process
 
 import js2py
-import re
 
 from Framework.GeneralUtilities import Constants
+
 
 ################################################
 # Osmium version v1.0.0 by AnonymousHacker1279 #
@@ -47,18 +45,13 @@ class Osmium:
 		self.strip_imports(js_code)
 
 	def strip_imports(self, js_code):
-		for line in js_code.splitlines():
-			if "pyimport" in line:
-				stripped_line = re.sub("pyimport ", "", line)
+		split_code = js_code.split(';')
+		for entry in split_code:
+			if "pyimport" in entry:
+				stripped_line = re.sub("pyimport ", "", entry)
 				stripped_line = stripped_line.rstrip(';')
 				if stripped_line not in self.whitelisted_imports:
 					self.error = "OSMIUM_ERROR: Illegal import detected. Offending import: " + stripped_line
-
-		if self.error is None:
-			self.strip_newlines(js_code)
-
-	def strip_newlines(self, js_code):
-		js_code = js_code.replace('\n', '')
 
 		if self.error is None:
 			self.execute_js(js_code)

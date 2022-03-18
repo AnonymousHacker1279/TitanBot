@@ -72,7 +72,7 @@
             "commands": [
                 "addCommand",
                 "removeCommand",
-                "findCommands"
+                "commandInfo"
             ]
         },
         "moderator": {
