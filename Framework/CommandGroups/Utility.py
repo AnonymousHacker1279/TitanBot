@@ -116,6 +116,7 @@ class Utility(commands.Cog):
 			changelog = updateData[updateData["latest"]]["changelog"]
 			embed.description += "What's new, in the latest version: \n```txt\n" + \
 								changelog + "```\n"
+			embed.description += "See the wiki for more information and help. https://github.com/AnonymousHacker1279/TitanBot/wiki"
 			embed.set_footer(text="AnonymousHacker1279, " + str(date.today().year))
 
 		await ctx.send(embed=embed)
