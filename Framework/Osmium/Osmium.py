@@ -9,7 +9,7 @@ from Framework.GeneralUtilities import Constants
 
 
 ################################################
-# Osmium version v1.0.0 by AnonymousHacker1279 #
+# Osmium version v1.1.0 by AnonymousHacker1279 #
 # All the files within these directories are   #
 # MIT licensed.                                #
 ################################################
@@ -81,7 +81,7 @@ class Osmium:
 		return """
 		pyimport TBOsmiumLib;
 		TBOsmiumLib.__purge_embed_dict__();
-		TBOsmiumLib.__purge_arguments_dict__();
+		TBOsmiumLib.__purge_arguments_list__();
 		TBOsmiumLib.PASSED_ARGUMENTS = """ + str(self.arguments) + """
 		""" + js_code + """
 		var __OSMIUM_INTERNAL_RETURN__ = TBOsmiumLib.EMBED_FEATURES;
