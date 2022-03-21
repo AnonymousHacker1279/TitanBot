@@ -51,3 +51,28 @@ async def minimize_js(code: str) -> str:
 		js = item + js
 
 	return js
+
+
+async def arg_splitter(message: str) -> list:
+	last = 0
+	args = []
+	in_quote = None
+	for iteration, character in enumerate(message):
+		if in_quote:
+			if character == in_quote:
+				in_quote = None
+		else:
+			if character == '"' or character == "'":
+				in_quote = character
+
+		if not in_quote and character == ' ':
+			args.append(message[last:iteration])
+			last = iteration + 1
+
+	if last < len(message):
+		args.append(message[last:])
+
+	for iteration, item in enumerate(args):
+		args[iteration] = item.rstrip("'").rstrip('"').lstrip("'").lstrip('"')
+
+	return args

@@ -1,5 +1,9 @@
 {
-    "latest": "v2.1.1",
+    "latest": "v2.1.2",
+    "v2.1.2": {
+        "changelog": "Custom command arguments work properly now!\n\nThe parsing of custom command arguments is much better now, and should work properly for values separated by spaces or enclosed in quotations.",
+        "versionTag": "release"
+    },
     "v2.1.1": {
         "changelog": "TBOsmiumLib has updated!\n\nEnjoy more helper functions in custom commands and other minor optimizations.\n\nSee the new TBOL documentation here: https://github.com/AnonymousHacker1279/TitanBot/wiki/Custom-Commands#tbosmiumlib-documentation",
         "versionTag": "release"

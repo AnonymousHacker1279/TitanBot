@@ -54,11 +54,14 @@ if __name__ == "__main__":
 		elif isinstance(error, commands.errors.CommandNotFound):
 			# If a command is not found, try checking for a custom command.
 			# First, we need to get the command. Unfortunately the method isn't exactly clean...
-			command = re.findall("(\"[\\w\\s]+\")", str(error))[0]
+			message_content = str(ctx.message.content)
+			command = re.findall(re.compile(r"(\"[!@#$%^&~.,\w\s\]]+\")"), str(error))[0]
 			command = str(command).lstrip('"').rstrip('"')
+			message_content = message_content.replace("$" + command + " ", "")
+
 			path = await GeneralUtilities.get_custom_commands_directory() + "\\" + command + ".js"
 
-			arguments = re.findall("(\"[\\w\\s]+\")", ctx.message.content)
+			arguments = await GeneralUtilities.arg_splitter(message_content)
 
 			with open(await GeneralUtilities.get_custom_commands_metadata_database(), "r") as f:
 				metadata = json.load(f)
