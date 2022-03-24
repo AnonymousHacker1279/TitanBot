@@ -33,9 +33,6 @@ class Osmium:
 
 		self.arguments = arguments
 
-		self.execution_time_remaining = Constants.CUSTOM_COMMANDS_MAX_EXECUTION_TIME
-		self.execution_complete = False
-
 		if import_whitelist_location is None:
 			import_whitelist_location = "data/lists/import_whitelist.txt"
 
