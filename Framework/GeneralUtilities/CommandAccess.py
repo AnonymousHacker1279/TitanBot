@@ -1,13 +1,9 @@
 import json
-import os
 
 from discord import utils
-from dotenv import load_dotenv
 
+from . import Constants
 from ..GeneralUtilities import GeneralUtilities as Utilities
-
-load_dotenv()
-WIZARD_ROLE = os.getenv('WIZARD_ROLE')
 
 
 async def check_module_enabled(module: str):
@@ -23,7 +19,7 @@ async def check_user_is_wizard(ctx):
 	# Check if a user is a wizard
 	# The "wizard" check ensures that a user has permissions
 	#  to use moderator-level commands.
-	return utils.get(ctx.author.roles, id=int(WIZARD_ROLE))
+	return utils.get(ctx.author.roles, id=Constants.WIZARD_ROLE)
 
 
 async def check_user_is_banned_from_command(user: str, command: str):
