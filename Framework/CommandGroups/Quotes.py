@@ -246,7 +246,7 @@ class Quotes(commands.Cog):
 							remainingQuotes = len(authorQuoteIndex) - iteration
 							while remainingQuotes > 0:
 								embed.description += data[authorQuoteIndex[iteration] - 1]["content"] + " **Quote #" + str(
-									authorQuoteIndex[iteration]) + "**\n"
+									authorQuoteIndex[iteration] - 1) + "**\n"
 								iteration = iteration + 1
 								remainingQuotes = remainingQuotes - 1
 								currentQuotesOnPage = currentQuotesOnPage + 1
