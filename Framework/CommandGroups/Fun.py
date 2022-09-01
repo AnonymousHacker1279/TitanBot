@@ -36,6 +36,8 @@ class Fun(commands.Cog):
 			if user is None:
 				user = ctx.author
 			nonSpotifyActivities = 0
+			if isinstance(user, str):
+				user = ctx.guild.get_member(int(user.lstrip("<@!").rstrip(">")))
 			if user.activities:
 				for activity in user.activities:
 					if isinstance(activity, Spotify):

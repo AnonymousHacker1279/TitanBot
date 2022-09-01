@@ -16,18 +16,18 @@ async def execute_with_osmium(js_code, arguments: list, embed):
 		embed.title = str(osmium.result["title"])
 		embed.description = str(osmium.result["description"])
 		if osmium.result["image_url"] != "":
-			embed.set_image(url=str(osmium.result["image_url"]))
+			await embed.set_image(url=str(osmium.result["image_url"]))
 		if osmium.result["footer"] != "":
-			embed.set_footer(text=str(osmium.result["footer"]))
+			await embed.set_footer(text=str(osmium.result["footer"]))
 		if osmium.result["thumbnail_url"] != "":
-			embed.set_thumbnail(url=str(osmium.result["thumbnail_url"]))
+			await embed.set_thumbnail(url=str(osmium.result["thumbnail_url"]))
 		if osmium.result["author"]["name"] != "":
-			embed.set_author(name=str(osmium.result["author"]["name"]),
+			await embed.set_author(name=str(osmium.result["author"]["name"]),
 							url=str(osmium.result["author"]["url"]),
 							icon_url=str(osmium.result["author"]["image_url"]))
 		if osmium.result["fields"]["count"] != 0:
 			for entry in osmium.result["fields"]["entries"]:
-				embed.add_field(name=entry,
+				await embed.add_field(name=entry,
 							value=str(osmium.result["fields"]["entries"][entry]["value"]),
 							inline=bool(osmium.result["fields"]["entries"][entry]["inline"]))
 

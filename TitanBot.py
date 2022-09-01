@@ -18,9 +18,7 @@ from Framework.ModuleSystem.Modules import ModuleSystem
 
 if __name__ == "__main__":
 
-	intents = discord.Intents.default()
-	intents.members = True
-	intents.presences = True
+	intents = discord.Intents.all()
 	bot = commands.Bot(command_prefix='$', intents=intents)
 
 	bot.help_command = Help()

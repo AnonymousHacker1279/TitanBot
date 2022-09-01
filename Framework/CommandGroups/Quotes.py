@@ -46,7 +46,7 @@ class Quotes(commands.Cog):
 
 				try:
 					authorUser = await ctx.bot.fetch_user(int(pAuthor.lstrip("<@!").rstrip(">")))
-					embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
+					embed.set_thumbnail(url=authorUser.display_avatar.url)
 				except (NotFound, ValueError):
 					embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
 
@@ -209,7 +209,7 @@ class Quotes(commands.Cog):
 					try:
 						authorUser = await ctx.bot.fetch_user(int(quoteAuthor.lstrip("<@!").rstrip(">")))
 						authorDisplayName = authorUser.display_name
-						embed.set_thumbnail(url=(authorUser.avatar_url.BASE + authorUser.avatar_url._url))
+						embed.set_thumbnail(url=authorUser.display_avatar.url)
 					except (NotFound, ValueError):
 						embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
 

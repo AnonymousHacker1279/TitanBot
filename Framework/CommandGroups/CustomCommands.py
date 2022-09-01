@@ -193,7 +193,7 @@ class CustomCommands(commands.Cog):
 					embed.add_field(name="Author", value=command_author.mention)
 					embed.add_field(name="Size", value=metadata["metadata"][command_name]["size"])
 
-					embed.set_thumbnail(url=(command_author.avatar_url.BASE + command_author.avatar_url._url))
+					embed.set_thumbnail(url=command_author.display_avatar.url)
 
 			else:
 				embed.title = "Failed to Get Custom Command Info"
