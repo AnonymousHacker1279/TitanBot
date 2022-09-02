@@ -3,7 +3,8 @@ import json
 import discord
 from discord.ext import commands
 
-from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
+from ..FileSystemAPI import DatabaseObjects
+from ..GeneralUtilities import PermissionHandler
 
 
 class ModuleSystem(commands.Cog):
@@ -23,7 +24,7 @@ class ModuleSystem(commands.Cog):
 			embed.title = "Module System: Information"
 
 			# Open the settings file
-			with open(await Utilities.get_module_settings_database(), 'r') as f:
+			with open(await DatabaseObjects.get_module_settings_database(), 'r') as f:
 				data = json.load(f)
 
 				# Initialize variables
@@ -84,7 +85,7 @@ class ModuleSystem(commands.Cog):
 			embed.title = "Module System: Toggle Module State"
 
 			# Open the settings file
-			with open(await Utilities.get_module_settings_database(), 'r') as f:
+			with open(await DatabaseObjects.get_module_settings_database(), 'r') as f:
 				data = json.load(f)
 
 			# Initialize variables
@@ -117,7 +118,7 @@ class ModuleSystem(commands.Cog):
 					else:
 						data["moduleConfiguration"][module]["enabled"] = True
 						line = "The module state has changed. New state:\nEnabled :white_check_mark:"
-					with open(await Utilities.get_module_settings_database(), 'w') as f:
+					with open(await DatabaseObjects.get_module_settings_database(), 'w') as f:
 						json.dump(data, f, indent=4)
 					embed.description += line + "\n"
 			else:

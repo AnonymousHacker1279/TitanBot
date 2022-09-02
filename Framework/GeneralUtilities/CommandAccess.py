@@ -3,12 +3,12 @@ import json
 from discord import utils
 
 from . import Constants
-from ..GeneralUtilities import GeneralUtilities as Utilities
+from ..FileSystemAPI import DatabaseObjects
 
 
-async def check_module_enabled(module: str):
+async def check_module_enabled(module: str, guild: int):
 	# Open the settings file
-	with open(await Utilities.get_module_settings_database(), 'r') as f:
+	with open(await DatabaseObjects.get_module_settings_database(guild), 'r') as f:
 		data = json.load(f)
 
 	# Get status
@@ -22,9 +22,9 @@ async def check_user_is_wizard(ctx):
 	return utils.get(ctx.author.roles, id=Constants.WIZARD_ROLE)
 
 
-async def check_user_is_banned_from_command(user: str, command: str):
+async def check_user_is_banned_from_command(user: str, command: str, guild: int):
 	# Check if a user is banned from using a command
-	with open(await Utilities.get_revoked_commands_database(), 'r') as f:
+	with open(await DatabaseObjects.get_revoked_commands_database(guild), 'r') as f:
 		data = json.load(f)
 
 	# Check if the user is banned from using the command
@@ -37,9 +37,9 @@ async def check_user_is_banned_from_command(user: str, command: str):
 	return False
 
 
-async def check_user_is_banned_from_module(user: str, module: str):
+async def check_user_is_banned_from_module(user: str, module: str, guild: int):
 	# Check if a user is banned from using a module
-	with open(await Utilities.get_revoked_modules_database(), 'r') as f:
+	with open(await DatabaseObjects.get_revoked_modules_database(guild), 'r') as f:
 		data = json.load(f)
 
 	# Check if the user is banned from using the module

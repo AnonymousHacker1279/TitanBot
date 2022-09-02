@@ -30,7 +30,6 @@ variables that TitanBot needs. The file should look somewhat like this:
 
 ```txt
 DISCORD_TOKEN=<your bot token>
-DISCORD_GUILD=<a guild for your bot>
 WIZARD_ROLE=<a role ID to denote users that can access higher level functions>
 BOT_VERSION=v2.1.0
 BOT_UPDATE_LOCATION=https://raw.githubusercontent.com/AnonymousHacker1279/TitanBot/v2.x/update.json

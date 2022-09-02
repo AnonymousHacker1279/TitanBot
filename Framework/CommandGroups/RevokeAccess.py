@@ -3,7 +3,8 @@ import json
 import discord
 from discord.ext import commands
 
-from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
+from ..FileSystemAPI import DatabaseObjects
+from ..GeneralUtilities import PermissionHandler
 
 
 class RevokeAccess(commands.Cog):
@@ -25,7 +26,7 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				command = str(command)
 
-				with open(await Utilities.get_revoked_commands_database(), 'r') as f:
+				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'r') as f:
 					data = json.load(f)
 
 				maxIndex = 0
@@ -59,7 +60,7 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the command has been revoked from the user."
 
-				with open(await Utilities.get_revoked_commands_database(), 'w') as f:
+				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'w') as f:
 					json.dump(data, f, indent=4)
 
 		await ctx.send(embed=embed)
@@ -77,7 +78,7 @@ class RevokeAccess(commands.Cog):
 				user = ctx.message.author.mention
 			user = user.lstrip("<@!").rstrip(">")
 
-			with open(await Utilities.get_revoked_commands_database(), 'r') as f:
+			with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -114,7 +115,7 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				module = str(module)
 
-				with open(await Utilities.get_revoked_modules_database(), 'r') as f:
+				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'r') as f:
 					data = json.load(f)
 
 				maxIndex = 0
@@ -148,7 +149,7 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the module has been revoked from the user."
 
-				with open(await Utilities.get_revoked_modules_database(), 'w') as f:
+				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'w') as f:
 					json.dump(data, f, indent=4)
 
 		await ctx.send(embed=embed)
@@ -166,7 +167,7 @@ class RevokeAccess(commands.Cog):
 				user = ctx.message.author.mention
 			user = user.lstrip("<@!").rstrip(">")
 
-			with open(await Utilities.get_revoked_modules_database(), 'r') as f:
+			with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0

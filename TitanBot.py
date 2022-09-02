@@ -11,8 +11,8 @@ from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.RevokeAccess import RevokeAccess
-from Framework.CommandGroups.UserConfig import UserConfig
 from Framework.CommandGroups.Utility import Utility
+from Framework.FileSystemAPI import DatabaseObjects, FileAPI
 from Framework.GeneralUtilities import Constants, GeneralUtilities, OsmiumInterconnect, PermissionHandler
 from Framework.ModuleSystem.Modules import ModuleSystem
 
@@ -24,7 +24,6 @@ if __name__ == "__main__":
 	bot.help_command = Help()
 
 	bot.add_cog(ModuleSystem())
-	bot.add_cog(UserConfig())
 	bot.add_cog(Quotes())
 	bot.add_cog(Fun())
 	bot.add_cog(Utility())
@@ -36,6 +35,10 @@ if __name__ == "__main__":
 	@bot.event
 	async def on_ready():
 		print('Connected to Discord!')
+
+		# Check storage metadata, and perform migration as necessary
+		await FileAPI.check_storage_metadata(2, bot.guilds)
+
 		await bot.change_presence(activity=discord.Game('Inflicting pain on humans'))
 
 
@@ -57,11 +60,11 @@ if __name__ == "__main__":
 			command = str(command).lstrip('"').rstrip('"')
 			message_content = message_content.replace("$" + command + " ", "")
 
-			path = await GeneralUtilities.get_custom_commands_directory() + "\\" + command + ".js"
+			path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + command + ".js"
 
 			arguments = await GeneralUtilities.arg_splitter(message_content)
 
-			with open(await GeneralUtilities.get_custom_commands_metadata_database(), "r") as f:
+			with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), "r") as f:
 				metadata = json.load(f)
 				wizard_only = False
 				if command in metadata["wizard_only_commands"]:
@@ -77,7 +80,7 @@ if __name__ == "__main__":
 				is_running_custom_command = True
 			else:
 				try:
-					path = await GeneralUtilities.get_custom_commands_directory() + "\\" + metadata["aliases"][command] + ".js"
+					path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + metadata["aliases"][command] + ".js"
 					embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
 																							command,
 																							shouldCheckForWizard=wizard_only)

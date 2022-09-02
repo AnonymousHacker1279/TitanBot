@@ -7,6 +7,7 @@ import discord
 import requests
 from discord.ext import commands
 
+from ..FileSystemAPI import DatabaseObjects, FileAPI
 from ..GeneralUtilities import Constants, GeneralUtilities as Utilities, PermissionHandler, VirusTotalQuery
 
 
@@ -59,13 +60,15 @@ class CustomCommands(commands.Cog):
 						# Minimize the code to save space
 						code = await Utilities.minimize_js(code)
 
-						with open(await Utilities.get_custom_commands_directory() + "/" + command_name + ".js", 'w') as f:
+						file_path = os.path.abspath(await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "/" + command_name + ".js")
+						await FileAPI.create_empty_file(file_path)
+						with open(file_path, 'w') as f:
 							f.write(code)
 
-						with open(await Utilities.get_custom_commands_metadata_database(), 'r') as f:
+						with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
 							metadata_database = json.load(f)
 
-						with open(await Utilities.get_custom_commands_metadata_database(), 'w') as f:
+						with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'w') as f:
 							metadata_database["aliases"][alias] = command_name
 							if wizard_only:
 								metadata_database["wizard_only_commands"].append(command_name)
@@ -112,11 +115,11 @@ class CustomCommands(commands.Cog):
 																				shouldCheckForWizard=True)
 		if not failedPermissionCheck:
 			if command_name is not None:
-				path = await Utilities.get_custom_commands_directory() + "/" + command_name + ".js"
+				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "/" + command_name + ".js"
 				if isfile(path):
 					os.remove(path)
 
-				with open(await Utilities.get_custom_commands_metadata_database(), 'r') as f:
+				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
 					metadata_database = json.load(f)
 
 					database_commands_list = []
@@ -136,7 +139,7 @@ class CustomCommands(commands.Cog):
 						embed.description = "A command with the name `" + command_name + "` was not found."
 
 				if command_exists:
-					with open(await Utilities.get_custom_commands_metadata_database(), 'w') as f:
+					with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'w') as f:
 						metadata_database["aliases"].pop(alias)
 						if command_name in metadata_database["wizard_only_commands"]:
 							metadata_database["wizard_only_commands"].remove(command_name)
@@ -162,7 +165,7 @@ class CustomCommands(commands.Cog):
 																				"commandInfo")
 		if not failedPermissionCheck:
 			if command_name is not None:
-				with open(await Utilities.get_custom_commands_metadata_database(), 'r') as f:
+				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
 					metadata = json.load(f)
 
 					database_commands_list = []

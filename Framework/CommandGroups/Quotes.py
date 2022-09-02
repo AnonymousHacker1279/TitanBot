@@ -7,7 +7,8 @@ import discord
 from discord.errors import NotFound
 from discord.ext import commands
 
-from ..GeneralUtilities import GeneralUtilities as Utilities, PermissionHandler
+from ..FileSystemAPI import DatabaseObjects
+from ..GeneralUtilities import PermissionHandler
 
 
 class Quotes(commands.Cog):
@@ -26,7 +27,7 @@ class Quotes(commands.Cog):
 			async def prepare_quote(pAuthor, pContent, pId):
 				embed.title = "Quote #" + pId
 
-				links = re.findall('https://[a-zA-Z0-9-./_]*', pContent)
+				links = re.findall('https://[a-zA-Z0-9-./_&]*', pContent)
 				contentExcludingLinks = ""
 				iteration = 0
 				for _ in links:
@@ -53,7 +54,7 @@ class Quotes(commands.Cog):
 				return embed
 
 			# Check if an ID is provided, if not get a random quote
-			with open(await Utilities.get_quotes_database(), 'r') as f:
+			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 				maxIndex = 0
@@ -94,7 +95,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "totalQuotes")
 		if not failedPermissionCheck:
-			with open(await Utilities.get_quotes_database(), 'r') as f:
+			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -118,7 +119,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "addQuote")
 		if not failedPermissionCheck:
-			with open(await Utilities.get_quotes_database(), 'r') as f:
+			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -126,7 +127,7 @@ class Quotes(commands.Cog):
 				maxIndex = maxIndex + 1
 			maxIndex = maxIndex - 1
 
-			with open(await Utilities.get_quotes_database(), 'w') as f:
+			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'w') as f:
 				quoteDictionary = {"content": quote, "author": author}
 				data.append(quoteDictionary)
 				json.dump(data, f, indent=4)
@@ -147,7 +148,7 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
 
-			with open(await Utilities.get_quotes_database(), 'r') as f:
+			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 			maxIndex = 0
@@ -160,7 +161,7 @@ class Quotes(commands.Cog):
 					embed.title = "Failed to remove quote"
 					embed.description = "You must pass a quote ID to remove."
 				else:
-					with open(await Utilities.get_quotes_database(), 'w') as f:
+					with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'w') as f:
 						data.remove(data[int(quoteID)])
 						json.dump(data, f, indent=4)
 
@@ -189,7 +190,7 @@ class Quotes(commands.Cog):
 			quoteAuthor = str(quoteAuthor)
 
 			# Get the quote data
-			with open(await Utilities.get_quotes_database(), 'r') as f:
+			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 				maxIndex = 0
