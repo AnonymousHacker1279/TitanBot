@@ -8,7 +8,7 @@ from ..GeneralUtilities import PermissionHandler
 class Fun(commands.Cog):
 	"""Have fun with some useless commands."""
 
-	@commands.command(name='stab', aliases=["stb"])
+	@commands.slash_command(name='stab')
 	@commands.guild_only()
 	async def stab(self, ctx, user=None):
 		"""Stab someone, or something."""
@@ -21,14 +21,14 @@ class Fun(commands.Cog):
 				embed.description = "You have to tell me who you want to stab."
 			else:
 				embed.title = "A BLOODY MASSACRE"
-				embed.description = "*" + user + " was stabbed by " + ctx.message.author.mention + "*"
+				embed.description = "*" + user + " was stabbed by " + ctx.author.mention + "*"
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='spotify', aliases=["sp"])
+	@commands.slash_command(name='spotify')
 	@commands.guild_only()
 	async def spotify(self, ctx, user=None):
-		"""Check the status of a user playing music via Spotify. Specify a user, otherwise uses the user executing the command."""
+		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "spotify")
@@ -57,4 +57,4 @@ class Fun(commands.Cog):
 				embed.title = "Cannot get Spotify status"
 				embed.description = "The user is not listening to Spotify."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)

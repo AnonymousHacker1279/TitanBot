@@ -13,7 +13,7 @@ from ..GeneralUtilities import Constants, PermissionHandler
 class Utility(commands.Cog):
 	"""Get some work done with tools and utilities."""
 
-	@commands.command(name='age', aliases=["a"])
+	@commands.slash_command(name='age')
 	@commands.guild_only()
 	async def age(self, ctx):
 		"""See the length of time I have existed."""
@@ -29,15 +29,15 @@ class Utility(commands.Cog):
 			embed.description = "I am **" + str(delta.days) + "** days old."
 			embed.set_footer(text="Born into the world on 7/15/21.")
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='coinFlip', aliases=["cf"])
+	@commands.slash_command(name='coin_flip')
 	@commands.guild_only()
 	async def coin_flip(self, ctx):
 		"""Flip a coin."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "coinFlip")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "coin_flip")
 		if not failedPermissionCheck:
 			embed.title = "Coin Flip"
 			if randint(0, 1) == 0:
@@ -46,15 +46,15 @@ class Utility(commands.Cog):
 				value = "Tails"
 			embed.description = "Result: **" + value + ".**"
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='rollDie', aliases=["rd"])
+	@commands.slash_command(name='roll_die')
 	@commands.guild_only()
 	async def roll_die(self, ctx, *sides: int):
 		"""Roll a die. Defaults to six sides if not specified."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "rollDie")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "roll_die")
 		if not failedPermissionCheck:
 			embed.title = "Roll Die"
 			if len(sides) == 0:
@@ -65,9 +65,9 @@ class Utility(commands.Cog):
 				embed.title = "Roll Die Failed"
 				embed.description = "You must specify more than one side on the die."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='ping', aliases=["p"])
+	@commands.slash_command(name='ping')
 	@commands.guild_only()
 	async def ping(self, ctx):
 		"""Get the latency of the bot."""
@@ -85,9 +85,9 @@ class Utility(commands.Cog):
 			elif latency > 326:
 				embed.description += "Latency is extremely high. Delays and drops are nearly assured."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='about', aliases=["ab"])
+	@commands.slash_command(name='about')
 	@commands.guild_only()
 	async def about(self, ctx):
 		"""Learn about me."""
@@ -119,22 +119,22 @@ class Utility(commands.Cog):
 			embed.description += "See the wiki for more information and help. https://github.com/AnonymousHacker1279/TitanBot/wiki"
 			embed.set_footer(text="AnonymousHacker1279, " + str(date.today().year))
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='totalUsers', aliases=["tu"])
+	@commands.slash_command(name='total_users')
 	@commands.guild_only()
 	async def total_users(self, ctx):
 		"""Get the total number of users in the server."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "totalUsers")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "total_users")
 		if not failedPermissionCheck:
 			embed.title = "Total Users"
 			embed.description = "There are **" + str(ctx.guild.member_count) + "** users here."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='status', aliases=["sts"])
+	@commands.slash_command(name='status')
 	@commands.guild_only()
 	async def status(self, ctx):
 		"""Get the current system status."""
@@ -161,4 +161,4 @@ class Utility(commands.Cog):
 			if systemMemoryUsage > 80:
 				embed.description += ":warning: High memory usage, responsiveness may be degraded.\n"
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)

@@ -14,9 +14,9 @@ from ..GeneralUtilities import PermissionHandler
 class Quotes(commands.Cog):
 	"""Remember the silly stuff people say."""
 
-	@commands.command(name='quote', aliases=["q"])
+	@commands.slash_command(name='quote')
 	@commands.guild_only()
-	async def quote(self, ctx, quoteID=None):
+	async def quote(self, ctx, quote_id=None):
 		"""Get a random quote, if an ID isn't provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -64,7 +64,7 @@ class Quotes(commands.Cog):
 			if maxIndex == -1:
 				embed.title = "Failed to Get Quote"
 				embed.description = "I do not have any quotes in my archives."
-			elif quoteID is None:
+			elif quote_id is None:
 				random = randint(0, maxIndex)
 				author = data[random]["author"]
 				content = data[random]["content"]
@@ -73,27 +73,27 @@ class Quotes(commands.Cog):
 
 			else:
 				try:
-					if int(quoteID) < 0 or int(quoteID) > maxIndex:
+					if int(quote_id) < 0 or int(quote_id) > maxIndex:
 						embed.title = "Cannot get quote"
 						embed.description = "Invalid quote ID. It must not be less than zero and must be less than the " \
 							"total number of quotes. "
 					else:
-						content = data[int(quoteID)]["content"]
-						author = data[int(quoteID)]["author"]
-						embed = await prepare_quote(author, content, quoteID)
+						content = data[int(quote_id)]["content"]
+						author = data[int(quote_id)]["author"]
+						embed = await prepare_quote(author, content, quote_id)
 				except ValueError:
 					embed.title = "Cannot get quote"
 					embed.description = "The quote ID must be a number."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='totalQuotes', aliases=["tq"])
+	@commands.slash_command(name='total_quotes')
 	@commands.guild_only()
 	async def total_quotes(self, ctx):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "totalQuotes")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "total_quotes")
 		if not failedPermissionCheck:
 			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
@@ -109,15 +109,15 @@ class Quotes(commands.Cog):
 			else:
 				embed.description = "I have " + str(maxIndex) + " quotes in my archives."
 			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='addQuote', aliases=["aq"])
+	@commands.slash_command(name='add_quote')
 	@commands.guild_only()
 	async def add_quote(self, ctx, quote: str, author: str):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "addQuote")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
 			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
@@ -136,15 +136,15 @@ class Quotes(commands.Cog):
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
 		await ctx.send(embed=embed)
 
-	@commands.command(name='removeQuote', aliases=["rq"])
+	@commands.slash_command(name='remove_quote')
 	@commands.guild_only()
-	async def remove_quote(self, ctx, quoteID=None):
+	async def remove_quote(self, ctx, quote_id=None):
 		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "removeQuote", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "remove_quote", True)
 		if not failedPermissionCheck:
-			if quoteID is None:
+			if quote_id is None:
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
 
@@ -157,12 +157,12 @@ class Quotes(commands.Cog):
 			maxIndex = maxIndex - 1
 
 			try:
-				if int(quoteID) < 0 or int(quoteID) > maxIndex:
+				if int(quote_id) < 0 or int(quote_id) > maxIndex:
 					embed.title = "Failed to remove quote"
 					embed.description = "You must pass a quote ID to remove."
 				else:
 					with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'w') as f:
-						data.remove(data[int(quoteID)])
+						data.remove(data[int(quote_id)])
 						json.dump(data, f, indent=4)
 
 				embed.title = "Quote Removed"
@@ -172,22 +172,22 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to remove quote"
 				embed.description = "The quote ID must be a number."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='searchQuotes', aliases=["sq"])
+	@commands.slash_command(name='search_quotes')
 	@commands.guild_only()
-	async def search_quotes(self, ctx, quoteAuthor=None, page=1):
+	async def search_quotes(self, ctx, quote_author=None, page=1):
 		"""Search quotes by author. Lists up to 5 per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "searchQuotes")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_quotes")
 		if not failedPermissionCheck:
 			# Check if an author was provided
-			if quoteAuthor is None:
+			if quote_author is None:
 				embed.title = "Cannot search quotes"
 				embed.description = "You must provide an author"
-			quoteAuthor = str(quoteAuthor)
+			quote_author = str(quote_author)
 
 			# Get the quote data
 			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
@@ -198,7 +198,7 @@ class Quotes(commands.Cog):
 				authorQuoteIndex = []
 				for i in data:
 					maxIndex = maxIndex + 1
-					if quoteAuthor in i['author']:
+					if quote_author in i['author']:
 						authorQuoteIndex.append(maxIndex)
 
 			try:
@@ -206,9 +206,9 @@ class Quotes(commands.Cog):
 					embed.title = "Cannot search quotes"
 					embed.description = "Invalid page. The page must be greater than one."
 				else:
-					authorDisplayName = quoteAuthor
+					authorDisplayName = quote_author
 					try:
-						authorUser = await ctx.bot.fetch_user(int(quoteAuthor.lstrip("<@!").rstrip(">")))
+						authorUser = await ctx.bot.fetch_user(int(quote_author.lstrip("<@!").rstrip(">")))
 						authorDisplayName = authorUser.display_name
 						embed.set_thumbnail(url=authorUser.display_avatar.url)
 					except (NotFound, ValueError):
@@ -258,4 +258,4 @@ class Quotes(commands.Cog):
 				embed.title = "Cannot search quotes"
 				embed.description = "The page must be a number."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)

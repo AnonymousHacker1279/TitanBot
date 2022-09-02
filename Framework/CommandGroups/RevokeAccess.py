@@ -10,13 +10,13 @@ from ..GeneralUtilities import PermissionHandler
 class RevokeAccess(commands.Cog):
 	"""Limit feature access for users who misbehave."""
 
-	@commands.command(name='revokeCommandAccess', aliases=["rca"])
+	@commands.slash_command(name='revoke_command_access')
 	@commands.guild_only()
 	async def revoke_command_access(self, ctx, user=None, command=None):
 		"""Revoke access to a specific command. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revokeCommandAccess", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revoke_command_access", True)
 		if not failedPermissionCheck:
 			# Ensure the user and command arguments are provided
 			if user is None or command is None:
@@ -63,19 +63,19 @@ class RevokeAccess(commands.Cog):
 				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'w') as f:
 					json.dump(data, f, indent=4)
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='viewRevokedCommands', aliases=["vrc"])
+	@commands.slash_command(name='view_revoked_commands')
 	@commands.guild_only()
 	async def view_revoked_commands(self, ctx, user=None):
 		"""See revoked commands for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "viewRevokedCommands")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "view_revoked_commands")
 		if not failedPermissionCheck:
 			# Check if a user is provided
 			if user is None:
-				user = ctx.message.author.mention
+				user = ctx.author.mention
 			user = user.lstrip("<@!").rstrip(">")
 
 			with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'r') as f:
@@ -97,15 +97,15 @@ class RevokeAccess(commands.Cog):
 				embed.description = "Listing revoked commands:\n"
 				embed.description += str(userData["revokedCommands"])
 
-			await ctx.send(embed=embed)
+			await ctx.respond(embed=embed)
 
-	@commands.command(name='revokeModuleAccess', aliases=["rma"])
+	@commands.slash_command(name='revoke_module_access')
 	@commands.guild_only()
 	async def revoke_module_access(self, ctx, user=None, module=None):
 		"""Revoke access to an entire module. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revokeModuleAccess", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revoke_module_access", True)
 		if not failedPermissionCheck:
 			# Ensure the user and module arguments are provided
 			if user is None or module is None:
@@ -152,19 +152,19 @@ class RevokeAccess(commands.Cog):
 				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'w') as f:
 					json.dump(data, f, indent=4)
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='viewRevokedModules', aliases=["vrm"])
+	@commands.slash_command(name='view_revoked_modules')
 	@commands.guild_only()
 	async def view_revoked_modules(self, ctx, user=None):
 		"""See revoked modules for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "viewRevokedModules")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "view_revoked_modules")
 		if not failedPermissionCheck:
 			# Check if a user is provided
 			if user is None:
-				user = ctx.message.author.mention
+				user = ctx.author.mention
 			user = user.lstrip("<@!").rstrip(">")
 
 			with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'r') as f:
@@ -186,4 +186,4 @@ class RevokeAccess(commands.Cog):
 				embed.description = "Listing revoked modules:\n"
 				embed.description += str(userData["revokedModules"])
 
-			await ctx.send(embed=embed)
+			await ctx.respond(embed=embed)

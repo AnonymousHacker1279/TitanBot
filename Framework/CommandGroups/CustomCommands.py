@@ -4,114 +4,79 @@ from datetime import datetime
 from os.path import isfile
 
 import discord
-import requests
 from discord.ext import commands
 
-from ..FileSystemAPI import DatabaseObjects, FileAPI
-from ..GeneralUtilities import Constants, GeneralUtilities as Utilities, PermissionHandler, VirusTotalQuery
+from .Modals import CustomCommandModals
+from ..FileSystemAPI import DatabaseObjects
+from ..GeneralUtilities import GeneralUtilities, OsmiumInterconnect, \
+	PermissionHandler
 
 
 class CustomCommands(commands.Cog):
 	"""Expand the power of TitanBot with custom commands."""
 
-	@commands.command(name='addCommand', aliases=["ac"])
+	@commands.slash_command(name="custom_command")
 	@commands.guild_only()
-	async def add_command(self, ctx, command_name: str = None, alias: str = None, wizard_only: bool = False,
-							code: str = None, description: str = None):
+	async def custom_command(self, ctx, command_name: str, args: str = None):
+		"""Execute a custom command."""
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='Executing your command, please be patient...')
+		await ctx.respond(embed=embed)
+
+		path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + command_name + ".js"
+		if args is None:
+			args = ""
+		args = await GeneralUtilities.arg_splitter(args)
+
+		with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), "r") as f:
+			metadata = json.load(f)
+			wizard_only = False
+			if command_name in metadata["wizard_only_commands"]:
+				wizard_only = True
+
+		if isfile(path):
+			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+																					command_name,
+																					shouldCheckForWizard=wizard_only)
+			if not failedPermissionCheck:
+				with open(path, "r") as f:
+					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), args, embed)
+		else:
+			try:
+				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + metadata["aliases"][
+					command_name] + ".js"
+				embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+																					command_name,
+																					shouldCheckForWizard=wizard_only)
+				if not failedPermissionCheck:
+					with open(path, "r") as f:
+						embed = await OsmiumInterconnect.execute_with_osmium(f.read(), args, embed)
+
+			except (ValueError, TypeError, KeyError):
+				embed.title = "Command Not Found"
+				embed.description = "A matching command could not be found. Please see ``/help`` for commands.\n\n"
+
+		await ctx.edit(embed=embed)
+
+	@commands.slash_command(name="add_command")
+	async def add_command(self, ctx):
 		"""Add a custom command to the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
-																				"addCommand",
+																				"add_command",
 																				shouldCheckForWizard=True)
 		if not failedPermissionCheck:
-			if command_name is not None:
-				if code is None:
-					try:
-						file_url = ctx.message.attachments[0]
-						file_contents = requests.get(file_url).text
-						code = file_contents
-					except (ValueError, IndexError):
-						embed.title = "Failed to Add Custom Command"
-						embed.description = "You must provide code to run with the command."
-				if code is not None:
-					# Scan the code for malware unless disabled
-					message = None
-					if Constants.ENABLE_CUSTOM_COMMANDS_MALWARE_SCANNING == "True":
-						embed.title = "Command Addition Pending"
-						embed.description = "Your command is currently being scanned for malware via VirusTotal. " \
-											"This process can take some time, so please be patient."
-						embed.set_footer(text="This window will automatically update once the scan is complete.")
-						message = await ctx.send(embed=embed)
-						scan_result = await VirusTotalQuery.scan_text(code)
-						if scan_result["THREAT"]:
-							embed.title = "Refusing to Add Custom Command: Malware Detected"
-							embed.description = "A malware scan via VirusTotal determined the submitted code to be **malicious**." \
-												"\n```txt\nMalware Name: " + scan_result["THREAT_NAME"] + "\nSHA-256 Hash: " \
-												"" + scan_result["SHA256"] + "\n```\nThe scan result can be found below:\n" \
-												"https://www.virustotal.com/gui/file/" + scan_result["SHA256"]
+			modal = CustomCommandModals.AddCommand(title="Add a custom command")
+			await ctx.send_modal(modal)
 
-							embed.set_footer(text="Think something is wrong? Please contact an administrator.")
-							await message.edit(embed=embed)
-					else:
-						scan_result = {"THREAT": False}
-
-					if scan_result["THREAT"] is False:
-						# Minimize the code to save space
-						code = await Utilities.minimize_js(code)
-
-						file_path = os.path.abspath(await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "/" + command_name + ".js")
-						await FileAPI.create_empty_file(file_path)
-						with open(file_path, 'w') as f:
-							f.write(code)
-
-						with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
-							metadata_database = json.load(f)
-
-						with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'w') as f:
-							metadata_database["aliases"][alias] = command_name
-							if wizard_only:
-								metadata_database["wizard_only_commands"].append(command_name)
-
-							metadata_database["metadata"][command_name] = {}
-							metadata_database["metadata"][command_name]["date_added"] = datetime.now().isoformat()
-							metadata_database["metadata"][command_name]["author"] = ctx.author.id
-							metadata_database["metadata"][command_name]["size"] = str(len(code.encode('utf-8'))) + " bytes"
-
-							if description is None:
-								metadata_database["metadata"][command_name]["description"] = "No description provided."
-							else:
-								metadata_database["metadata"][command_name]["description"] = description
-
-							json.dump(metadata_database, f, indent=4)
-
-						embed.title = "Custom Command Added: " + command_name
-						embed.description = "You can now run the custom command by typing `$" + command_name + "`" \
-											" or by using the alias `$" + alias + "`"
-						embed.set_footer(text="")
-
-						if message is not None:
-							await message.edit(embed=embed)
-						else:
-							await ctx.send(embed=embed)
-				else:
-					embed.title = "Failed to Add Custom Command"
-					embed.description = "You must provide code to run with the command."
-					await ctx.send(embed=embed)
-			else:
-				embed.title = "Failed to Add Custom Command"
-				embed.description = "You must specify a command name."
-
-				await ctx.send(embed=embed)
-
-	@commands.command(name='removeCommand', aliases=["rc"])
+	@commands.slash_command(name='remove_command')
 	@commands.guild_only()
 	async def remove_command(self, ctx, command_name: str = None):
 		"""Remove a custom command from the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
-																				"removeCommand",
+																				"remove_command",
 																				shouldCheckForWizard=True)
 		if not failedPermissionCheck:
 			if command_name is not None:
@@ -153,16 +118,16 @@ class CustomCommands(commands.Cog):
 				embed.title = "Failed to Remove Custom Command"
 				embed.description = "You must specify a command name to remove."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='commandInfo', aliases=["ci"])
+	@commands.slash_command(name='command_info')
 	@commands.guild_only()
 	async def command_info(self, ctx, command_name: str = None):
 		"""Get information about a custom command."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
-																				"commandInfo")
+																				"command_info")
 		if not failedPermissionCheck:
 			if command_name is not None:
 				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
@@ -202,4 +167,4 @@ class CustomCommands(commands.Cog):
 				embed.title = "Failed to Get Custom Command Info"
 				embed.description = "You must specify a command name to get information."
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
