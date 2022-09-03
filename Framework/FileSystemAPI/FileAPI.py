@@ -28,7 +28,7 @@ async def does_file_exist(file: str) -> bool:
 
 async def create_default_database_from_schema(file: str, default_schema: dict) -> None:
 	with open(file, "w") as f:
-		json.dump(default_schema, f)
+		json.dump(default_schema, f, indent=4)
 
 
 async def create_empty_file(file: str) -> None:
@@ -51,7 +51,7 @@ async def check_storage_metadata(current_database_version: int, guilds) -> None:
 	for guild in guilds:
 		# Check if data needs to be migrated from an older version
 		if metadata["guilds"][str(guild.id)] < current_database_version:
-			await migrate_storage_metadata(metadata["metadata_version"])
+			await migrate_storage_metadata(metadata["guilds"][str(guild.id)])
 
 		if str(guild.id) not in metadata["guilds"]:
 			metadata["guilds"][str(guild.id)] = current_database_version
@@ -59,4 +59,4 @@ async def check_storage_metadata(current_database_version: int, guilds) -> None:
 	with open(object_path, "r") as f:
 		metadata = json.load(f)
 	with open(object_path, "w") as f:
-		json.dump(metadata, f)
+		json.dump(metadata, f, indent=4)

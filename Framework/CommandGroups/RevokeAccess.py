@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from ..FileSystemAPI import DatabaseObjects
-from ..GeneralUtilities import PermissionHandler
+from ..GeneralUtilities import CommandAccess, GeneralUtilities, PermissionHandler
 
 
 class RevokeAccess(commands.Cog):
@@ -12,7 +12,7 @@ class RevokeAccess(commands.Cog):
 
 	@commands.slash_command(name='revoke_command_access')
 	@commands.guild_only()
-	async def revoke_command_access(self, ctx, user=None, command=None):
+	async def revoke_command_access(self, ctx: discord.ApplicationContext, user=None, command=None):
 		"""Revoke access to a specific command. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -26,8 +26,8 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				command = str(command)
 
-				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'r') as f:
-					data = json.load(f)
+				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+				data = await cache_manager.get_cache()
 
 				maxIndex = 0
 				userData = None
@@ -60,14 +60,16 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the command has been revoked from the user."
 
-				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'w') as f:
+				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild_id), 'w') as f:
 					json.dump(data, f, indent=4)
+
+				cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
 
 	@commands.slash_command(name='view_revoked_commands')
 	@commands.guild_only()
-	async def view_revoked_commands(self, ctx, user=None):
+	async def view_revoked_commands(self, ctx: discord.ApplicationContext, user=None):
 		"""See revoked commands for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -76,10 +78,10 @@ class RevokeAccess(commands.Cog):
 			# Check if a user is provided
 			if user is None:
 				user = ctx.author.mention
-			user = user.lstrip("<@!").rstrip(">")
+			user = await GeneralUtilities.strip_usernames(user)
 
-			with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'r') as f:
-				data = json.load(f)
+			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+			data = await cache_manager.get_cache()
 
 			maxIndex = 0
 			userData = None
@@ -101,7 +103,7 @@ class RevokeAccess(commands.Cog):
 
 	@commands.slash_command(name='revoke_module_access')
 	@commands.guild_only()
-	async def revoke_module_access(self, ctx, user=None, module=None):
+	async def revoke_module_access(self, ctx: discord.ApplicationContext, user=None, module=None):
 		"""Revoke access to an entire module. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -115,8 +117,8 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				module = str(module)
 
-				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'r') as f:
-					data = json.load(f)
+				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+				data = await cache_manager.get_cache()
 
 				maxIndex = 0
 				userData = None
@@ -149,14 +151,16 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the module has been revoked from the user."
 
-				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'w') as f:
+				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild_id), 'w') as f:
 					json.dump(data, f, indent=4)
+
+				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
 
 	@commands.slash_command(name='view_revoked_modules')
 	@commands.guild_only()
-	async def view_revoked_modules(self, ctx, user=None):
+	async def view_revoked_modules(self, ctx: discord.ApplicationContext, user=None):
 		"""See revoked modules for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -165,10 +169,10 @@ class RevokeAccess(commands.Cog):
 			# Check if a user is provided
 			if user is None:
 				user = ctx.author.mention
-			user = user.lstrip("<@!").rstrip(">")
+			user = await GeneralUtilities.strip_usernames(user)
 
-			with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'r') as f:
-				data = json.load(f)
+			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+			data = await cache_manager.get_cache()
 
 			maxIndex = 0
 			userData = None

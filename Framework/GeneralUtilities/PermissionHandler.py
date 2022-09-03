@@ -4,7 +4,7 @@ from Framework.GeneralUtilities import CommandAccess
 async def check_permissions(ctx, embed, module, command, shouldCheckForWizard=False, shouldCheckForModuleEnabled=True,
 							shouldCheckForBannedModule=True, shouldCheckForBannedCommand=True):
 	failedPermissionCheck = False
-	guild_id = ctx.guild.id
+	guild_id = ctx.guild_id
 	if shouldCheckForModuleEnabled and not await CommandAccess.check_module_enabled(module, guild_id):
 		embed.title = "Cannot use this module"
 		embed.description = "This module has been disabled."

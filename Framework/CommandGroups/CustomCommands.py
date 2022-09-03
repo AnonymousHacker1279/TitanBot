@@ -17,17 +17,17 @@ class CustomCommands(commands.Cog):
 
 	@commands.slash_command(name="custom_command")
 	@commands.guild_only()
-	async def custom_command(self, ctx, command_name: str, args: str = None):
+	async def custom_command(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
 		"""Execute a custom command."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='Executing your command, please be patient...')
 		await ctx.respond(embed=embed)
 
-		path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + command_name + ".js"
+		path = await DatabaseObjects.get_custom_commands_directory(ctx.guild_id) + "\\" + command_name + ".js"
 		if args is None:
 			args = ""
 		args = await GeneralUtilities.arg_splitter(args)
 
-		with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), "r") as f:
+		with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild_id), "r") as f:
 			metadata = json.load(f)
 			wizard_only = False
 			if command_name in metadata["wizard_only_commands"]:
@@ -42,7 +42,7 @@ class CustomCommands(commands.Cog):
 					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), args, embed)
 		else:
 			try:
-				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + metadata["aliases"][
+				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild_id) + "\\" + metadata["aliases"][
 					command_name] + ".js"
 				embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
 																					command_name,
@@ -58,7 +58,7 @@ class CustomCommands(commands.Cog):
 		await ctx.edit(embed=embed)
 
 	@commands.slash_command(name="add_command")
-	async def add_command(self, ctx):
+	async def add_command(self, ctx: discord.ApplicationContext):
 		"""Add a custom command to the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -71,7 +71,7 @@ class CustomCommands(commands.Cog):
 
 	@commands.slash_command(name='remove_command')
 	@commands.guild_only()
-	async def remove_command(self, ctx, command_name: str = None):
+	async def remove_command(self, ctx: discord.ApplicationContext, command_name: str = None):
 		"""Remove a custom command from the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -80,11 +80,11 @@ class CustomCommands(commands.Cog):
 																				shouldCheckForWizard=True)
 		if not failedPermissionCheck:
 			if command_name is not None:
-				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "/" + command_name + ".js"
+				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild_id) + "/" + command_name + ".js"
 				if isfile(path):
 					os.remove(path)
 
-				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
+				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild_id), 'r') as f:
 					metadata_database = json.load(f)
 
 					database_commands_list = []
@@ -104,7 +104,7 @@ class CustomCommands(commands.Cog):
 						embed.description = "A command with the name `" + command_name + "` was not found."
 
 				if command_exists:
-					with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'w') as f:
+					with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild_id), 'w') as f:
 						metadata_database["aliases"].pop(alias)
 						if command_name in metadata_database["wizard_only_commands"]:
 							metadata_database["wizard_only_commands"].remove(command_name)
@@ -122,7 +122,7 @@ class CustomCommands(commands.Cog):
 
 	@commands.slash_command(name='command_info')
 	@commands.guild_only()
-	async def command_info(self, ctx, command_name: str = None):
+	async def command_info(self, ctx: discord.ApplicationContext, command_name: str = None):
 		"""Get information about a custom command."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -130,7 +130,7 @@ class CustomCommands(commands.Cog):
 																				"command_info")
 		if not failedPermissionCheck:
 			if command_name is not None:
-				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
+				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild_id), 'r') as f:
 					metadata = json.load(f)
 
 					database_commands_list = []

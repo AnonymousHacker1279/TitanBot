@@ -1,7 +1,11 @@
+import asyncio
 import re
 from hashlib import sha256
 
+import nest_asyncio
 import requests
+
+nest_asyncio.apply()
 
 
 async def generate_sha256(string: str) -> str:
@@ -47,3 +51,13 @@ async def arg_splitter(message: str) -> list:
 		args[iteration] = item.rstrip("'").rstrip('"').lstrip("'").lstrip('"')
 
 	return args
+
+
+async def strip_usernames(user: str) -> str:
+	return user.lstrip("<@!").rstrip(">")
+
+
+def run_and_get(coro):
+	task = asyncio.create_task(coro)
+	asyncio.get_running_loop().run_until_complete(task)
+	return task.result()

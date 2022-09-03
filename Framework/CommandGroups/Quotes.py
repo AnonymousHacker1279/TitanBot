@@ -1,4 +1,3 @@
-import json
 import math
 import re
 from random import randint
@@ -8,15 +7,23 @@ from discord.errors import NotFound
 from discord.ext import commands
 
 from ..FileSystemAPI import DatabaseObjects
-from ..GeneralUtilities import PermissionHandler
+from ..FileSystemAPI.CacheManager.ListCacheManager import ListCacheManager
+from ..GeneralUtilities import GeneralUtilities, PermissionHandler
 
 
 class Quotes(commands.Cog):
 	"""Remember the silly stuff people say."""
 
+	def __init__(self):
+		self.cache_managers = {}
+
+	async def post_initialize(self, bot: commands.Bot):
+		for guild in bot.guilds:
+			self.cache_managers[guild.id] = ListCacheManager(await DatabaseObjects.get_quotes_database(guild.id))
+
 	@commands.slash_command(name='quote')
 	@commands.guild_only()
-	async def quote(self, ctx, quote_id=None):
+	async def quote(self, ctx: discord.ApplicationContext, quote_id=None):
 		"""Get a random quote, if an ID isn't provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -24,7 +31,7 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
 		if not failedPermissionCheck:
 
-			async def prepare_quote(pAuthor, pContent, pId):
+			async def prepare_quote(pAuthor, pContent, pId) -> discord.Embed:
 				embed.title = "Quote #" + pId
 
 				links = re.findall('https://[a-zA-Z0-9-./_&]*', pContent)
@@ -39,14 +46,14 @@ class Quotes(commands.Cog):
 						embed.description = pAuthor
 					else:
 						embed.description = '> "' + pContent + '"\n'
-						embed.description += " - " + pAuthor
+						embed.description += " - <@" + str(pAuthor) + ">"
 						embed.set_image(url=links[0])
 				else:
 					embed.description = '> "' + pContent + '"\n'
-					embed.description += " - " + pAuthor
+					embed.description += " - <@" + str(pAuthor) + ">"
 
 				try:
-					authorUser = await ctx.bot.fetch_user(int(pAuthor.lstrip("<@!").rstrip(">")))
+					authorUser = await ctx.bot.fetch_user(pAuthor)
 					embed.set_thumbnail(url=authorUser.display_avatar.url)
 				except (NotFound, ValueError):
 					embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
@@ -54,13 +61,12 @@ class Quotes(commands.Cog):
 				return embed
 
 			# Check if an ID is provided, if not get a random quote
-			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
-				data = json.load(f)
+			data = await self.cache_managers.get(ctx.guild_id).get_cache()
+			maxIndex = 0
+			for _ in data:
+				maxIndex = maxIndex + 1
+			maxIndex = maxIndex - 1
 
-				maxIndex = 0
-				for _ in data:
-					maxIndex = maxIndex + 1
-				maxIndex = maxIndex - 1
 			if maxIndex == -1:
 				embed.title = "Failed to Get Quote"
 				embed.description = "I do not have any quotes in my archives."
@@ -89,14 +95,13 @@ class Quotes(commands.Cog):
 
 	@commands.slash_command(name='total_quotes')
 	@commands.guild_only()
-	async def total_quotes(self, ctx):
+	async def total_quotes(self, ctx: discord.ApplicationContext):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "total_quotes")
 		if not failedPermissionCheck:
-			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
-				data = json.load(f)
+			data = await self.cache_managers.get(ctx.guild_id).get_cache()
 
 			maxIndex = 0
 			for _ in data:
@@ -113,32 +118,32 @@ class Quotes(commands.Cog):
 
 	@commands.slash_command(name='add_quote')
 	@commands.guild_only()
-	async def add_quote(self, ctx, quote: str, author: str):
+	async def add_quote(self, ctx: discord.ApplicationContext, quote: str, author: str):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
-			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
-				data = json.load(f)
+			cache_manager = self.cache_managers.get(ctx.guild_id)
+			data = await cache_manager.get_cache()
+
+			author = int(await GeneralUtilities.strip_usernames(author))
 
 			maxIndex = 0
 			for _ in data:
 				maxIndex = maxIndex + 1
 			maxIndex = maxIndex - 1
 
-			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'w') as f:
-				quoteDictionary = {"content": quote, "author": author}
-				data.append(quoteDictionary)
-				json.dump(data, f, indent=4)
+			await cache_manager.add_to_list_cache({"content": quote, "author": author})
+			await cache_manager.sync_cache_to_disk()
 
 			embed.title = "Quote Added"
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
 	@commands.slash_command(name='remove_quote')
 	@commands.guild_only()
-	async def remove_quote(self, ctx, quote_id=None):
+	async def remove_quote(self, ctx: discord.ApplicationContext, quote_id=None):
 		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -148,8 +153,8 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
 
-			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
-				data = json.load(f)
+			cache_manager = self.cache_managers.get(ctx.guild_id)
+			data = await cache_manager.get_cache()
 
 			maxIndex = 0
 			for _ in data:
@@ -161,9 +166,8 @@ class Quotes(commands.Cog):
 					embed.title = "Failed to remove quote"
 					embed.description = "You must pass a quote ID to remove."
 				else:
-					with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'w') as f:
-						data.remove(data[int(quote_id)])
-						json.dump(data, f, indent=4)
+					await cache_manager.remove_from_list_cache(data[int(quote_id)])
+					await cache_manager.sync_cache_to_disk()
 
 				embed.title = "Quote Removed"
 				embed.description = "The quote has been purged from my archives. Total Quotes: **" + str(
@@ -176,7 +180,7 @@ class Quotes(commands.Cog):
 
 	@commands.slash_command(name='search_quotes')
 	@commands.guild_only()
-	async def search_quotes(self, ctx, quote_author=None, page=1):
+	async def search_quotes(self, ctx: discord.ApplicationContext, quote_author: str = None, page: int = 1):
 		"""Search quotes by author. Lists up to 5 per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -187,19 +191,19 @@ class Quotes(commands.Cog):
 			if quote_author is None:
 				embed.title = "Cannot search quotes"
 				embed.description = "You must provide an author"
-			quote_author = str(quote_author)
+
+			quote_author = await GeneralUtilities.strip_usernames(quote_author)
 
 			# Get the quote data
-			with open(await DatabaseObjects.get_quotes_database(ctx.guild.id), 'r') as f:
-				data = json.load(f)
+			data = await self.cache_managers.get(ctx.guild_id).get_cache()
 
-				maxIndex = 0
-				# The quote index here lists all quote IDs associated with the author
-				authorQuoteIndex = []
-				for i in data:
-					maxIndex = maxIndex + 1
-					if quote_author in i['author']:
-						authorQuoteIndex.append(maxIndex)
+			maxIndex = 0
+			# The quote index here lists all quote IDs associated with the author
+			authorQuoteIndex = []
+			for i in data:
+				maxIndex = maxIndex + 1
+				if quote_author in str(i['author']):
+					authorQuoteIndex.append(maxIndex)
 
 			try:
 				if int(page) < 1:
@@ -208,7 +212,7 @@ class Quotes(commands.Cog):
 				else:
 					authorDisplayName = quote_author
 					try:
-						authorUser = await ctx.bot.fetch_user(int(quote_author.lstrip("<@!").rstrip(">")))
+						authorUser = await ctx.bot.fetch_user(int(quote_author))
 						authorDisplayName = authorUser.display_name
 						embed.set_thumbnail(url=authorUser.display_avatar.url)
 					except (NotFound, ValueError):

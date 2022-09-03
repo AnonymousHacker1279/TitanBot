@@ -15,7 +15,7 @@ class Utility(commands.Cog):
 
 	@commands.slash_command(name='age')
 	@commands.guild_only()
-	async def age(self, ctx):
+	async def age(self, ctx: discord.ApplicationContext):
 		"""See the length of time I have existed."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -33,7 +33,7 @@ class Utility(commands.Cog):
 
 	@commands.slash_command(name='coin_flip')
 	@commands.guild_only()
-	async def coin_flip(self, ctx):
+	async def coin_flip(self, ctx: discord.ApplicationContext):
 		"""Flip a coin."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -50,17 +50,15 @@ class Utility(commands.Cog):
 
 	@commands.slash_command(name='roll_die')
 	@commands.guild_only()
-	async def roll_die(self, ctx, *sides: int):
+	async def roll_die(self, ctx: discord.ApplicationContext, sides: int = 6):
 		"""Roll a die. Defaults to six sides if not specified."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "roll_die")
 		if not failedPermissionCheck:
 			embed.title = "Roll Die"
-			if len(sides) == 0:
-				embed.description = "Result: **" + str(randint(1, 6)) + ".**"
-			elif sides[0] > 1:
-				embed.description = "Result: **" + str(randint(1, sides[0])) + ".**"
+			if sides > 0:
+				embed.description = "Result: **" + str(randint(1, sides)) + ".**"
 			else:
 				embed.title = "Roll Die Failed"
 				embed.description = "You must specify more than one side on the die."
@@ -69,7 +67,7 @@ class Utility(commands.Cog):
 
 	@commands.slash_command(name='ping')
 	@commands.guild_only()
-	async def ping(self, ctx):
+	async def ping(self, ctx: discord.ApplicationContext):
 		"""Get the latency of the bot."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -89,7 +87,7 @@ class Utility(commands.Cog):
 
 	@commands.slash_command(name='about')
 	@commands.guild_only()
-	async def about(self, ctx):
+	async def about(self, ctx: discord.ApplicationContext):
 		"""Learn about me."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -123,7 +121,7 @@ class Utility(commands.Cog):
 
 	@commands.slash_command(name='total_users')
 	@commands.guild_only()
-	async def total_users(self, ctx):
+	async def total_users(self, ctx: discord.ApplicationContext):
 		"""Get the total number of users in the server."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -136,7 +134,7 @@ class Utility(commands.Cog):
 
 	@commands.slash_command(name='status')
 	@commands.guild_only()
-	async def status(self, ctx):
+	async def status(self, ctx: discord.ApplicationContext):
 		"""Get the current system status."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')

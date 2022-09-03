@@ -11,7 +11,7 @@ class ModuleSystem(commands.Cog):
 
 	@commands.command(name='moduleInfo')
 	@commands.guild_only()
-	async def module_info(self, ctx, module=None):
+	async def module_info(self, ctx: discord.ApplicationContext, module=None):
 		"""Get module information. Lists all modules and their status by default. Specify a specific module to get
 		detailed information. """
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -73,7 +73,7 @@ class ModuleSystem(commands.Cog):
 
 	@commands.command(name='toggleModuleState')
 	@commands.guild_only()
-	async def toggle_module_state(self, ctx, module=None):
+	async def toggle_module_state(self, ctx: discord.ApplicationContext, module=None):
 		"""Toggle the state of a module. Pass the ID of the module you wish to toggle."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 

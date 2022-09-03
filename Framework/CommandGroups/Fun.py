@@ -2,7 +2,7 @@ import discord
 from discord import Spotify
 from discord.ext import commands
 
-from ..GeneralUtilities import PermissionHandler
+from ..GeneralUtilities import GeneralUtilities, PermissionHandler
 
 
 class Fun(commands.Cog):
@@ -10,7 +10,7 @@ class Fun(commands.Cog):
 
 	@commands.slash_command(name='stab')
 	@commands.guild_only()
-	async def stab(self, ctx, user=None):
+	async def stab(self, ctx: discord.ApplicationContext, user=None):
 		"""Stab someone, or something."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -27,7 +27,7 @@ class Fun(commands.Cog):
 
 	@commands.slash_command(name='spotify')
 	@commands.guild_only()
-	async def spotify(self, ctx, user=None):
+	async def spotify(self, ctx: discord.ApplicationContext, user=None):
 		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -37,7 +37,7 @@ class Fun(commands.Cog):
 				user = ctx.author
 			nonSpotifyActivities = 0
 			if isinstance(user, str):
-				user = ctx.guild.get_member(int(user.lstrip("<@!").rstrip(">")))
+				user = ctx.guild.get_member(int(await GeneralUtilities.strip_usernames(user)))
 			if user.activities:
 				for activity in user.activities:
 					if isinstance(activity, Spotify):
