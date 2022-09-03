@@ -1,5 +1,6 @@
 import math
 import re
+from datetime import datetime
 from random import randint
 
 import discord
@@ -31,12 +32,22 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
 		if not failedPermissionCheck:
 
-			async def prepare_quote(pAuthor, pContent, pId) -> discord.Embed:
+			async def prepare_quote(pAuthor, pContent, pId, pDate, pQuotedBy) -> discord.Embed:
 				embed.title = "Quote #" + pId
 
 				links = re.findall('https://[a-zA-Z0-9-./_&]*', pContent)
 				contentExcludingLinks = ""
 				iteration = 0
+
+				if pDate and pQuotedBy != "Unknown":
+					iso_date = datetime.fromisoformat(pDate)
+					readable_date = str(iso_date.month) + "/" + str(iso_date.day) + "/" + str(iso_date.year) \
+									+ " at " + str(iso_date.hour) + \
+									":" + str(iso_date.minute) + ":" + str(iso_date.second)
+				else:
+					readable_date = "Unknown"
+					pQuotedBy = "Unknown"
+
 				for _ in links:
 					contentExcludingLinks = re.sub(pattern=links[iteration], repl="", string=pContent)
 					iteration += 1
@@ -44,13 +55,16 @@ class Quotes(commands.Cog):
 					if contentExcludingLinks == "":
 						embed.set_image(url=links[0])
 						embed.description = pAuthor
+						embed.set_footer(text="Added " + readable_date + " by " + str(await ctx.bot.fetch_user(pQuotedBy)))
 					else:
 						embed.description = '> "' + pContent + '"\n'
 						embed.description += " - <@" + str(pAuthor) + ">"
 						embed.set_image(url=links[0])
+						embed.set_footer(text="Added " + str(readable_date) + " by " + str(await ctx.bot.fetch_user(pQuotedBy)))
 				else:
 					embed.description = '> "' + pContent + '"\n'
 					embed.description += " - <@" + str(pAuthor) + ">"
+					embed.set_footer(text="Added " + str(readable_date) + " by " + str(await ctx.bot.fetch_user(pQuotedBy)))
 
 				try:
 					authorUser = await ctx.bot.fetch_user(pAuthor)
@@ -74,8 +88,10 @@ class Quotes(commands.Cog):
 				random = randint(0, maxIndex)
 				author = data[random]["author"]
 				content = data[random]["content"]
+				date = data[random]["date"]
+				quoted_by = data[random]["quoted_by"]
 
-				embed = await prepare_quote(author, content, str(random))
+				embed = await prepare_quote(author, content, str(random), date, quoted_by)
 
 			else:
 				try:
@@ -86,7 +102,9 @@ class Quotes(commands.Cog):
 					else:
 						content = data[int(quote_id)]["content"]
 						author = data[int(quote_id)]["author"]
-						embed = await prepare_quote(author, content, quote_id)
+						date = data[int(quote_id)]["date"]
+						quoted_by = data[int(quote_id)]["quoted_by"]
+						embed = await prepare_quote(author, content, quote_id, date, quoted_by)
 				except ValueError:
 					embed.title = "Cannot get quote"
 					embed.description = "The quote ID must be a number."
@@ -134,7 +152,34 @@ class Quotes(commands.Cog):
 				maxIndex = maxIndex + 1
 			maxIndex = maxIndex - 1
 
-			await cache_manager.add_to_list_cache({"content": quote, "author": author})
+			await cache_manager.add_to_list_cache({"content": quote, "author": author,
+												"date": datetime.now().isoformat(), "quoted_by": ctx.author.id})
+			await cache_manager.sync_cache_to_disk()
+
+			embed.title = "Quote Added"
+			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
+		await ctx.respond(embed=embed)
+
+	@commands.message_command(name='Add Quote')
+	@commands.guild_only()
+	async def add_quote_message_cmd(self, ctx: discord.ApplicationContext, message: discord.Message):
+		"""Did someone say something stupid? Make them remember it with a quote."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
+		if not failedPermissionCheck:
+			cache_manager = self.cache_managers.get(ctx.guild_id)
+			data = await cache_manager.get_cache()
+
+			author = message.author.id
+
+			maxIndex = 0
+			for _ in data:
+				maxIndex = maxIndex + 1
+			maxIndex = maxIndex - 1
+
+			await cache_manager.add_to_list_cache({"content": message.content, "author": author,
+												"date": datetime.now().isoformat(), "quoted_by": ctx.author.id})
 			await cache_manager.sync_cache_to_disk()
 
 			embed.title = "Quote Added"

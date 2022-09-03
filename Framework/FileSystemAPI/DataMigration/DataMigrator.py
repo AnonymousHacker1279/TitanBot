@@ -43,3 +43,26 @@ async def migrate_storage_metadata(old_version: int) -> None:
 
 		with open(metadata_path, "w") as f:
 			json.dump(metadata, f)
+
+	# Migrate from version 3 to version 4
+	if old_version == 3:
+		# Version 4 added a date field and a "quoted_by" field. Old entries will have the missing fields
+		# set with a value of "Unknown"
+		for guild in metadata["guilds"]:
+			metadata["guilds"][guild] = 4
+
+			with open(await DatabaseObjects.get_quotes_database(guild), "r") as f:
+				quotes = json.load(f)
+
+			for quote in quotes:
+				try:
+					quote["date"] = "Unknown"
+					quote["quoted_by"] = "Unknown"
+				except ValueError:
+					pass
+
+			with open(await DatabaseObjects.get_quotes_database(guild), "w") as f:
+				json.dump(quotes, f, indent=4)
+
+		with open(metadata_path, "w") as f:
+			json.dump(metadata, f)

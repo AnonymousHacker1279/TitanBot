@@ -32,7 +32,7 @@ if __name__ == "__main__":
 		print('Connected to Discord!')
 
 		# Check storage metadata, and perform migration as necessary
-		await FileAPI.check_storage_metadata(3, bot.guilds)
+		await FileAPI.check_storage_metadata(4, bot.guilds)
 
 		# Do post-initialization for objects with a database cache
 		await CommandAccess.post_initialize(bot)

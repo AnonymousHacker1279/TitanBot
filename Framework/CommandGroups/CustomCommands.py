@@ -53,7 +53,7 @@ class CustomCommands(commands.Cog):
 
 			except (ValueError, TypeError, KeyError):
 				embed.title = "Command Not Found"
-				embed.description = "A matching command could not be found. Please see ``/help`` for commands.\n\n"
+				embed.description = "A matching command could not be found.\n\n"
 
 		await ctx.edit(embed=embed)
 
