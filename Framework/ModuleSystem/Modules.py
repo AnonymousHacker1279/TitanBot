@@ -9,11 +9,10 @@ from ..GeneralUtilities import PermissionHandler
 
 class ModuleSystem(commands.Cog):
 
-	@commands.command(name='moduleInfo')
+	@commands.slash_command(name='module_info')
 	@commands.guild_only()
 	async def module_info(self, ctx: discord.ApplicationContext, module=None):
-		"""Get module information. Lists all modules and their status by default. Specify a specific module to get
-		detailed information. """
+		"""Get module information. Lists all modules and their status."""
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "null", "moduleInfo",
@@ -24,7 +23,7 @@ class ModuleSystem(commands.Cog):
 			embed.title = "Module System: Information"
 
 			# Open the settings file
-			with open(await DatabaseObjects.get_module_settings_database(), 'r') as f:
+			with open(await DatabaseObjects.get_module_settings_database(ctx.guild_id), 'r') as f:
 				data = json.load(f)
 
 				# Initialize variables
@@ -69,9 +68,9 @@ class ModuleSystem(commands.Cog):
 					# No module was found, so let the user know
 					embed.description = "No module was found of the ID '" + str(module) + "'"
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)
 
-	@commands.command(name='toggleModuleState')
+	@commands.slash_command(name='toggle_module_state')
 	@commands.guild_only()
 	async def toggle_module_state(self, ctx: discord.ApplicationContext, module=None):
 		"""Toggle the state of a module. Pass the ID of the module you wish to toggle."""
@@ -85,7 +84,7 @@ class ModuleSystem(commands.Cog):
 			embed.title = "Module System: Toggle Module State"
 
 			# Open the settings file
-			with open(await DatabaseObjects.get_module_settings_database(), 'r') as f:
+			with open(await DatabaseObjects.get_module_settings_database(ctx.guild_id), 'r') as f:
 				data = json.load(f)
 
 			# Initialize variables
@@ -107,7 +106,7 @@ class ModuleSystem(commands.Cog):
 				if data["moduleConfiguration"][module]["forceEnabled"]:
 					embed.title = "Module System: Failed to toggle state of " + data["moduleConfiguration"][module][
 						"displayName"]
-					embed.description = "This module is force enabled, and cannot be disabled via commands."
+					embed.description = "This module is force enabled and cannot be disabled via commands."
 				else:
 					# Set the title with the module display name
 					embed.title = "Module System: Toggled state of " + data["moduleConfiguration"][module]["displayName"]
@@ -118,11 +117,11 @@ class ModuleSystem(commands.Cog):
 					else:
 						data["moduleConfiguration"][module]["enabled"] = True
 						line = "The module state has changed. New state:\nEnabled :white_check_mark:"
-					with open(await DatabaseObjects.get_module_settings_database(), 'w') as f:
+					with open(await DatabaseObjects.get_module_settings_database(ctx.guild_id), 'w') as f:
 						json.dump(data, f, indent=4)
 					embed.description += line + "\n"
 			else:
 				# No module was found, so let the user know
 				embed.description = "No module was found of the name '" + str(module) + "'"
 
-		await ctx.send(embed=embed)
+		await ctx.respond(embed=embed)

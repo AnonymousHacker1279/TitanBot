@@ -6,12 +6,14 @@ async def get_modules_schema() -> dict:
 				"forceEnabled": False,
 				"displayName": "Quotes",
 				"id": "quotes",
-				"description": "The quote system allows users to add quotes to a user.",
+				"description": "The quote system allows users to remember the silly stuff they say.",
 				"commands": [
-					"addQuote",
 					"quote",
-					"removeQuote",
-					"totalQuotes"
+					"add_quote",
+					"remove_quote",
+					"total_quotes",
+					"search_quotes_author",
+					"search_quotes_text"
 				]
 			},
 			"fun": {
@@ -34,10 +36,10 @@ async def get_modules_schema() -> dict:
 				"commands": [
 					"about",
 					"age",
-					"flipCoin",
-					"rollDie",
+					"flip_coin",
+					"roll_die",
 					"status",
-					"totalUsers",
+					"total_users",
 					"ping"
 				]
 			},
@@ -48,9 +50,9 @@ async def get_modules_schema() -> dict:
 				"id": "genius",
 				"description": "The Genius system allows you to interact with the Genius music API.",
 				"commands": [
-					"searchSongs",
-					"getLyricsByURL",
-					"getLyricsByID"
+					"search_songs",
+					"get_lyrics_by_url",
+					"get_lyrics_by_id"
 				]
 			},
 			"customCommands": {
@@ -60,9 +62,10 @@ async def get_modules_schema() -> dict:
 				"id": "customCommands",
 				"description": "The Custom Commands system allows you to expand the power of TitanBot by implementing your own features on-the-fly without modifying bot code.",
 				"commands": [
-					"addCommand",
-					"removeCommand",
-					"commandInfo"
+					"custom_command",
+					"add_command",
+					"remove_command",
+					"command_info"
 				]
 			},
 			"moderator": {
@@ -72,10 +75,10 @@ async def get_modules_schema() -> dict:
 				"id": "moderator",
 				"description": "The moderator system provides management commands to users with adequate permissions.",
 				"commands": [
-					"revokeCommandAccess",
-					"viewRevokedCommands",
-					"revokeModuleAccess",
-					"viewRevokedModules"
+					"revoke_command_access",
+					"view_revoked_commands",
+					"revoke_module_access",
+					"view_revoked_modules"
 				]
 			}
 		}

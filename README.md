@@ -17,13 +17,8 @@ you will need to provide the server.
 
 #### What TitanBot needs:
 - A folder to operate in
-- A Python 3 installation (currently built with `3.10.2`, older versions may work but aren't verified)
-- Some `pip` modules. Those are:
-  - `py-cord`
-  - `psutil`
-  - `lyricsgenius`
-  - `vt-py`
-  - `python-dotenv`
+- A Python 3 installation (currently built with `3.10.6`, older versions may work but aren't verified)
+- Some `pip` modules. Those can be installed from the `requirements.txt` file in the repository.
 
 You will need to create a `.env` file in the root of the operating folder. This stores environment
 variables that TitanBot needs. The file should look somewhat like this:
@@ -31,7 +26,6 @@ variables that TitanBot needs. The file should look somewhat like this:
 ```txt
 DISCORD_TOKEN=<your bot token>
 WIZARD_ROLE=<a role ID to denote users that can access higher level functions>
-BOT_VERSION=v2.1.0
 BOT_UPDATE_LOCATION=https://raw.githubusercontent.com/AnonymousHacker1279/TitanBot/v2.x/update.json
 GENIUS_API_TOKEN=<a Genius API token>
 ENABLE_CUSTOM_COMMANDS_MALWARE_SCANNING=True
@@ -39,10 +33,9 @@ CUSTOM_COMMANDS_MAX_EXECUTION_TIME=30
 VIRUSTOTAL_API_KEY=<a VirusTotal API key>
 ```
 
-You will need to replace any text within `<>` with your own data. `BOT_VERSION` represents the current
-version that is being used, while `BOT_UPDATE_LOCATION` represents a location to access an update metadata.
-The bot will not auto-update, however it will tell you the current and latest versions on the `$about`
-command.
+You will need to replace any text within `<>` with your own data. `BOT_UPDATE_LOCATION` represents a 
+location to access an update metadata. The bot will not auto-update, however it will tell you the
+current and latest versions on the `about`command.
 
 The `GENIUS_API_TOKEN` is not necessary if you do not wish to use the Genius music module. The 
 `VIRUSTOTAL_API_KEY` is not necessary if you do not wish to use custom commands, or plan to leave malware 
