@@ -25,7 +25,6 @@ variables that TitanBot needs. The file should look somewhat like this:
 
 ```txt
 DISCORD_TOKEN=<your bot token>
-WIZARD_ROLE=<a role ID to denote users that can access higher level functions>
 BOT_UPDATE_LOCATION=https://raw.githubusercontent.com/AnonymousHacker1279/TitanBot/v2.x/update.json
 GENIUS_API_TOKEN=<a Genius API token>
 ENABLE_CUSTOM_COMMANDS_MALWARE_SCANNING=True

@@ -16,7 +16,7 @@ class ModuleSystem(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "null", "moduleInfo",
-																				shouldCheckForWizard=True,
+																				shouldCheckForAdmin=True,
 																				shouldCheckForModuleEnabled=False,
 																				shouldCheckForBannedModule=False)
 		if not failedPermissionCheck:
@@ -77,7 +77,7 @@ class ModuleSystem(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "null", "moduleInfo",
-																				shouldCheckForWizard=True,
+																				shouldCheckForAdmin=True,
 																				shouldCheckForModuleEnabled=False,
 																				shouldCheckForBannedModule=False)
 		if not failedPermissionCheck:

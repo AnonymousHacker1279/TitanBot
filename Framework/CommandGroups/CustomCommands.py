@@ -29,14 +29,14 @@ class CustomCommands(commands.Cog):
 
 		with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild_id), "r") as f:
 			metadata = json.load(f)
-			wizard_only = False
-			if command_name in metadata["wizard_only_commands"]:
-				wizard_only = True
+			admin_only = False
+			if command_name in metadata["admin_only_commands"]:
+				admin_only = True
 
 		if isfile(path):
 			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
 																					command_name,
-																					shouldCheckForWizard=wizard_only)
+																					shouldCheckForAdmin=admin_only)
 			if not failedPermissionCheck:
 				with open(path, "r") as f:
 					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), args, embed)
@@ -46,7 +46,7 @@ class CustomCommands(commands.Cog):
 					command_name] + ".js"
 				embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
 																					command_name,
-																					shouldCheckForWizard=wizard_only)
+																					shouldCheckForAdmin=admin_only)
 				if not failedPermissionCheck:
 					with open(path, "r") as f:
 						embed = await OsmiumInterconnect.execute_with_osmium(f.read(), args, embed)
@@ -64,7 +64,7 @@ class CustomCommands(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
 																				"add_command",
-																				shouldCheckForWizard=True)
+																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
 			modal = CustomCommandModals.AddCommand(title="Add a custom command")
 			await ctx.send_modal(modal)
@@ -77,7 +77,7 @@ class CustomCommands(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
 																				"remove_command",
-																				shouldCheckForWizard=True)
+																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
 			if command_name is not None:
 				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild_id) + "/" + command_name + ".js"
@@ -106,8 +106,8 @@ class CustomCommands(commands.Cog):
 				if command_exists:
 					with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild_id), 'w') as f:
 						metadata_database["aliases"].pop(alias)
-						if command_name in metadata_database["wizard_only_commands"]:
-							metadata_database["wizard_only_commands"].remove(command_name)
+						if command_name in metadata_database["admin_only_commands"]:
+							metadata_database["admin_only_commands"].remove(command_name)
 						metadata_database["metadata"].pop(command_name)
 						json.dump(metadata_database, f, indent=4)
 

@@ -195,7 +195,7 @@ class Quotes(commands.Cog):
 	@commands.slash_command(name='remove_quote')
 	@commands.guild_only()
 	async def remove_quote(self, ctx: discord.ApplicationContext, quote_id=None):
-		"""Need to purge a quote? Use this. Only available to TitanBot Wizards."""
+		"""Need to purge a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "remove_quote", True)

@@ -89,7 +89,7 @@ async def get_custom_commands_metadata_schema() -> dict:
 	return {
 		"metadata": {},
 		"aliases": {},
-		"wizard_only_commands": []
+		"admin_only_commands": []
 	}
 
 

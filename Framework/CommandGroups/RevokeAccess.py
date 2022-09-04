@@ -13,7 +13,7 @@ class RevokeAccess(commands.Cog):
 	@commands.slash_command(name='revoke_command_access')
 	@commands.guild_only()
 	async def revoke_command_access(self, ctx: discord.ApplicationContext, user=None, command=None):
-		"""Revoke access to a specific command. Only available to TitanBot Wizards."""
+		"""Revoke access to a specific command. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revoke_command_access", True)
@@ -63,7 +63,7 @@ class RevokeAccess(commands.Cog):
 				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild_id), 'w') as f:
 					json.dump(data, f, indent=4)
 
-				cache_manager.invalidate_cache()
+				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
 
@@ -104,7 +104,7 @@ class RevokeAccess(commands.Cog):
 	@commands.slash_command(name='revoke_module_access')
 	@commands.guild_only()
 	async def revoke_module_access(self, ctx: discord.ApplicationContext, user=None, module=None):
-		"""Revoke access to an entire module. Only available to TitanBot Wizards."""
+		"""Revoke access to an entire module. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revoke_module_access", True)

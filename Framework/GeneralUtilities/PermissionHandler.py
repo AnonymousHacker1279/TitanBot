@@ -1,7 +1,7 @@
 from Framework.GeneralUtilities import CommandAccess
 
 
-async def check_permissions(ctx, embed, module, command, shouldCheckForWizard=False, shouldCheckForModuleEnabled=True,
+async def check_permissions(ctx, embed, module, command, shouldCheckForAdmin=False, shouldCheckForModuleEnabled=True,
 							shouldCheckForBannedModule=True, shouldCheckForBannedCommand=True):
 	failedPermissionCheck = False
 	guild_id = ctx.guild_id
@@ -17,7 +17,7 @@ async def check_permissions(ctx, embed, module, command, shouldCheckForWizard=Fa
 		embed.title = "Cannot use this command"
 		embed.description = "You do not have permission to use this command."
 		failedPermissionCheck = True
-	elif shouldCheckForWizard and await CommandAccess.check_user_is_wizard(ctx) is None:
+	elif shouldCheckForAdmin and not ctx.author.guild_permissions.administrator:
 		embed.title = "Cannot use this command"
 		embed.description = "You do not have access to use this command."
 		failedPermissionCheck = True

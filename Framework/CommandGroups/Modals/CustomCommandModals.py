@@ -15,7 +15,7 @@ class AddCommand(discord.ui.Modal):
 		self.add_item(discord.ui.InputText(label="Command Name"))
 		self.add_item(discord.ui.InputText(label="Command Alias (Short name)"))
 		self.add_item(discord.ui.InputText(label="Command Description", style=discord.InputTextStyle.long))
-		self.add_item(discord.ui.InputText(label="Wizard-Only (Admin)", placeholder="False"))
+		self.add_item(discord.ui.InputText(label="Admin-Only", placeholder="False"))
 		self.add_item(discord.ui.InputText(label="Code", style=discord.InputTextStyle.long))
 
 	async def callback(self, interaction: discord.Interaction):
@@ -24,7 +24,7 @@ class AddCommand(discord.ui.Modal):
 		command_name = self.children[0].value
 		alias = self.children[1].value
 		description = self.children[2].value
-		wizard_only = self.children[3].value
+		admin_only = self.children[3].value
 		code = self.children[4].value
 
 		if command_name is not None:
@@ -68,8 +68,8 @@ class AddCommand(discord.ui.Modal):
 
 					with open(await DatabaseObjects.get_custom_commands_metadata_database(interaction.guild.id), 'w') as f:
 						metadata_database["aliases"][alias] = command_name
-						if wizard_only:
-							metadata_database["wizard_only_commands"].append(command_name)
+						if admin_only:
+							metadata_database["admin_only_commands"].append(command_name)
 
 						metadata_database["metadata"][command_name] = {}
 						metadata_database["metadata"][command_name]["date_added"] = datetime.now().isoformat()
