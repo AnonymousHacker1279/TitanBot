@@ -4,7 +4,7 @@ from datetime import datetime
 from random import randint
 
 import discord
-from discord.errors import NotFound
+from discord.errors import HTTPException, NotFound
 from discord.ext import commands
 
 from ..FileSystemAPI import DatabaseObjects
@@ -54,29 +54,31 @@ class Quotes(commands.Cog):
 				except ValueError:
 					quoted_by_user = pQuotedBy
 
+				try:
+					author_user = await ctx.bot.fetch_user(pAuthor)
+					embed.set_thumbnail(url=author_user.display_avatar.url)
+					author_user = author_user.mention
+				except (HTTPException, NotFound, ValueError):
+					embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
+					author_user = str(pAuthor)
+
 				for _ in links:
 					contentExcludingLinks = re.sub(pattern=links[iteration], repl="", string=pContent)
 					iteration += 1
 				if len(links) != 0:
 					if contentExcludingLinks == "":
 						embed.set_image(url=links[0])
-						embed.description = "<@" + str(pAuthor) + ">"
+						embed.description = author_user
 						embed.set_footer(text="Added " + readable_date + " by " + quoted_by_user)
 					else:
 						embed.description = '> "' + pContent + '"\n'
-						embed.description += " - <@" + str(pAuthor) + ">"
+						embed.description += " - " + author_user
 						embed.set_image(url=links[0])
 						embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
 				else:
 					embed.description = '> "' + pContent + '"\n'
-					embed.description += " - <@" + str(pAuthor) + ">"
+					embed.description += " - " + author_user
 					embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
-
-				try:
-					authorUser = await ctx.bot.fetch_user(pAuthor)
-					embed.set_thumbnail(url=authorUser.display_avatar.url)
-				except (NotFound, ValueError):
-					embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
 
 				return embed
 
@@ -151,7 +153,10 @@ class Quotes(commands.Cog):
 			cache_manager = self.cache_managers.get(ctx.guild_id)
 			data = await cache_manager.get_cache()
 
-			author = int(await GeneralUtilities.strip_usernames(author))
+			try:
+				author = int(await GeneralUtilities.strip_usernames(author))
+			except ValueError:
+				pass
 
 			maxIndex = 0
 			for _ in data:
