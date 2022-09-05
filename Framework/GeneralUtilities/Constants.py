@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = "v2.2.0"
+VERSION = "v2.2.1"
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 LOG_LEVEL = int(os.getenv('LOG_LEVEL'))

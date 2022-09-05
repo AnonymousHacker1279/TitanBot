@@ -1,5 +1,9 @@
 {
-    "latest": "v2.2.0",
+    "latest": "v2.2.1",
+     "v2.2.1": {
+        "changelog": "Fix a bunch of teething issues relating to v2.2.0. Also reintroduces prefix commands via bridging, meaning you can use slash and prefix commands!",
+        "versionTag": "release"
+    },
     "v2.2.0": {
         "changelog": "Innovation! Mass dependency upgrades and movement to modern Discord features.\n\n- Implemented guild storage, allowing one bot to properly serve multiple guilds\n- Database caches to improve performance\n- Replaced prefix commands with slash commands\n- Fix various bugs in commands\n- Various quote system improvements, including:\n  - New schema which includes the date added and the user who added the quote\n  - Ability to add quotes by right-clicking a message\n  - Ability to search quotes by text content",
         "versionTag": "release"
