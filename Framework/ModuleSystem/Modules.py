@@ -23,7 +23,7 @@ class ModuleSystem(commands.Cog):
 			embed.title = "Module System: Information"
 
 			# Open the settings file
-			with open(await DatabaseObjects.get_module_settings_database(ctx.guild_id), 'r') as f:
+			with open(await DatabaseObjects.get_module_settings_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 				# Initialize variables
@@ -84,7 +84,7 @@ class ModuleSystem(commands.Cog):
 			embed.title = "Module System: Toggle Module State"
 
 			# Open the settings file
-			with open(await DatabaseObjects.get_module_settings_database(ctx.guild_id), 'r') as f:
+			with open(await DatabaseObjects.get_module_settings_database(ctx.guild.id), 'r') as f:
 				data = json.load(f)
 
 			# Initialize variables
@@ -117,7 +117,7 @@ class ModuleSystem(commands.Cog):
 					else:
 						data["moduleConfiguration"][module]["enabled"] = True
 						line = "The module state has changed. New state:\nEnabled :white_check_mark:"
-					with open(await DatabaseObjects.get_module_settings_database(ctx.guild_id), 'w') as f:
+					with open(await DatabaseObjects.get_module_settings_database(ctx.guild.id), 'w') as f:
 						json.dump(data, f, indent=4)
 					embed.description += line + "\n"
 			else:

@@ -6,6 +6,7 @@ from random import randint
 import discord
 from discord.errors import HTTPException, NotFound
 from discord.ext import commands
+from discord.ext.bridge import bot
 
 from ..FileSystemAPI import DatabaseObjects
 from ..FileSystemAPI.CacheManager.ListCacheManager import ListCacheManager
@@ -22,7 +23,7 @@ class Quotes(commands.Cog):
 		for guild in bot.guilds:
 			self.cache_managers[guild.id] = ListCacheManager(await DatabaseObjects.get_quotes_database(guild.id), "quotes", guild.id)
 
-	@commands.slash_command(name='quote')
+	@bot.bridge_command(aliases=["q"])
 	@commands.guild_only()
 	async def quote(self, ctx: discord.ApplicationContext, quote_id=None):
 		"""Get a random quote, if an ID isn't provided."""
@@ -83,7 +84,7 @@ class Quotes(commands.Cog):
 				return embed
 
 			# Check if an ID is provided, if not get a random quote
-			data = await self.cache_managers.get(ctx.guild_id).get_cache()
+			data = await self.cache_managers.get(ctx.guild.id).get_cache()
 			maxIndex = 0
 			for _ in data:
 				maxIndex = maxIndex + 1
@@ -119,7 +120,7 @@ class Quotes(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='total_quotes')
+	@bot.bridge_command(aliases=["tq"])
 	@commands.guild_only()
 	async def total_quotes(self, ctx: discord.ApplicationContext):
 		"""Get the total number of quotes available."""
@@ -127,7 +128,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "total_quotes")
 		if not failedPermissionCheck:
-			data = await self.cache_managers.get(ctx.guild_id).get_cache()
+			data = await self.cache_managers.get(ctx.guild.id).get_cache()
 
 			maxIndex = 0
 			for _ in data:
@@ -142,7 +143,7 @@ class Quotes(commands.Cog):
 			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='add_quote')
+	@bot.bridge_command(aliases=["aq"])
 	@commands.guild_only()
 	async def add_quote(self, ctx: discord.ApplicationContext, quote: str, author: str):
 		"""Did someone say something stupid? Make them remember it with a quote."""
@@ -150,7 +151,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
-			cache_manager = self.cache_managers.get(ctx.guild_id)
+			cache_manager = self.cache_managers.get(ctx.guild.id)
 			data = await cache_manager.get_cache()
 
 			try:
@@ -179,7 +180,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
-			cache_manager = self.cache_managers.get(ctx.guild_id)
+			cache_manager = self.cache_managers.get(ctx.guild.id)
 			data = await cache_manager.get_cache()
 
 			author = message.author.id
@@ -197,7 +198,7 @@ class Quotes(commands.Cog):
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='remove_quote')
+	@bot.bridge_command(aliases=["rq"])
 	@commands.guild_only()
 	async def remove_quote(self, ctx: discord.ApplicationContext, quote_id=None):
 		"""Need to purge a quote? Use this. Only available to administrators."""
@@ -209,7 +210,7 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to remove quote"
 				embed.description = "You must pass a quote ID to remove."
 
-			cache_manager = self.cache_managers.get(ctx.guild_id)
+			cache_manager = self.cache_managers.get(ctx.guild.id)
 			data = await cache_manager.get_cache()
 
 			maxIndex = 0
@@ -234,7 +235,7 @@ class Quotes(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='search_quotes_author')
+	@bot.bridge_command(aliases=["sqa"])
 	@commands.guild_only()
 	async def search_quotes_author(self, ctx: discord.ApplicationContext, quote_author: str, page: int = 0):
 		"""Search quotes by author. Lists up to 10 per page."""
@@ -246,7 +247,7 @@ class Quotes(commands.Cog):
 			quote_author = await GeneralUtilities.strip_usernames(quote_author)
 
 			# Get the quote data
-			data = await self.cache_managers.get(ctx.guild_id).get_cache()
+			data = await self.cache_managers.get(ctx.guild.id).get_cache()
 
 			maxIndex = 0
 			# The quote index here lists all quote IDs associated with the author
@@ -312,7 +313,7 @@ class Quotes(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='search_quotes_text')
+	@bot.bridge_command(aliases=["sqt"])
 	@commands.guild_only()
 	async def search_quotes_text(self, ctx: discord.ApplicationContext, text: str, page: int = 0):
 		"""Search quotes by text. Lists up to 10 per page."""
@@ -322,7 +323,7 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_quotes_text")
 		if not failedPermissionCheck:
 			# Get the quote data
-			data = await self.cache_managers.get(ctx.guild_id).get_cache()
+			data = await self.cache_managers.get(ctx.guild.id).get_cache()
 
 			maxIndex = 0
 			# The quote index here lists all quote IDs associated with the author

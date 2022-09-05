@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext.bridge import bot
 
 from ..GeneralUtilities import GeniusQuery, PermissionHandler
 
@@ -7,7 +8,7 @@ from ..GeneralUtilities import GeniusQuery, PermissionHandler
 class Genius(commands.Cog):
 	"""Interact with the Genius music API."""
 
-	@commands.slash_command(name='search_songs')
+	@bot.bridge_command(aliases=["ss"])
 	@commands.guild_only()
 	async def search_songs(self, ctx: discord.ApplicationContext, artist, song):
 		"""Search for a song by artist and song name."""
@@ -28,7 +29,7 @@ class Genius(commands.Cog):
 		else:
 			await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='get_lyrics_by_url')
+	@bot.bridge_command(aliases=["lurl"])
 	@commands.guild_only()
 	async def get_lyrics_by_url(self, ctx: discord.ApplicationContext, url):
 		"""Search for a song by its Genius URL."""
@@ -48,7 +49,7 @@ class Genius(commands.Cog):
 		else:
 			await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='get_lyrics_by_id')
+	@bot.bridge_command(aliases=["lid"])
 	@commands.guild_only()
 	async def get_lyrics_by_id(self, ctx: discord.ApplicationContext, song_id):
 		"""Search for a song by its Genius ID."""

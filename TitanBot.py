@@ -1,9 +1,10 @@
 import discord
-from discord.ext import commands
+from discord.ext import bridge, commands
 
 from Framework.CommandGroups.CustomCommands import CustomCommands
 from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
+from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.RevokeAccess import RevokeAccess
 from Framework.CommandGroups.Utility import Utility
@@ -17,7 +18,8 @@ if __name__ == "__main__":
 	logger = Logger("TitanBot")
 
 	intents = discord.Intents.all()
-	bot = commands.Bot(intents=intents)
+	bot = bridge.Bot(command_prefix="$", intents=intents)
+	bot.help_command = Help()
 
 	quotes_module = Quotes()
 

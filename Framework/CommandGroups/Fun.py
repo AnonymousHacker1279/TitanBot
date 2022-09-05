@@ -1,6 +1,7 @@
 import discord
 from discord import Spotify
 from discord.ext import commands
+from discord.ext.bridge import bot
 
 from ..GeneralUtilities import GeneralUtilities, PermissionHandler
 
@@ -8,7 +9,7 @@ from ..GeneralUtilities import GeneralUtilities, PermissionHandler
 class Fun(commands.Cog):
 	"""Have fun with some useless commands."""
 
-	@commands.slash_command(name='stab')
+	@bot.bridge_command()
 	@commands.guild_only()
 	async def stab(self, ctx: discord.ApplicationContext, user=None):
 		"""Stab someone, or something."""
@@ -25,7 +26,7 @@ class Fun(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='spotify')
+	@bot.bridge_command()
 	@commands.guild_only()
 	async def spotify(self, ctx: discord.ApplicationContext, user=None):
 		"""Check the status of a user playing music via Spotify."""

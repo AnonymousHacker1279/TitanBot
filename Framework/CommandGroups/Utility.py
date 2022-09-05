@@ -6,6 +6,7 @@ import discord
 import psutil as psutil
 import requests as requests
 from discord.ext import commands
+from discord.ext.bridge import bot
 
 from ..GeneralUtilities import Constants, PermissionHandler
 
@@ -13,7 +14,7 @@ from ..GeneralUtilities import Constants, PermissionHandler
 class Utility(commands.Cog):
 	"""Get some work done with tools and utilities."""
 
-	@commands.slash_command(name='age')
+	@bot.bridge_command()
 	@commands.guild_only()
 	async def age(self, ctx: discord.ApplicationContext):
 		"""See the length of time I have existed."""
@@ -31,7 +32,7 @@ class Utility(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='coin_flip')
+	@bot.bridge_command(aliases=["cf"])
 	@commands.guild_only()
 	async def coin_flip(self, ctx: discord.ApplicationContext):
 		"""Flip a coin."""
@@ -48,7 +49,7 @@ class Utility(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='roll_die')
+	@bot.bridge_command(aliases=["rd"])
 	@commands.guild_only()
 	async def roll_die(self, ctx: discord.ApplicationContext, sides: int = 6):
 		"""Roll a die. Defaults to six sides if not specified."""
@@ -65,7 +66,7 @@ class Utility(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='ping')
+	@bot.bridge_command()
 	@commands.guild_only()
 	async def ping(self, ctx: discord.ApplicationContext):
 		"""Get the latency of the bot."""
@@ -85,7 +86,7 @@ class Utility(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='about')
+	@bot.bridge_command()
 	@commands.guild_only()
 	async def about(self, ctx: discord.ApplicationContext):
 		"""Learn about me."""
@@ -119,7 +120,7 @@ class Utility(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='total_users')
+	@bot.bridge_command(aliases=["tu"])
 	@commands.guild_only()
 	async def total_users(self, ctx: discord.ApplicationContext):
 		"""Get the total number of users in the server."""
@@ -132,7 +133,7 @@ class Utility(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='status')
+	@bot.bridge_command()
 	@commands.guild_only()
 	async def status(self, ctx: discord.ApplicationContext):
 		"""Get the current system status."""

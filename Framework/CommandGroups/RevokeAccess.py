@@ -2,6 +2,7 @@ import json
 
 import discord
 from discord.ext import commands
+from discord.ext.bridge import bot
 
 from ..FileSystemAPI import DatabaseObjects
 from ..GeneralUtilities import CommandAccess, GeneralUtilities, PermissionHandler
@@ -10,7 +11,7 @@ from ..GeneralUtilities import CommandAccess, GeneralUtilities, PermissionHandle
 class RevokeAccess(commands.Cog):
 	"""Limit feature access for users who misbehave."""
 
-	@commands.slash_command(name='revoke_command_access')
+	@bot.bridge_command(aliases=["rca"])
 	@commands.guild_only()
 	async def revoke_command_access(self, ctx: discord.ApplicationContext, user=None, command=None):
 		"""Revoke access to a specific command. Only available to administrators."""
@@ -26,7 +27,7 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				command = str(command)
 
-				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
 				data = await cache_manager.get_cache()
 
 				maxIndex = 0
@@ -60,14 +61,14 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the command has been revoked from the user."
 
-				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild_id), 'w') as f:
+				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'w') as f:
 					json.dump(data, f, indent=4)
 
 				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='view_revoked_commands')
+	@bot.bridge_command(aliases=["vrc"])
 	@commands.guild_only()
 	async def view_revoked_commands(self, ctx: discord.ApplicationContext, user=None):
 		"""See revoked commands for a user. Defaults to the author of the message if no user is provided."""
@@ -80,7 +81,7 @@ class RevokeAccess(commands.Cog):
 				user = ctx.author.mention
 			user = await GeneralUtilities.strip_usernames(user)
 
-			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
 			data = await cache_manager.get_cache()
 
 			maxIndex = 0
@@ -101,7 +102,7 @@ class RevokeAccess(commands.Cog):
 
 			await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='revoke_module_access')
+	@bot.bridge_command(aliases=["rma"])
 	@commands.guild_only()
 	async def revoke_module_access(self, ctx: discord.ApplicationContext, user=None, module=None):
 		"""Revoke access to an entire module. Only available to administrators."""
@@ -117,7 +118,7 @@ class RevokeAccess(commands.Cog):
 				user = str(user)
 				module = str(module)
 
-				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
 				data = await cache_manager.get_cache()
 
 				maxIndex = 0
@@ -151,14 +152,14 @@ class RevokeAccess(commands.Cog):
 					data.append(dictionary)
 					embed.description = "Access to the module has been revoked from the user."
 
-				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild_id), 'w') as f:
+				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'w') as f:
 					json.dump(data, f, indent=4)
 
 				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='view_revoked_modules')
+	@bot.bridge_command(aliases=["vrm"])
 	@commands.guild_only()
 	async def view_revoked_modules(self, ctx: discord.ApplicationContext, user=None):
 		"""See revoked modules for a user. Defaults to the author of the message if no user is provided."""
@@ -171,7 +172,7 @@ class RevokeAccess(commands.Cog):
 				user = ctx.author.mention
 			user = await GeneralUtilities.strip_usernames(user)
 
-			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild_id)
+			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
 			data = await cache_manager.get_cache()
 
 			maxIndex = 0
