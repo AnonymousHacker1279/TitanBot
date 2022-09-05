@@ -10,16 +10,17 @@ cache_managers = {}
 
 
 async def post_initialize(bot: commands.Bot):
+	cache_managers["module_settings"] = {}
+	cache_managers["revoked_commands"] = {}
+	cache_managers["revoked_modules"] = {}
+
 	for guild in bot.guilds:
-		cache_managers["module_settings"] = {}
 		cache_managers["module_settings"][guild.id] = \
 			DatabaseCacheManager(await DatabaseObjects.get_module_settings_database(guild.id))
 
-		cache_managers["revoked_commands"] = {}
 		cache_managers["revoked_commands"][guild.id] = \
 			ListCacheManager(await DatabaseObjects.get_revoked_commands_database(guild.id))
 
-		cache_managers["revoked_modules"] = {}
 		cache_managers["revoked_modules"][guild.id] = \
 			ListCacheManager(await DatabaseObjects.get_revoked_modules_database(guild.id))
 

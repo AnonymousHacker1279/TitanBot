@@ -60,7 +60,7 @@ class Quotes(commands.Cog):
 				if len(links) != 0:
 					if contentExcludingLinks == "":
 						embed.set_image(url=links[0])
-						embed.description = pAuthor
+						embed.description = "<@" + str(pAuthor) + ">"
 						embed.set_footer(text="Added " + readable_date + " by " + quoted_by_user)
 					else:
 						embed.description = '> "' + pContent + '"\n'

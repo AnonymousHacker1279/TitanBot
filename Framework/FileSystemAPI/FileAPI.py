@@ -51,7 +51,7 @@ async def check_storage_metadata(current_database_version: int, guilds) -> None:
 	for guild in guilds:
 		# Check if data needs to be migrated from an older version
 		if metadata["guilds"][str(guild.id)] < current_database_version:
-			await migrate_storage_metadata(metadata["guilds"][str(guild.id)])
+			await migrate_storage_metadata(str(guild.id), metadata["guilds"][str(guild.id)])
 
 		if str(guild.id) not in metadata["guilds"]:
 			metadata["guilds"][str(guild.id)] = current_database_version
