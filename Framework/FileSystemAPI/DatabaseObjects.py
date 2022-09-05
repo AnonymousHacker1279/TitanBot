@@ -49,3 +49,10 @@ async def get_custom_commands_metadata_database(guild: int = None) -> str:
 
 	await FileAPI.prepare_to_get_database_object(directory_path, object_path, await DefaultDatabaseSchemas.get_custom_commands_metadata_schema())
 	return object_path
+
+
+async def get_log_directory() -> str:
+	object_path = os.path.abspath(os.getcwd() + "/Storage/Logs")
+
+	await FileAPI.prepare_to_get_database_object("", object_path, is_directory=True)
+	return object_path

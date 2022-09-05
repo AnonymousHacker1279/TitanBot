@@ -8,10 +8,13 @@ from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.RevokeAccess import RevokeAccess
 from Framework.CommandGroups.Utility import Utility
 from Framework.FileSystemAPI import FileAPI
+from Framework.FileSystemAPI.Logger import Logger
 from Framework.GeneralUtilities import CommandAccess, Constants
 from Framework.ModuleSystem.Modules import ModuleSystem
 
 if __name__ == "__main__":
+
+	logger = Logger("TitanBot")
 
 	intents = discord.Intents.all()
 	bot = commands.Bot(intents=intents)
@@ -29,21 +32,24 @@ if __name__ == "__main__":
 
 	@bot.event
 	async def on_ready():
-		print('Connected to Discord!')
+		await logger.log_info("TitanBot has connected to Discord")
 
 		# Check storage metadata, and perform migration as necessary
+		await logger.log_info("Checking guild storage metadata")
 		await FileAPI.check_storage_metadata(4, bot.guilds)
 
 		# Do post-initialization for objects with a database cache
+		await logger.log_info("Performing post-initialization for objects with a database cache")
 		await CommandAccess.post_initialize(bot)
 		await Quotes.post_initialize(quotes_module, bot)
 
 		await bot.change_presence(activity=discord.Game('Inflicting pain on humans'))
+		await logger.log_info("TitanBot is ready to go!")
 
 
 	@bot.event
 	async def on_command_error(ctx, error):
-		is_running_custom_command = False
+		await logger.log_error("Error running command: " + str(error))
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		if isinstance(error, commands.errors.CommandInvokeError):
 			embed.title = "Command Invocation Error"
@@ -54,9 +60,6 @@ if __name__ == "__main__":
 		else:
 			embed.title = "Unspecified Error"
 			embed.description = "An error was thrown during the handling of the command, but I don't know how to handle it.\n\n"
-
-		if is_running_custom_command is False:
-			embed.description += "Error: ``" + str(error) + "``"
 
 		await ctx.send(embed=embed)
 

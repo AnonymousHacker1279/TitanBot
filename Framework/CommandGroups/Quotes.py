@@ -20,7 +20,7 @@ class Quotes(commands.Cog):
 
 	async def post_initialize(self, bot: commands.Bot):
 		for guild in bot.guilds:
-			self.cache_managers[guild.id] = ListCacheManager(await DatabaseObjects.get_quotes_database(guild.id))
+			self.cache_managers[guild.id] = ListCacheManager(await DatabaseObjects.get_quotes_database(guild.id), "quotes", guild.id)
 
 	@commands.slash_command(name='quote')
 	@commands.guild_only()

@@ -1,13 +1,17 @@
 import json
 
+from Framework.FileSystemAPI.Logger import Logger
 from Framework.GeneralUtilities import GeneralUtilities
 
 
 class DatabaseCacheManager:
 
-	def __init__(self, path_to_database):
+	def __init__(self, path_to_database: str, cache_name: str, guild_id: int, logger_name: str = "DatabaseCacheManager"):
 		self.cache = {}
 		self.path_to_database = path_to_database
+		self.cache_name = cache_name
+		self.guild_id = str(guild_id)
+		self.logger = Logger(logger_name)
 
 		GeneralUtilities.run_and_get(self.__load_database())
 
@@ -16,10 +20,20 @@ class DatabaseCacheManager:
 		with open(self.path_to_database, 'r') as f:
 			self.cache = json.load(f)
 
+		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+									"Loaded database from disk into cache")
+		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+									"Cache objects loaded: " + str(len(self.cache)))
+
 	async def __save_database(self) -> None:
 		"""Save the cache to the database."""
 		with open(self.path_to_database, 'w') as f:
 			json.dump(self.cache, f, indent=4)
+
+		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+									"Saved database from cache to disk")
+		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+									"Cache objects saved: " + str(len(self.cache)))
 
 	async def get_cache(self) -> dict:
 		"""Get the cache object held by this manager."""

@@ -14,30 +14,35 @@ async def search_songs(artist: str, song: str):
 	else:
 		return "No artist found."
 	lyrics = querySong.lyrics
-	# Do some cleanup, to get rid of random text at the end
-	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
-	lyrics = re.sub('[0-9]+Embed', "", lyrics)
-	lyrics = re.sub('Embed', "", lyrics)
+	lyrics = await __cleanup_lyrics(lyrics)
 	return lyrics, querySong.id
 
 
 async def get_lyrics_by_url(url: str):
 	lyrics = genius.lyrics(song_url=url)
-	if lyrics is None:
-		return "No lyrics found."
-	# Do some cleanup, to get rid of random text at the end
-	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
-	lyrics = re.sub('[0-9]+Embed', "", lyrics)
-	lyrics = re.sub('Embed', "", lyrics)
-	return lyrics
+	return __get_lyrics(lyrics)
 
 
 async def get_lyrics_by_id(songID: int):
 	lyrics = genius.lyrics(song_id=songID)
+	return __get_lyrics(lyrics)
+
+
+async def __get_lyrics(lyrics):
 	if lyrics is None:
 		return "No lyrics found."
+	lyrics = await __cleanup_lyrics(lyrics)
+	return lyrics
+
+
+async def __cleanup_lyrics(lyrics):
 	# Do some cleanup, to get rid of random text at the end
 	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
 	lyrics = re.sub('[0-9]+Embed', "", lyrics)
 	lyrics = re.sub('Embed', "", lyrics)
+
+	# Remove the first line, which is the song title
+	lyrics = lyrics.splitlines(True)[1:]
+	lyrics = ''.join(lyrics)
+
 	return lyrics

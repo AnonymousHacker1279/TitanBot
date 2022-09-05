@@ -16,13 +16,13 @@ async def post_initialize(bot: commands.Bot):
 
 	for guild in bot.guilds:
 		cache_managers["module_settings"][guild.id] = \
-			DatabaseCacheManager(await DatabaseObjects.get_module_settings_database(guild.id))
+			DatabaseCacheManager(await DatabaseObjects.get_module_settings_database(guild.id), "module_settings", guild.id)
 
 		cache_managers["revoked_commands"][guild.id] = \
-			ListCacheManager(await DatabaseObjects.get_revoked_commands_database(guild.id))
+			ListCacheManager(await DatabaseObjects.get_revoked_commands_database(guild.id), "revoked_commands", guild.id)
 
 		cache_managers["revoked_modules"][guild.id] = \
-			ListCacheManager(await DatabaseObjects.get_revoked_modules_database(guild.id))
+			ListCacheManager(await DatabaseObjects.get_revoked_modules_database(guild.id), "revoked_modules", guild.id)
 
 
 async def check_module_enabled(module: str, guild: int):

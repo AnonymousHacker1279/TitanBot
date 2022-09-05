@@ -3,6 +3,9 @@ import os
 
 from Framework.FileSystemAPI import DefaultDatabaseSchemas
 from Framework.FileSystemAPI.DataMigration.DataMigrator import migrate_storage_metadata
+from Framework.FileSystemAPI.Logger import Logger
+
+logger = Logger("FileAPI")
 
 
 async def prepare_to_get_database_object(directory_path: str, object_path: str, default_database_schema=None,
@@ -52,8 +55,10 @@ async def check_storage_metadata(current_database_version: int, guilds) -> None:
 		# Check if data needs to be migrated from an older version
 		try:
 			if metadata["guilds"][str(guild.id)] < current_database_version:
+				await logger.log_info("Migrating guild storage metadata for guild " + str(guild.id))
 				await migrate_storage_metadata(str(guild.id), metadata["guilds"][str(guild.id)])
 		except KeyError:
+			await logger.log_info("Adding guild storage metadata for new guild " + str(guild.id))
 			metadata["guilds"][str(guild.id)] = current_database_version
 
 	with open(object_path, "w") as f:
