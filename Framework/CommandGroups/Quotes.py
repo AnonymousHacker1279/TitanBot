@@ -297,7 +297,7 @@ class Quotes(commands.Cog):
 					else:
 						# List the next 10 by page number
 						embed.description += "Listing the next ten quotes by this author (**Page " + str(page) + "**): \n\n"
-						# Set the iteration by multiplying the page number by `0. First, shift left 1 (as indexes start at 0)
+						# Set the iteration by multiplying the page number by 0. First, shift left 1 (as indexes start at 0)
 						iteration = page * 10
 						# Iterate through the index and build a response
 						currentQuotesOnPage = 0
@@ -306,7 +306,7 @@ class Quotes(commands.Cog):
 							embed.description += data[authorQuoteIndex[iteration]]["content"] + " **Quote #" + str(
 								authorQuoteIndex[iteration]) + "**\n"
 							iteration = iteration + 1
-							remainingQuotes = remainingQuotes
+							remainingQuotes = remainingQuotes - 1
 							currentQuotesOnPage = currentQuotesOnPage + 1
 							if currentQuotesOnPage >= 10:
 								break
@@ -359,7 +359,7 @@ class Quotes(commands.Cog):
 				else:
 					# List the next 10 by page number
 					embed.description += "Listing the next ten quotes found (**Page " + str(page) + "**): \n\n"
-					# Set the iteration by multiplying the page number by `0. First, shift left 1 (as indexes start at 0)
+					# Set the iteration by multiplying the page number by 0. First, shift left 1 (as indexes start at 0)
 					iteration = page * 10
 					# Iterate through the index and build a response
 					currentQuotesOnPage = 0
@@ -368,7 +368,7 @@ class Quotes(commands.Cog):
 						embed.description += data[quoteIndex[iteration]]["content"] + " **Quote #" + str(
 								quoteIndex[iteration]) + "**\n"
 						iteration = iteration + 1
-						remainingQuotes = remainingQuotes
+						remainingQuotes = remainingQuotes - 1
 						currentQuotesOnPage = currentQuotesOnPage + 1
 						if currentQuotesOnPage >= 10:
 							break
