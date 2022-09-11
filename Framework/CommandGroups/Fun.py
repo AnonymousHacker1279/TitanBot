@@ -59,3 +59,38 @@ class Fun(commands.Cog):
 				embed.description = "The user is not listening to Spotify."
 
 		await ctx.respond(embed=embed)
+
+	@bot.bridge_command(aliases=["spk"])
+	@commands.guild_only()
+	async def speak(self, ctx: discord.ApplicationContext, message: str, channel: discord.TextChannel = None, hide_user: bool = False):
+		"""Make the bot say something in a channel."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
+		if not failedPermissionCheck:
+			user = ctx.author
+
+			if channel is None:
+				channel = ctx.channel
+
+			try:
+				send_failed = False
+				if hide_user:
+					if user.guild_permissions.administrator:
+						await channel.send(message)
+					else:
+						send_failed = True
+				else:
+					await channel.send(f"({user.name}) " + message)
+
+				if send_failed:
+					embed.title = "Failed to speak"
+					embed.description = "You do not have permission to hide your identity."
+				else:
+					embed.title = "Message sent"
+					embed.description = f"Sent message to {channel.mention}"
+			except discord.Forbidden:
+				embed.title = "Failed to speak"
+				embed.description = "I don't have permission to speak in that channel."
+
+		await ctx.respond(embed=embed)

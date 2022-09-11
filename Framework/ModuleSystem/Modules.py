@@ -2,6 +2,7 @@ import json
 
 import discord
 from discord.ext import commands
+from discord.ext.bridge import bot
 
 from ..FileSystemAPI import DatabaseObjects
 from ..GeneralUtilities import PermissionHandler
@@ -9,7 +10,7 @@ from ..GeneralUtilities import PermissionHandler
 
 class ModuleSystem(commands.Cog):
 
-	@commands.slash_command(name='module_info')
+	@bot.bridge_command(aliases=["mi"])
 	@commands.guild_only()
 	async def module_info(self, ctx: discord.ApplicationContext, module=None):
 		"""Get module information. Lists all modules and their status."""
@@ -70,7 +71,7 @@ class ModuleSystem(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@commands.slash_command(name='toggle_module_state')
+	@bot.bridge_command(aliases=["tms"])
 	@commands.guild_only()
 	async def toggle_module_state(self, ctx: discord.ApplicationContext, module=None):
 		"""Toggle the state of a module. Pass the ID of the module you wish to toggle."""

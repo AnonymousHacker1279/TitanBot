@@ -5,7 +5,6 @@ from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.Logger import Logger
 from Framework.GeneralUtilities import GeneralUtilities
 
-
 logger = Logger("DataMigrator")
 
 

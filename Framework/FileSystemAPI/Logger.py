@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 
 from Framework.FileSystemAPI import DatabaseObjects
-from Framework.GeneralUtilities import Constants, GeneralUtilities
+from Framework.GeneralUtilities import Constants
 
 
 class Logger:

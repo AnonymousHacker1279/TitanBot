@@ -122,7 +122,7 @@ class CustomCommands(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@bot.bridge_command(aliases=["ci"])
+	@bot.bridge_command(aliases=["cmdi"])
 	@commands.guild_only()
 	async def command_info(self, ctx: discord.ApplicationContext, command_name: str = None):
 		"""Get information about a custom command."""
