@@ -12,6 +12,10 @@ async def generate_sha256(string: str) -> str:
 	return sha256(string.encode('utf-8')).hexdigest()
 
 
+def generate_sha256_no_async(string: str) -> str:
+	return sha256(string.encode('utf-8')).hexdigest()
+
+
 async def minimize_js(code: str) -> str:
 	# Need to remove all import statements before minimization, since it isn't true JS
 	import_items = re.findall(re.compile(r"pyimport [a-z0-9]*;"), code)
@@ -58,6 +62,7 @@ async def strip_usernames(user: str) -> str:
 
 
 def run_and_get(coro):
-	task = asyncio.create_task(coro)
-	asyncio.get_running_loop().run_until_complete(task)
+	loop = asyncio.get_event_loop()
+	task = loop.create_task(coro)
+	loop.run_until_complete(task)
 	return task.result()

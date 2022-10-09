@@ -16,6 +16,9 @@ from ..GeneralUtilities import GeneralUtilities, OsmiumInterconnect, \
 class CustomCommands(commands.Cog):
 	"""Expand the power of TitanBot with custom commands."""
 
+	def __init__(self, management_portal_handler):
+		self.mph = management_portal_handler
+
 	@bot.bridge_command(aliases=["cc"])
 	@commands.guild_only()
 	async def custom_command(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
@@ -40,7 +43,7 @@ class CustomCommands(commands.Cog):
 																					shouldCheckForAdmin=admin_only)
 			if not failedPermissionCheck:
 				with open(path, "r") as f:
-					embed = await OsmiumInterconnect.execute_with_osmium(f.read(), args, embed)
+					embed = await OsmiumInterconnect.execute_with_osmium(self.mph, ctx.guild.id, f.read(), args, embed)
 		else:
 			try:
 				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + metadata["aliases"][
@@ -50,13 +53,14 @@ class CustomCommands(commands.Cog):
 																					shouldCheckForAdmin=admin_only)
 				if not failedPermissionCheck:
 					with open(path, "r") as f:
-						embed = await OsmiumInterconnect.execute_with_osmium(f.read(), args, embed)
+						embed = await OsmiumInterconnect.execute_with_osmium(self.mph, ctx.guild.id, f.read(), args, embed)
 
 			except (ValueError, TypeError, KeyError):
 				embed.title = "Command Not Found"
 				embed.description = "A matching command could not be found.\n\n"
 
 		await ctx.edit(embed=embed)
+		await self.mph.update_management_portal_command_used("customCommands", command_name, ctx.guild.id)
 
 	@bot.bridge_command(aliases=["ac"])
 	@commands.guild_only()
@@ -68,8 +72,10 @@ class CustomCommands(commands.Cog):
 																				"add_command",
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
-			modal = CustomCommandModals.AddCommand(title="Add a custom command")
+			enable_vt_scanning = await self.mph.cm.get_guild_specific_value(ctx.guild.id, "enable_custom_commands_malware_scanning")
+			modal = CustomCommandModals.AddCommand(title="Add a custom command", vt_scan_enabled=enable_vt_scanning)
 			await ctx.send_modal(modal)
+			await self.mph.update_management_portal_command_used("customCommands", "add_command", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["rc"])
 	@commands.guild_only()
@@ -121,6 +127,7 @@ class CustomCommands(commands.Cog):
 				embed.description = "You must specify a command name to remove."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("customCommands", "remove_command", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["cmdi"])
 	@commands.guild_only()
@@ -170,3 +177,4 @@ class CustomCommands(commands.Cog):
 				embed.description = "You must specify a command name to get information."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("customCommands", "command_info", ctx.guild.id)

@@ -8,6 +8,9 @@ from ..GeneralUtilities import GeniusQuery, PermissionHandler
 class Genius(commands.Cog):
 	"""Interact with the Genius music API."""
 
+	def __init__(self, management_portal_handler):
+		self.mph = management_portal_handler
+
 	@bot.bridge_command(aliases=["ss"])
 	@commands.guild_only()
 	async def search_songs(self, ctx: discord.ApplicationContext, artist, song):
@@ -19,6 +22,7 @@ class Genius(commands.Cog):
 		if not failedPermissionCheck:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
+			await self.mph.update_management_portal_command_used("genius", "search_songs", ctx.guild.id)
 
 			embed.title = artist + " - " + song
 			result, geniusID = await GeniusQuery.search_songs(artist, song)
@@ -40,6 +44,7 @@ class Genius(commands.Cog):
 		if not failedPermissionCheck:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
+			await self.mph.update_management_portal_command_used("genius", "get_lyrics_by_url", ctx.guild.id)
 
 			embed.title = "Lyrics by URL"
 			result = await GeniusQuery.get_lyrics_by_url(url)
@@ -61,6 +66,7 @@ class Genius(commands.Cog):
 		if not failedPermissionCheck:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
+			await self.mph.update_management_portal_command_used("genius", "get_lyrics_by_id", ctx.guild.id)
 
 			embed.title = "Lyrics by ID"
 			result = await GeniusQuery.get_lyrics_by_id(song_id)

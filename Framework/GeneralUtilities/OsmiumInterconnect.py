@@ -3,8 +3,8 @@ import discord
 from Framework.Osmium.Osmium import Osmium
 
 
-async def execute_with_osmium(js_code, arguments: list, embed):
-	osmium = Osmium(js_code, arguments, "Framework/Osmium/data/lists/import_whitelist.txt")
+async def execute_with_osmium(management_portal_handler, guild_id: int, js_code, arguments: list, embed):
+	osmium = Osmium(management_portal_handler, guild_id, js_code, arguments, "Framework/Osmium/data/lists/import_whitelist.txt")
 	if osmium.error is not None:
 		embed.title = "Failed to Execute Custom Command"
 		embed.description = "An error occurred while executing the custom command.\n```" + osmium.error + "\n```"

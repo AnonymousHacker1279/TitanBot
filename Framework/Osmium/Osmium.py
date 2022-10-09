@@ -5,13 +5,11 @@ from multiprocessing import Process
 
 import js2py
 
-from Framework.GeneralUtilities import Constants
+from Framework.GeneralUtilities import GeneralUtilities
 
 
 ################################################
-# Osmium version v1.1.0 by AnonymousHacker1279 #
-# All the files within these directories are   #
-# MIT licensed.                                #
+# Osmium version v1.1.1 by AnonymousHacker1279 #
 ################################################
 
 
@@ -27,10 +25,12 @@ def execution_handler(js_code, response):
 
 class Osmium:
 
-	def __init__(self, js_code: str = None, arguments: list = None, import_whitelist_location: str = None):
+	def __init__(self, management_portal_handler, guild_id: int, js_code: str = None, arguments: list = None, import_whitelist_location: str = None):
 		self.error = None
 		self.result = None
 
+		self.guild_id = guild_id
+		self.mph = management_portal_handler
 		self.arguments = arguments
 
 		if import_whitelist_location is None:
@@ -39,9 +39,9 @@ class Osmium:
 		with open(import_whitelist_location, "r") as f:
 			self.whitelisted_imports = f.read()
 
-		self.strip_imports(js_code)
+		GeneralUtilities.run_and_get(self.strip_imports(js_code))
 
-	def strip_imports(self, js_code):
+	async def strip_imports(self, js_code):
 		split_code = js_code.split(';')
 		for entry in split_code:
 			if "pyimport" in entry:
@@ -51,17 +51,19 @@ class Osmium:
 					self.error = "OSMIUM_ERROR: Illegal import detected. Offending import: " + stripped_line
 
 		if self.error is None:
-			self.execute_js(js_code)
+			await self.execute_js(js_code)
 
-	def execute_js(self, js_code):
-		js_code = self.inject(js_code)
+	async def execute_js(self, js_code):
+		js_code = await self.inject(js_code)
 
 		with multiprocessing.Manager() as manager:
 			response = manager.dict()
 
+			max_exec_time = await self.mph.cm.get_guild_specific_value(self.guild_id, "custom_commands_max_execution_time")
+
 			exec_process = Process(target=execution_handler, args=(js_code, response))
 			exec_process.start()
-			exec_process.join(Constants.CUSTOM_COMMANDS_MAX_EXECUTION_TIME)
+			exec_process.join(max_exec_time)
 			exec_process.terminate()
 
 			try:
@@ -70,11 +72,11 @@ class Osmium:
 				self.error = response["error"]
 			except ValueError:
 				self.error = "OSMIUM_ERROR: Watchdog terminated execution because it took too much time. The maximum " \
-							"execution time is " + str(Constants.CUSTOM_COMMANDS_MAX_EXECUTION_TIME) + " seconds."
+							"execution time is " + str(max_exec_time) + " seconds."
 
 			manager.shutdown()
 
-	def inject(self, js_code):
+	async def inject(self, js_code):
 		return """
 		pyimport TBOsmiumLib;
 		TBOsmiumLib.__purge_embed_dict__();

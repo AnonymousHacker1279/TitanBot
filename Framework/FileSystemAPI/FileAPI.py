@@ -5,7 +5,12 @@ from Framework.FileSystemAPI import DefaultDatabaseSchemas
 from Framework.FileSystemAPI.DataMigration.DataMigrator import migrate_storage_metadata
 from Framework.FileSystemAPI.Logger import Logger
 
-logger = Logger("FileAPI")
+logger = None
+
+
+def initialize(management_portal_handler):
+	global logger
+	logger = Logger("FileAPI", management_portal_handler)
 
 
 async def prepare_to_get_database_object(directory_path: str, object_path: str, default_database_schema=None,

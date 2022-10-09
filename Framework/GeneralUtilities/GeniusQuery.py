@@ -2,12 +2,23 @@ import re
 
 import lyricsgenius
 
-from Framework.GeneralUtilities import Constants
+from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 
-genius = lyricsgenius.Genius(Constants.GENIUS_API_TOKEN, verbose=False)
+genius = None
+is_initialized = False
+
+
+async def initialize():
+	global genius
+	genius = lyricsgenius.Genius(ConfigurationValues.GENIUS_API_TOKEN, verbose=False)
+	global is_initialized
+	is_initialized = True
 
 
 async def search_songs(artist: str, song: str):
+	if not is_initialized:
+		await initialize()
+
 	queryArtist = genius.search_artist(artist, max_songs=1, sort="title")
 	if queryArtist is not None:
 		querySong = queryArtist.song(song)
@@ -40,6 +51,7 @@ async def __cleanup_lyrics(lyrics):
 	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
 	lyrics = re.sub('[0-9]+Embed', "", lyrics)
 	lyrics = re.sub('Embed', "", lyrics)
+	lyrics = re.sub('You might also like', "", lyrics)
 
 	# Remove the first line, which is the song title
 	lyrics = lyrics.splitlines(True)[1:]

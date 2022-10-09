@@ -5,7 +5,12 @@ from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.Logger import Logger
 from Framework.GeneralUtilities import GeneralUtilities
 
-logger = Logger("DataMigrator")
+logger = None
+
+
+def initialize(management_portal_handler=None):
+	global logger
+	logger = Logger("DataMigrator", management_portal_handler)
 
 
 async def migrate_storage_metadata(guild: str, old_version: int) -> None:
@@ -69,6 +74,19 @@ async def migrate_storage_metadata(guild: str, old_version: int) -> None:
 
 		with open(await DatabaseObjects.get_quotes_database(int(guild)), "w") as f:
 			json.dump(quotes, f, indent=4)
+
+		with open(metadata_path, "w") as f:
+			json.dump(metadata, f)
+
+	# Migrate from version 4 to version 5
+	if old_version == 4:
+		await logger.log_info("Migrating guild storage metadata for guild " + guild + " from version 4 to version 5")
+		old_version = 5
+		# Version 5 removed the Modules.json file
+		metadata["guilds"][guild] = 5
+
+		object_path = os.path.abspath(os.getcwd() + "/Storage/{}/Settings/Modules.json".format(str(guild)))
+		os.remove(object_path)
 
 		with open(metadata_path, "w") as f:
 			json.dump(metadata, f)

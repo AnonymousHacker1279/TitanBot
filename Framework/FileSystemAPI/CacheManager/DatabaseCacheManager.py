@@ -6,12 +6,13 @@ from Framework.GeneralUtilities import GeneralUtilities
 
 class DatabaseCacheManager:
 
-	def __init__(self, path_to_database: str, cache_name: str, guild_id: int, logger_name: str = "DatabaseCacheManager"):
+	def __init__(self, path_to_database: str, cache_name: str, guild_id: int, management_portal_handler,
+				logger_name: str = "DatabaseCacheManager"):
 		self.cache = {}
 		self.path_to_database = path_to_database
 		self.cache_name = cache_name
 		self.guild_id = str(guild_id)
-		self.logger = Logger(logger_name)
+		self.logger = Logger(logger_name, management_portal_handler)
 
 		GeneralUtilities.run_and_get(self.__load_database())
 
@@ -53,4 +54,6 @@ class DatabaseCacheManager:
 
 	async def invalidate_cache(self) -> None:
 		"""Invalidate the cache, forcing it to be reloaded from disk."""
+		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") "
+								+ "Invalidating cache with size: " + str(len(self.cache)))
 		await self.__load_database()

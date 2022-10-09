@@ -9,6 +9,9 @@ from ..GeneralUtilities import GeneralUtilities, PermissionHandler
 class Fun(commands.Cog):
 	"""Have fun with some useless commands."""
 
+	def __init__(self, management_portal_handler):
+		self.mph = management_portal_handler
+
 	@bot.bridge_command()
 	@commands.guild_only()
 	async def stab(self, ctx: discord.ApplicationContext, user=None):
@@ -25,6 +28,7 @@ class Fun(commands.Cog):
 				embed.description = "*" + user + " was stabbed by " + ctx.author.mention + "*"
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("fun", "stab", ctx.guild.id)
 
 	@bot.bridge_command()
 	@commands.guild_only()
@@ -59,6 +63,7 @@ class Fun(commands.Cog):
 				embed.description = "The user is not listening to Spotify."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("fun", "spotify", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["spk"])
 	@commands.guild_only()
@@ -94,3 +99,4 @@ class Fun(commands.Cog):
 				embed.description = "I don't have permission to speak in that channel."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("fun", "speak", ctx.guild.id)

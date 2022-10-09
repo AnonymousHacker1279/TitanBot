@@ -5,12 +5,14 @@ from datetime import datetime
 import discord
 
 from Framework.FileSystemAPI import DatabaseObjects, FileAPI
-from Framework.GeneralUtilities import Constants, GeneralUtilities, VirusTotalQuery
+from Framework.GeneralUtilities import GeneralUtilities, VirusTotalQuery
 
 
 class AddCommand(discord.ui.Modal):
-	def __init__(self, *args, **kwargs) -> None:
+	def __init__(self, vt_scan_enabled: bool, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
+
+		self.vt_scan_enabled = vt_scan_enabled
 
 		self.add_item(discord.ui.InputText(label="Command Name"))
 		self.add_item(discord.ui.InputText(label="Command Alias (Short name)"))
@@ -34,7 +36,7 @@ class AddCommand(discord.ui.Modal):
 			if code is not None:
 				# Scan the code for malware unless disabled
 				message = None
-				if Constants.ENABLE_CUSTOM_COMMANDS_MALWARE_SCANNING == "True":
+				if self.vt_scan_enabled:
 					embed.title = "Command Addition Pending"
 					embed.description = "Your command is currently being scanned for malware via VirusTotal. " \
 										"This process can take some time, so please be patient."

@@ -16,12 +16,20 @@ from ..GeneralUtilities import GeneralUtilities, PermissionHandler
 class Quotes(commands.Cog):
 	"""Remember the silly stuff people say."""
 
-	def __init__(self):
+	def __init__(self, management_portal_handler):
 		self.cache_managers = {}
+		self.mph = management_portal_handler
 
 	async def post_initialize(self, bot: commands.Bot):
 		for guild in bot.guilds:
-			self.cache_managers[guild.id] = ListCacheManager(await DatabaseObjects.get_quotes_database(guild.id), "quotes", guild.id)
+			self.cache_managers[guild.id] = ListCacheManager(await DatabaseObjects.get_quotes_database(guild.id),
+															"quotes", guild.id, management_portal_handler=self.mph)
+
+	# When the bot joins a new guild, caches need to be invalidated
+	async def invalidate_caches(self):
+		for guild in self.cache_managers:
+			await self.cache_managers[guild].sync_cache_to_disk()
+			await self.cache_managers[guild].invalidate_cache()
 
 	@bot.bridge_command(aliases=["q"])
 	@commands.guild_only()
@@ -119,6 +127,7 @@ class Quotes(commands.Cog):
 					embed.description = "The quote ID must be a number."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "quote", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["tq"])
 	@commands.guild_only()
@@ -142,6 +151,7 @@ class Quotes(commands.Cog):
 				embed.description = "I have " + str(maxIndex) + " quotes in my archives."
 			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "total_quotes", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["aq"])
 	@commands.guild_only()
@@ -171,6 +181,7 @@ class Quotes(commands.Cog):
 			embed.title = "Quote Added"
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
 
 	@commands.message_command(name='Add Quote')
 	@commands.guild_only()
@@ -197,6 +208,7 @@ class Quotes(commands.Cog):
 			embed.title = "Quote Added"
 			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["rq"])
 	@commands.guild_only()
@@ -234,6 +246,7 @@ class Quotes(commands.Cog):
 				embed.description = "The quote ID must be a number."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "remove_quote", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["sqa"])
 	@commands.guild_only()
@@ -312,6 +325,7 @@ class Quotes(commands.Cog):
 								break
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "search_quotes_author", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["sqt"])
 	@commands.guild_only()
@@ -374,3 +388,4 @@ class Quotes(commands.Cog):
 							break
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "search_quotes_text", ctx.guild.id)

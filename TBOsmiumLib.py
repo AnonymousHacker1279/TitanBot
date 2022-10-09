@@ -1,7 +1,5 @@
 #####################################################
 # TBOsmiumLib version v1.1.0 by AnonymousHacker1279 #
-# All the files within these directories are        #
-# MIT licensed.                                     #
 #####################################################
 
 

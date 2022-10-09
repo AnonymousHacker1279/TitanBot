@@ -2,12 +2,26 @@ import io
 
 import vt
 
-from Framework.GeneralUtilities import Constants, GeneralUtilities
+from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
+from Framework.GeneralUtilities import GeneralUtilities
 
-vt_client = vt.Client(Constants.VIRUSTOTAL_API_KEY)
+vt_client = None
+is_initialized = False
+
+
+async def initialize():
+	global vt_client
+	vt_client = vt.Client(ConfigurationValues.VIRUSTOTAL_API_KEY)
+	global is_initialized
+	is_initialized = True
 
 
 async def scan_text(text: str):
+	global vt_client
+	global is_initialized
+	if not is_initialized:
+		await initialize()
+
 	RETURN_DATA = {
 		"THREAT": False,
 		"THREAT_NAME": None,

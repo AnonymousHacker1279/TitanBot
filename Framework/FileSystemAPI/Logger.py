@@ -4,13 +4,14 @@ from enum import Enum
 from pathlib import Path
 
 from Framework.FileSystemAPI import DatabaseObjects
-from Framework.GeneralUtilities import Constants
+from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 
 
 class Logger:
 
-	def __init__(self, source: str):
+	def __init__(self, source: str, management_portal_handler):
 		self.source = source
+		self.mph = management_portal_handler
 
 	async def log_debug(self, message: str):
 		await self.log(LogLevel.DEBUG, message)
@@ -28,8 +29,11 @@ class Logger:
 		await self.log(LogLevel.CRITICAL, message)
 
 	async def log(self, level, message: str):
+		# Check if logging is enabled
+		if not ConfigurationValues.LOGGING_ENABLED:
+			return
 		# Check the level before logging
-		if Constants.LOG_LEVEL > level.value:
+		if ConfigurationValues.LOG_LEVEL > level.value:
 			return
 
 		# Prepare log with time and source
@@ -50,6 +54,9 @@ class Logger:
 		with open(log_location, "a") as log_file:
 			log_file.write(log + "\n")
 			log_file.close()
+
+		# Log data to management portal
+		await self.mph.management_portal_log_data(self.source, level.name, message)
 
 
 class LogLevel(Enum):

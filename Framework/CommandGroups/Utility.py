@@ -8,11 +8,15 @@ import requests as requests
 from discord.ext import commands
 from discord.ext.bridge import bot
 
-from ..GeneralUtilities import Constants, PermissionHandler
+from ..FileSystemAPI.ConfigurationManager import ConfigurationValues
+from ..GeneralUtilities import PermissionHandler
 
 
 class Utility(commands.Cog):
 	"""Get some work done with tools and utilities."""
+
+	def __init__(self, management_portal_handler):
+		self.mph = management_portal_handler
 
 	@bot.bridge_command()
 	@commands.guild_only()
@@ -31,6 +35,7 @@ class Utility(commands.Cog):
 			embed.set_footer(text="Born into the world on 7/15/21.")
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("utility", "age", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["cf"])
 	@commands.guild_only()
@@ -48,6 +53,7 @@ class Utility(commands.Cog):
 			embed.description = "Result: **" + value + ".**"
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("utility", "coin_flip", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["rd"])
 	@commands.guild_only()
@@ -65,6 +71,7 @@ class Utility(commands.Cog):
 				embed.description = "You must specify more than one side on the die."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("utility", "roll_die", ctx.guild.id)
 
 	@bot.bridge_command()
 	@commands.guild_only()
@@ -85,6 +92,7 @@ class Utility(commands.Cog):
 				embed.description += "Latency is extremely high. Delays and drops are nearly assured."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("utility", "ping", ctx.guild.id)
 
 	@bot.bridge_command()
 	@commands.guild_only()
@@ -98,7 +106,9 @@ class Utility(commands.Cog):
 			embed.description = "I'm **TitanBot**, an intelligent software built by **AnonymousHacker1279.**\n"
 			embed.description += "Providing features to servers since 7/15/21.\n\n"
 			# Get version information
-			updateData = json.loads(requests.get(Constants.UPDATE_LOCATION).text)
+			url = ConfigurationValues.UPDATE_LOCATION + "/update.json"
+			url = url.replace("github.com", "raw.githubusercontent.com").replace("/tree", "")
+			updateData = json.loads(requests.get(url).text)
 			versionTag = updateData[updateData["latest"]]["versionTag"]
 			if versionTag == "alpha":
 				versionEmoji = ":bug:"
@@ -110,7 +120,7 @@ class Utility(commands.Cog):
 				versionEmoji = ":tools:"
 			else:
 				versionEmoji = ":question:"
-			embed.description += "Current Version: **" + Constants.VERSION + "**\n" \
+			embed.description += "Current Version: **" + ConfigurationValues.VERSION + "**\n" \
 								"Latest Version: (" + versionEmoji + ", " + versionTag + ") **" + updateData["latest"] + "**\n"
 			changelog = updateData[updateData["latest"]]["changelog"]
 			embed.description += "What's new, in the latest version: \n```txt\n" + \
@@ -119,6 +129,7 @@ class Utility(commands.Cog):
 			embed.set_footer(text="AnonymousHacker1279, " + str(date.today().year))
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("utility", "about", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["tu"])
 	@commands.guild_only()
@@ -132,6 +143,7 @@ class Utility(commands.Cog):
 			embed.description = "There are **" + str(ctx.guild.member_count) + "** users here."
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("utility", "total_users", ctx.guild.id)
 
 	@bot.bridge_command()
 	@commands.guild_only()
@@ -161,3 +173,4 @@ class Utility(commands.Cog):
 				embed.description += ":warning: High memory usage, responsiveness may be degraded.\n"
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("utility", "status", ctx.guild.id)

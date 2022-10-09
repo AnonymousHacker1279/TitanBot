@@ -11,6 +11,9 @@ from ..GeneralUtilities import CommandAccess, GeneralUtilities, PermissionHandle
 class RevokeAccess(commands.Cog):
 	"""Limit feature access for users who misbehave."""
 
+	def __init__(self, management_portal_handler):
+		self.mph = management_portal_handler
+
 	@bot.bridge_command(aliases=["rca"])
 	@commands.guild_only()
 	async def revoke_command_access(self, ctx: discord.ApplicationContext, user=None, command=None):
@@ -67,6 +70,7 @@ class RevokeAccess(commands.Cog):
 				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("moderator", "revoke_command_access", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["vrc"])
 	@commands.guild_only()
@@ -101,6 +105,7 @@ class RevokeAccess(commands.Cog):
 				embed.description += str(userData["revokedCommands"])
 
 			await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("moderator", "view_revoked_commands", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["rma"])
 	@commands.guild_only()
@@ -158,6 +163,7 @@ class RevokeAccess(commands.Cog):
 				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("moderator", "revoke_module_access", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["vrm"])
 	@commands.guild_only()
@@ -192,3 +198,4 @@ class RevokeAccess(commands.Cog):
 				embed.description += str(userData["revokedModules"])
 
 			await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("moderator", "view_revoked_modules", ctx.guild.id)

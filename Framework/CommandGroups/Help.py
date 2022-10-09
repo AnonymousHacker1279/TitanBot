@@ -3,6 +3,7 @@ from discord.ext import commands
 
 
 class Help(commands.MinimalHelpCommand):
+
 	async def send_pages(self):
 		destination = self.get_destination()
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
