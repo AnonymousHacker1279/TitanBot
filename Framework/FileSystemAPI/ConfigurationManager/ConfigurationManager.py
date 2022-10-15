@@ -46,7 +46,7 @@ class ConfigurationManager:
 
 				# This data is guild specific and could be different in each guild
 				self.bot_config[guild.id] = {}
-				self.bot_config[guild.id]["logging_enabled"] = file["logging"]["logging_enabled"]
+				self.bot_config[guild.id]["enable_logging"] = file["logging"]["enable_logging"]
 				self.bot_config[guild.id]["enable_custom_commands_malware_scanning"] = file["custom_commands"][
 					"enable_vt_scanning"]
 				self.bot_config[guild.id]["custom_commands_max_execution_time"] = file["custom_commands"]["command_timeout"]
