@@ -39,6 +39,7 @@ class ConfigurationManager:
 						file = json.load(cf)
 
 				# This data is global and should be the same in all guilds
+				self.bot_config["discord_status"] = file["discord_status"]
 				self.bot_config["log_level"] = file["logging"]["logging_level"]
 				self.bot_config["update_location"] = file["bot_update"]["bot_update_repository"]
 				self.bot_config["genius_api_token"] = file["genius_music"]["genius_api_key"]
@@ -54,7 +55,7 @@ class ConfigurationManager:
 
 		await self.update_configuration_constants()
 
-	async def update_configuration_constants(self,):
+	async def update_configuration_constants(self):
 		ConfigurationValues.LOG_LEVEL = await self.get_value("log_level")
 		ConfigurationValues.UPDATE_LOCATION = await self.get_value("update_location")
 		ConfigurationValues.GENIUS_API_TOKEN = await self.get_value("genius_api_token")

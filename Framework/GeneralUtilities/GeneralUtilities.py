@@ -1,5 +1,6 @@
 import asyncio
 import re
+import subprocess
 from hashlib import sha256
 
 import nest_asyncio
@@ -66,3 +67,7 @@ def run_and_get(coro):
 	task = loop.create_task(coro)
 	loop.run_until_complete(task)
 	return task.result()
+
+
+def get_git_revision_short_hash() -> str:
+	return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()

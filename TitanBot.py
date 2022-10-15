@@ -9,7 +9,7 @@ from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.RevokeAccess import RevokeAccess
 from Framework.CommandGroups.Utility import Utility
 from Framework.FileSystemAPI import FileAPI
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
+from Framework.FileSystemAPI.ConfigurationManager import BotStatus, ConfigurationValues
 from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import ConfigurationManager
 from Framework.FileSystemAPI.DataMigration import DataMigrator
 from Framework.FileSystemAPI.Logger import Logger
@@ -19,6 +19,8 @@ from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalH
 if __name__ == "__main__":
 
 	database_version = 5
+	ConfigurationValues.VERSION = "v2.3.0-indev"
+	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
 	bot = bridge.Bot(command_prefix="$", intents=intents)
@@ -33,6 +35,8 @@ if __name__ == "__main__":
 	DataMigrator.initialize(management_portal_handler)
 
 	logger = Logger("TitanBot", management_portal_handler)
+	GeneralUtilities.run_and_get(logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " +
+												ConfigurationValues.COMMIT + " starting up"))
 
 	quotes_module = Quotes(management_portal_handler)
 
@@ -47,6 +51,7 @@ if __name__ == "__main__":
 	@bot.event
 	async def on_ready():
 		await logger.log_info("TitanBot has connected to Discord")
+		await bot.change_presence(activity=discord.Game(name="Initializing..."), status=discord.Status.dnd)
 
 		# Check storage metadata, and perform migration as necessary
 		await logger.log_info("Checking guild storage metadata")
@@ -61,7 +66,10 @@ if __name__ == "__main__":
 
 		await management_portal_handler.on_ready()
 
-		await bot.change_presence(activity=discord.Game('Inflicting pain on humans'))
+		status_config = await configuration_manager.get_value("discord_status")
+		status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
+											status_config["activity_url"], status_config["status_level"])
+		await bot.change_presence(activity=status[0], status=status[1])
 		await logger.log_info("TitanBot is ready to go!")
 
 
