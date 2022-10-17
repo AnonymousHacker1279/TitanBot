@@ -17,6 +17,8 @@ class ManagementPortalHandler:
 		self.cm = configuration_manager
 		self.logger = Logger("ManagementPortalHandler", self)
 		self.command_handler = PortalCommandHandler(self.logger, self)
+		self.update_manager = None
+		self.is_first_update_check = True
 		self.base_headers = {
 			'bot_token': GeneralUtilities.generate_sha256_no_async(ConfigurationValues.TOKEN)
 		}
@@ -45,7 +47,7 @@ class ManagementPortalHandler:
 			await self.logger.log_error("Unable to connect to the management portal: Failed to authenticate")
 			await self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
 
-	async def on_ready(self):
+	async def on_ready(self, update_manager):
 		await self.logger.log_info("Updating management portal with bot information")
 		headers = self.base_headers.copy()
 		# Make a dictionary of all the guilds and their IDs
@@ -58,6 +60,11 @@ class ManagementPortalHandler:
 		await self.__post(APIEndpoints.READY, headers)
 		self.update_management_portal_latency.start()
 		self.check_management_portal_pending_commands.start()
+
+		self.update_manager = update_manager
+		if ConfigurationValues.AUTO_UPDATE_ENABLED:
+			self.check_for_updates.change_interval(seconds=ConfigurationValues.UPDATE_CHECK_FREQUENCY)
+			self.check_for_updates.start()
 
 	@tasks.loop(seconds=30)
 	async def update_management_portal_latency(self):
@@ -74,6 +81,16 @@ class ManagementPortalHandler:
 	async def check_management_portal_pending_commands(self):
 		response = await self.__get(APIEndpoints.CHECK_PENDING_COMMANDS, self.base_headers)
 		await self.command_handler.parse_pending_commands(response)
+
+	@tasks.loop(seconds=86400)
+	async def check_for_updates(self):
+		# The first check is ignored because this loop runs immediately on setup
+		# and the bot already checks on initialization
+		if self.is_first_update_check:
+			self.is_first_update_check = False
+			return
+
+		await self.update_manager.check_for_updates()
 
 	async def update_management_portal_command_completed(self, command: str):
 		headers = self.base_headers.copy()

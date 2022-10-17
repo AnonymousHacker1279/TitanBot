@@ -58,8 +58,30 @@ async def get_global_configuration_database() -> str:
 	return object_path
 
 
+async def get_update_metadata() -> str:
+	object_path = os.path.abspath(os.getcwd() + "/Storage/UpdateManager/Updates/Metadata.json")
+	directory_path = os.path.dirname(object_path)
+
+	await FileAPI.prepare_to_get_database_object(directory_path, object_path, await DefaultDatabaseSchemas.get_empty_schema())
+	return object_path
+
+
 async def get_log_directory() -> str:
 	object_path = os.path.abspath(os.getcwd() + "/Storage/Logs")
+
+	await FileAPI.prepare_to_get_database_object("", object_path, is_directory=True)
+	return object_path
+
+
+async def get_update_directory() -> str:
+	object_path = os.path.abspath(os.getcwd() + "/Storage/UpdateManager/Updates")
+
+	await FileAPI.prepare_to_get_database_object("", object_path, is_directory=True)
+	return object_path
+
+
+async def get_backup_directory() -> str:
+	object_path = os.path.abspath(os.getcwd() + "/Storage/UpdateManager/Backups")
 
 	await FileAPI.prepare_to_get_database_object("", object_path, is_directory=True)
 	return object_path

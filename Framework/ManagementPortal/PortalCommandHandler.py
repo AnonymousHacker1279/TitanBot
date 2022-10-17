@@ -23,26 +23,29 @@ class PortalCommandHandler:
 		for command in commands:
 			await self.handle_command(command)
 
-	async def handle_command(self, command):
+	async def handle_command(self, command, impersonate: bool = False):
 		# Portal commands are strings which refer to a bot action
 		# They are sent to the bot via the management portal
 		# This function handles the command and performs the appropriate action
 
 		if command == "shutdown":
 			# Shutdown the bot
-			await self.logger.log_info("Shutdown command received from management portal, shutting down")
-			await self.mph.update_management_portal_command_completed(command)
+			if not impersonate:
+				await self.logger.log_info("Shutdown command received from management portal, shutting down")
+				await self.mph.update_management_portal_command_completed(command)
 			exit(0)
 		elif command == "restart":
 			# Restart the bot
-			await self.logger.log_info("Restart command received from management portal, restarting")
-			await self.mph.update_management_portal_command_completed(command)
+			if not impersonate:
+				await self.logger.log_info("Restart command received from management portal, restarting")
+				await self.mph.update_management_portal_command_completed(command)
 			python = sys.executable
 			os.execl(python, python, *sys.argv)
 		elif command == "update_configuration":
 			# Update the bot configuration
-			await self.logger.log_info("Update configuration command received from management portal, updating configuration")
-			await self.mph.update_management_portal_command_completed(command)
+			if not impersonate:
+				await self.logger.log_info("Update configuration command received from management portal, updating configuration")
+				await self.mph.update_management_portal_command_completed(command)
 
 			global_configuration = await self.mph.get_management_portal_configuration("global")
 

@@ -1,14 +1,17 @@
 # These are set on initialization
-VERSION = None
-COMMIT = None
+VERSION = ""
+COMMIT = ""
 
 # These are loaded from the project .env file
-TOKEN = None
-MANAGEMENT_PORTAL_URL = None
+TOKEN = ""
+MANAGEMENT_PORTAL_URL = ""
 
 # These are loaded from the management portal. They may change during runtime.
 LOG_LEVEL = 0
 LOGGING_ENABLED = True
-UPDATE_LOCATION = None
-GENIUS_API_TOKEN = None
-VIRUSTOTAL_API_KEY = None
+AUTO_UPDATE_ENABLED = True
+UPDATE_REPOSITORY = "AnonymousHacker1279/TitanBot"
+UPDATE_BRANCH = "v2.x"
+UPDATE_CHECK_FREQUENCY = 86400
+GENIUS_API_TOKEN = ""
+VIRUSTOTAL_API_KEY = ""

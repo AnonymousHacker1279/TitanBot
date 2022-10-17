@@ -7,6 +7,7 @@ import psutil as psutil
 import requests as requests
 from discord.ext import commands
 from discord.ext.bridge import bot
+from requests import HTTPError
 
 from ..FileSystemAPI.ConfigurationManager import ConfigurationValues
 from ..GeneralUtilities import PermissionHandler
@@ -105,24 +106,30 @@ class Utility(commands.Cog):
 			embed.title = "About Me"
 			embed.description = "I'm **TitanBot**, an intelligent software built by **AnonymousHacker1279.**\n"
 			embed.description += "Providing features to servers since 7/15/21.\n\n"
-			# Get version information
-			url = ConfigurationValues.UPDATE_LOCATION + "/update.json"
-			url = url.replace("github.com", "raw.githubusercontent.com").replace("/tree", "")
-			updateData = json.loads(requests.get(url).text)
-			versionTag = updateData[updateData["latest"]]["versionTag"]
-			if versionTag == "alpha":
+			# Get the latest version from GitHub
+			try:
+				response = requests.get("https://api.github.com/repos/{}/releases/latest".format(ConfigurationValues.UPDATE_REPOSITORY))
+				jsonResponse = json.loads(response.text)
+				latestVersion = jsonResponse["tag_name"]
+				changelog = jsonResponse["body"]
+			except HTTPError:
+				latestVersion = "Unknown"
+				changelog = "Unknown"
+
+			if "-alpha" in latestVersion:
 				versionEmoji = ":bug:"
-			elif versionTag == "beta":
+				versionTag = "Alpha"
+			elif "-beta" in latestVersion:
 				versionEmoji = ":bug::hammer:"
-			elif versionTag == "release":
-				versionEmoji = ":package:"
-			elif versionTag == "indev":
+				versionTag = "Beta"
+			elif "-indev" in latestVersion:
 				versionEmoji = ":tools:"
+				versionTag = "In Development"
 			else:
-				versionEmoji = ":question:"
+				versionEmoji = ":package:"
+				versionTag = "Release"
 			embed.description += "Current Version: **" + ConfigurationValues.VERSION + "**\n" \
-								"Latest Version: (" + versionEmoji + ", " + versionTag + ") **" + updateData["latest"] + "**\n"
-			changelog = updateData[updateData["latest"]]["changelog"]
+								"Latest Version: (" + versionEmoji + ", " + versionTag + ") **" + latestVersion + "**\n"
 			embed.description += "What's new, in the latest version: \n```txt\n" + \
 								changelog + "```\n"
 			embed.description += "See the wiki for more information and help. https://github.com/AnonymousHacker1279/TitanBot/wiki"

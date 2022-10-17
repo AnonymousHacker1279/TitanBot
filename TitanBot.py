@@ -13,6 +13,7 @@ from Framework.FileSystemAPI.ConfigurationManager import BotStatus, Configuratio
 from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import ConfigurationManager
 from Framework.FileSystemAPI.DataMigration import DataMigrator
 from Framework.FileSystemAPI.Logger import Logger
+from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
 from Framework.GeneralUtilities import CommandAccess, GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
@@ -57,6 +58,8 @@ if __name__ == "__main__":
 		await logger.log_info("Checking guild storage metadata")
 		await FileAPI.check_storage_metadata(database_version, bot.guilds)
 
+		# Update local configurations and load deferred config values
+		await management_portal_handler.command_handler.handle_command("update_configuration", True)
 		await configuration_manager.load_deferred_configs(management_portal_handler, bot.guilds)
 
 		# Do post-initialization for objects with a database cache
@@ -64,8 +67,15 @@ if __name__ == "__main__":
 		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await Quotes.post_initialize(quotes_module, bot)
 
-		await management_portal_handler.on_ready()
+		# Initialize the update manager and check for updates if enabled
+		update_manager = UpdateManager(management_portal_handler, configuration_manager, bot)
+		if ConfigurationValues.AUTO_UPDATE_ENABLED:
+			await update_manager.check_for_updates()
 
+		# Send the ready status to the management portal
+		await management_portal_handler.on_ready(update_manager)
+
+		# Set the bot status
 		status_config = await configuration_manager.get_value("discord_status")
 		status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
 											status_config["activity_url"], status_config["status_level"])

@@ -31,17 +31,10 @@ class ConfigurationManager:
 			with open(await DatabaseObjects.get_configuration_database(guild.id), "r") as config_file:
 				file = json.load(config_file)
 
-				if len(file) == 0:
-					# No configuration file exists for this guild, get it from the management portal
-					await mph.command_handler.handle_command("update_configuration")
-					# Reopen the file
-					with open(await DatabaseObjects.get_configuration_database(guild.id), "r") as cf:
-						file = json.load(cf)
-
 				# This data is global and should be the same in all guilds
 				self.bot_config["discord_status"] = file["discord_status"]
+				self.bot_config["bot_update"] = file["bot_update"]
 				self.bot_config["log_level"] = file["logging"]["logging_level"]
-				self.bot_config["update_location"] = file["bot_update"]["bot_update_repository"]
 				self.bot_config["genius_api_token"] = file["genius_music"]["genius_api_key"]
 				self.bot_config["virustotal_api_key"] = file["custom_commands"]["vt_api_key"]
 
@@ -53,11 +46,18 @@ class ConfigurationManager:
 				self.bot_config[guild.id]["custom_commands_max_execution_time"] = file["custom_commands"]["command_timeout"]
 				self.bot_config[guild.id]["enabled_modules"] = file["enabled_modules"]
 
-		await self.update_configuration_constants()
+		await self.update_configuration_constants(mph)
 
-	async def update_configuration_constants(self):
+	async def update_configuration_constants(self, mph):
 		ConfigurationValues.LOG_LEVEL = await self.get_value("log_level")
-		ConfigurationValues.UPDATE_LOCATION = await self.get_value("update_location")
+
+		bot_update = await self.get_value("bot_update")
+		ConfigurationValues.AUTO_UPDATE_ENABLED = bot_update["enable_updates"]
+		ConfigurationValues.UPDATE_REPOSITORY = bot_update["update_repository"]
+		ConfigurationValues.UPDATE_BRANCH = bot_update["update_branch"]
+		ConfigurationValues.UPDATE_CHECK_FREQUENCY = bot_update["update_check_frequency"]
+		mph.check_for_updates.change_interval(seconds=ConfigurationValues.UPDATE_CHECK_FREQUENCY)
+
 		ConfigurationValues.GENIUS_API_TOKEN = await self.get_value("genius_api_token")
 		ConfigurationValues.VIRUSTOTAL_API_KEY = await self.get_value("virustotal_api_key")
 
