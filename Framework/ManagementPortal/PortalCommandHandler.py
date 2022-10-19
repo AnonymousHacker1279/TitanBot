@@ -1,15 +1,17 @@
 import json
 import os
 import sys
+import time
 
 from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.ConfigurationManager import BotStatus
+from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 
 
 class PortalCommandHandler:
 
-	def __init__(self, logger, management_portal_handler):
-		self.logger = logger
+	def __init__(self, management_portal_handler):
+		self.logger = ThreadedLogger("PortalCommandHandler", management_portal_handler)
 		self.mph = management_portal_handler
 
 	async def parse_pending_commands(self, content):
@@ -31,20 +33,24 @@ class PortalCommandHandler:
 		if command == "shutdown":
 			# Shutdown the bot
 			if not impersonate:
-				await self.logger.log_info("Shutdown command received from management portal, shutting down")
+				self.logger.log_info("Shutdown command received from management portal, shutting down")
 				await self.mph.update_management_portal_command_completed(command)
+
+			# Close the log file
+			self.logger.close()
+
 			exit(0)
 		elif command == "restart":
 			# Restart the bot
 			if not impersonate:
-				await self.logger.log_info("Restart command received from management portal, restarting")
+				self.logger.log_info("Restart command received from management portal, restarting")
 				await self.mph.update_management_portal_command_completed(command)
 			python = sys.executable
 			os.execl(python, python, *sys.argv)
 		elif command == "update_configuration":
 			# Update the bot configuration
 			if not impersonate:
-				await self.logger.log_info("Update configuration command received from management portal, updating configuration")
+				self.logger.log_info("Update configuration command received from management portal, updating configuration")
 				await self.mph.update_management_portal_command_completed(command)
 
 			global_configuration = await self.mph.get_management_portal_configuration("global")

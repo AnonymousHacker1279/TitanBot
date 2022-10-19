@@ -5,7 +5,7 @@ import requests
 from discord.ext import tasks
 
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
-from Framework.FileSystemAPI.Logger import Logger
+from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.GeneralUtilities import GeneralUtilities
 from Framework.ManagementPortal.PortalCommandHandler import PortalCommandHandler
 
@@ -15,8 +15,8 @@ class ManagementPortalHandler:
 	def __init__(self, bot, configuration_manager):
 		self.bot = bot
 		self.cm = configuration_manager
-		self.logger = Logger("ManagementPortalHandler", self)
-		self.command_handler = PortalCommandHandler(self.logger, self)
+		self.logger = ThreadedLogger("ManagementPortalHandler", self)
+		self.command_handler = PortalCommandHandler(self)
 		self.update_manager = None
 		self.is_first_update_check = True
 		self.base_headers = {
@@ -41,14 +41,14 @@ class ManagementPortalHandler:
 		# If it is 401, then the parameters passed are invalid
 		# If it is 403, then the bot was unable to connect, likely due to an invalid token
 		if response_code == 401:
-			await self.logger.log_error("Unable to connect to the management portal: Invalid parameters")
-			await self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
+			self.logger.log_error("Unable to connect to the management portal: Invalid parameters")
+			self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
 		elif response_code == 403:
-			await self.logger.log_error("Unable to connect to the management portal: Failed to authenticate")
-			await self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
+			self.logger.log_error("Unable to connect to the management portal: Failed to authenticate")
+			self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
 
 	async def on_ready(self, update_manager):
-		await self.logger.log_info("Updating management portal with bot information")
+		self.logger.log_info("Updating management portal with bot information")
 		headers = self.base_headers.copy()
 		# Make a dictionary of all the guilds and their IDs
 		guilds = {}
@@ -73,7 +73,7 @@ class ManagementPortalHandler:
 			headers["latency"] = str(round(self.bot.latency * 1000))
 		except OverflowError:
 			headers["latency"] = str(9999)
-			await self.logger.log_error("Unable to update management portal latency due to an overflow error, is the bot offline?")
+			self.logger.log_error("Unable to update management portal latency due to an overflow error, is the bot offline?")
 
 		await self.__post(APIEndpoints.UPDATE_LATENCY, headers)
 
@@ -111,11 +111,12 @@ class ManagementPortalHandler:
 
 		await self.__post(APIEndpoints.UPDATE_COMMAND_USED, headers)
 
-	async def management_portal_log_data(self, source: str, level: str, message: str):
+	async def management_portal_log_data(self, source: str, level: str, message: str, timestamp: str):
 		headers = self.base_headers.copy()
 		headers["source"] = source
 		headers["log_level"] = level
 		headers["message"] = message
+		headers["timestamp"] = timestamp
 
 		await self.__post(APIEndpoints.LOG_DATA, headers)
 

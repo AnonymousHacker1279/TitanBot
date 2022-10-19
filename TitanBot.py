@@ -12,7 +12,7 @@ from Framework.FileSystemAPI import FileAPI
 from Framework.FileSystemAPI.ConfigurationManager import BotStatus, ConfigurationValues
 from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import ConfigurationManager
 from Framework.FileSystemAPI.DataMigration import DataMigrator
-from Framework.FileSystemAPI.Logger import Logger
+from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
 from Framework.GeneralUtilities import CommandAccess, GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
@@ -35,9 +35,8 @@ if __name__ == "__main__":
 	FileAPI.initialize(management_portal_handler)
 	DataMigrator.initialize(management_portal_handler)
 
-	logger = Logger("TitanBot", management_portal_handler)
-	GeneralUtilities.run_and_get(logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " +
-												ConfigurationValues.COMMIT + " starting up"))
+	logger = ThreadedLogger("TitanBot", management_portal_handler)
+	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
 
 	quotes_module = Quotes(management_portal_handler)
 
@@ -51,11 +50,11 @@ if __name__ == "__main__":
 
 	@bot.event
 	async def on_ready():
-		await logger.log_info("TitanBot has connected to Discord")
+		logger.log_info("TitanBot has connected to Discord")
 		await bot.change_presence(activity=discord.Game(name="Initializing..."), status=discord.Status.dnd)
 
 		# Check storage metadata, and perform migration as necessary
-		await logger.log_info("Checking guild storage metadata")
+		logger.log_info("Checking guild storage metadata")
 		await FileAPI.check_storage_metadata(database_version, bot.guilds)
 
 		# Update local configurations and load deferred config values
@@ -63,7 +62,7 @@ if __name__ == "__main__":
 		await configuration_manager.load_deferred_configs(management_portal_handler, bot.guilds)
 
 		# Do post-initialization for objects with a database cache
-		await logger.log_info("Performing post-initialization for objects with a database cache")
+		logger.log_info("Performing post-initialization for objects with a database cache")
 		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await Quotes.post_initialize(quotes_module, bot)
 
@@ -80,12 +79,12 @@ if __name__ == "__main__":
 		status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
 											status_config["activity_url"], status_config["status_level"])
 		await bot.change_presence(activity=status[0], status=status[1])
-		await logger.log_info("TitanBot is ready to go!")
+		logger.log_info("TitanBot is ready to go!")
 
 
 	@bot.event
 	async def on_command_error(ctx, error):
-		await logger.log_error("Error running command: " + str(error))
+		logger.log_error("Error running command: " + str(error))
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		if isinstance(error, commands.errors.CommandInvokeError):
 			embed.title = "Command Invocation Error"
@@ -101,18 +100,18 @@ if __name__ == "__main__":
 
 	@bot.event
 	async def on_guild_join(ctx):
-		await logger.log_info("TitanBot has joined a new guild: " + ctx.name)
-		await logger.log_info("Updating storage metadata for new guild")
+		logger.log_info("TitanBot has joined a new guild: " + ctx.name)
+		logger.log_info("Updating storage metadata for new guild")
 		await FileAPI.check_storage_metadata(database_version, bot.guilds)
 
 		# Invalidate existing caches
-		await logger.log_info("Invalidating existing caches...")
+		logger.log_info("Invalidating existing caches...")
 		await CommandAccess.invalidate_caches()
 		await quotes_module.invalidate_caches()
 		# Re-initialize objects with a database cache
 		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await Quotes.post_initialize(quotes_module, bot)
-		await logger.log_info("All caches invalidated")
+		logger.log_info("All caches invalidated")
 
 
 	bot.run(ConfigurationValues.TOKEN)

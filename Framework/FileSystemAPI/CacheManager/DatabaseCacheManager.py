@@ -1,6 +1,6 @@
 import json
 
-from Framework.FileSystemAPI.Logger import Logger
+from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.GeneralUtilities import GeneralUtilities
 
 
@@ -12,7 +12,7 @@ class DatabaseCacheManager:
 		self.path_to_database = path_to_database
 		self.cache_name = cache_name
 		self.guild_id = str(guild_id)
-		self.logger = Logger(logger_name, management_portal_handler)
+		self.logger = ThreadedLogger(logger_name, management_portal_handler)
 
 		GeneralUtilities.run_and_get(self.__load_database())
 
@@ -21,9 +21,9 @@ class DatabaseCacheManager:
 		with open(self.path_to_database, 'r') as f:
 			self.cache = json.load(f)
 
-		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+		self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
 									"Loaded database from disk into cache")
-		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+		self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
 									"Cache objects loaded: " + str(len(self.cache)))
 
 	async def __save_database(self) -> None:
@@ -31,9 +31,9 @@ class DatabaseCacheManager:
 		with open(self.path_to_database, 'w') as f:
 			json.dump(self.cache, f, indent=4)
 
-		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
-									"Saved database from cache to disk")
-		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+		self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
+								"Saved database from cache to disk")
+		self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
 									"Cache objects saved: " + str(len(self.cache)))
 
 	async def get_cache(self) -> dict:
@@ -54,6 +54,6 @@ class DatabaseCacheManager:
 
 	async def invalidate_cache(self) -> None:
 		"""Invalidate the cache, forcing it to be reloaded from disk."""
-		await self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") "
+		self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") "
 								+ "Invalidating cache with size: " + str(len(self.cache)))
 		await self.__load_database()

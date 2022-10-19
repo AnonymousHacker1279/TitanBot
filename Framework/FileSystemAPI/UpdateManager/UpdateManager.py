@@ -10,7 +10,7 @@ from discord.ext.bridge import Bot
 from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import ConfigurationManager
-from Framework.FileSystemAPI.Logger import Logger
+from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.GeneralUtilities import GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
@@ -20,7 +20,7 @@ from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalH
 class UpdateManager:
 
 	def __init__(self, mph: ManagementPortalHandler, cm: ConfigurationManager, bot: Bot, scheduled: bool = False):
-		self.logger = Logger("UpdateManager", mph)
+		self.logger = ThreadedLogger("UpdateManager", mph)
 		self.configuration_manager = cm
 		self.bot = bot
 		self.scheduled = scheduled
@@ -36,25 +36,25 @@ class UpdateManager:
 		self.latest_release_info = None
 
 	async def check_for_updates(self):
-		await self.logger.log_info("Checking for updates at " + self.gh_repository)
+		self.logger.log_info("Checking for updates at " + self.gh_repository)
 		# Check the GitHub repository for new releases
 		current_release = ConfigurationValues.VERSION
 		latest_release = await self.get_latest_release()
 		# If there is an -indev in the version string, do not update as it is a development version
 		if "-indev" in current_release:
-			await self.logger.log_warning("Development version detected, skipping update check")
+			self.logger.log_warning("Development version detected, skipping update check")
 			return
 		# If the current release is not the latest release, update is available
 		if current_release != latest_release:
 			self.update_available = True
-			await self.logger.log_info("An update available: " + latest_release)
+			self.logger.log_info("An update available: " + latest_release)
 
 			# Check if an update has already been downloaded, and is pending installation
 			if os.path.exists(await DatabaseObjects.get_update_metadata()):
 				with open(await DatabaseObjects.get_update_metadata(), "r") as file:
 					update_metadata = json.load(file)
 					if update_metadata["version"] == latest_release:
-						await self.logger.log_info("An update has already been downloaded, and is pending installation")
+						self.logger.log_info("An update has already been downloaded, and is pending installation")
 						# If it is unscheduled, the bot is just starting up, so install the update
 						if not self.scheduled:
 							await self.install_update()
@@ -65,7 +65,7 @@ class UpdateManager:
 		# Download the latest release from the GitHub repository
 		if self.update_available:
 			await self.bot.change_presence(activity=discord.Game(name="Downloading updates..."), status=discord.Status.dnd)
-			await self.logger.log_info("Downloading update...")
+			self.logger.log_info("Downloading update...")
 			# Get the download URL for the latest release, target the .tar.gz file
 			download_url = self.latest_release_info["tarball_url"]
 			# Download the latest release
@@ -78,7 +78,7 @@ class UpdateManager:
 
 			with open(path, "wb") as file:
 				file.write(response.content)
-			await self.logger.log_info("Update downloaded to " + path)
+			self.logger.log_info("Update downloaded to " + path)
 
 			# Create a metadata file for the update
 			with open(await DatabaseObjects.get_update_metadata(), "w") as file:
@@ -94,11 +94,11 @@ class UpdateManager:
 				json.dump(update_metadata, file, indent=4)
 
 			if self.scheduled and self.restart_on_update:
-				await self.logger.log_info("TitanBot will restart to install the update. Please wait...")
+				self.logger.log_info("TitanBot will restart to install the update. Please wait...")
 				await self.install_update()
 
 			elif not self.scheduled:
-				await self.logger.log_info("An update was downloaded, but has not yet been installed. Please restart TitanBot to install the update.")
+				self.logger.log_info("An update was downloaded, but has not yet been installed. Please restart TitanBot to install the update.")
 
 	async def install_update(self):
 		# Install any updates that have been downloaded
