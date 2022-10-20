@@ -50,7 +50,9 @@ class ManagementPortalHandler:
 			self.logger.log_error("Unable to connect to the management portal: Failed to authenticate")
 			self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
 
-	async def on_ready(self):
+	async def on_ready(self, update_manager):
+		self.logger.log_info("Updating management portal with bot information")
+
 		headers = self.base_headers.copy()
 		# Make a dictionary of all the guilds and their IDs
 		guilds = {}
@@ -61,7 +63,6 @@ class ManagementPortalHandler:
 
 		await self.__post(APIEndpoints.READY, headers)
 
-	async def on_deferred_ready(self, update_manager):
 		self.update_management_portal_latency.start()
 		self.check_management_portal_pending_commands.start()
 
