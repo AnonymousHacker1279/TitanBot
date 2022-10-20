@@ -35,7 +35,10 @@ class ManagementPortalHandler:
 		# Check the response code
 		await self.__check_connect_status(response.status_code, endpoint)
 
-		return response.json()
+		try:
+			return response.json()
+		except json.decoder.JSONDecodeError:
+			return {}
 
 	async def __check_connect_status(self, response_code: int, endpoint: str):
 		# If it is 401, then the parameters passed are invalid
@@ -47,8 +50,7 @@ class ManagementPortalHandler:
 			self.logger.log_error("Unable to connect to the management portal: Failed to authenticate")
 			self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
 
-	async def on_ready(self, update_manager):
-		self.logger.log_info("Updating management portal with bot information")
+	async def on_ready(self):
 		headers = self.base_headers.copy()
 		# Make a dictionary of all the guilds and their IDs
 		guilds = {}
@@ -58,6 +60,8 @@ class ManagementPortalHandler:
 		headers["version"] = ConfigurationValues.VERSION
 
 		await self.__post(APIEndpoints.READY, headers)
+
+	async def on_deferred_ready(self, update_manager):
 		self.update_management_portal_latency.start()
 		self.check_management_portal_pending_commands.start()
 
@@ -71,7 +75,7 @@ class ManagementPortalHandler:
 		headers = self.base_headers.copy()
 		try:
 			headers["latency"] = str(round(self.bot.latency * 1000))
-		except OverflowError:
+		except (OverflowError, ValueError):
 			headers["latency"] = str(9999)
 			self.logger.log_error("Unable to update management portal latency due to an overflow error, is the bot offline?")
 

@@ -31,6 +31,8 @@ if __name__ == "__main__":
 	GeneralUtilities.run_and_get(configuration_manager.load_configs())
 
 	management_portal_handler = ManagementPortalHandler(bot, configuration_manager)
+	# Send the ready status to the management portal
+	GeneralUtilities.run_and_get(management_portal_handler.on_ready())
 
 	FileAPI.initialize(management_portal_handler)
 	DataMigrator.initialize(management_portal_handler)
@@ -71,8 +73,8 @@ if __name__ == "__main__":
 		if ConfigurationValues.AUTO_UPDATE_ENABLED:
 			await update_manager.check_for_updates()
 
-		# Send the ready status to the management portal
-		await management_portal_handler.on_ready(update_manager)
+		# Handle any deferred features of the management portal
+		await management_portal_handler.on_deferred_ready(update_manager)
 
 		# Set the bot status
 		status_config = await configuration_manager.get_value("discord_status")
