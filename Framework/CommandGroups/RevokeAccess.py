@@ -20,7 +20,7 @@ class RevokeAccess(commands.Cog):
 		"""Revoke access to a specific command. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revoke_command_access", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "revoke_command_access", True)
 		if not failedPermissionCheck:
 			# Ensure the user and command arguments are provided
 			if user is None or command is None:
@@ -70,7 +70,7 @@ class RevokeAccess(commands.Cog):
 				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("moderator", "revoke_command_access", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("access_control", "revoke_command_access", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["vrc"])
 	@commands.guild_only()
@@ -78,7 +78,7 @@ class RevokeAccess(commands.Cog):
 		"""See revoked commands for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "view_revoked_commands")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "view_revoked_commands")
 		if not failedPermissionCheck:
 			# Check if a user is provided
 			if user is None:
@@ -105,7 +105,7 @@ class RevokeAccess(commands.Cog):
 				embed.description += str(userData["revokedCommands"])
 
 			await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("moderator", "view_revoked_commands", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("access_control", "view_revoked_commands", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["rma"])
 	@commands.guild_only()
@@ -113,7 +113,7 @@ class RevokeAccess(commands.Cog):
 		"""Revoke access to an entire module. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "revoke_module_access", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "revoke_module_access", True)
 		if not failedPermissionCheck:
 			# Ensure the user and module arguments are provided
 			if user is None or module is None:
@@ -163,7 +163,7 @@ class RevokeAccess(commands.Cog):
 				await cache_manager.invalidate_cache()
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("moderator", "revoke_module_access", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("access_control", "revoke_module_access", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["vrm"])
 	@commands.guild_only()
@@ -171,7 +171,7 @@ class RevokeAccess(commands.Cog):
 		"""See revoked modules for a user. Defaults to the author of the message if no user is provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "moderator", "view_revoked_modules")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "view_revoked_modules")
 		if not failedPermissionCheck:
 			# Check if a user is provided
 			if user is None:
@@ -198,4 +198,4 @@ class RevokeAccess(commands.Cog):
 				embed.description += str(userData["revokedModules"])
 
 			await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("moderator", "view_revoked_modules", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("access_control", "view_revoked_modules", ctx.guild.id)

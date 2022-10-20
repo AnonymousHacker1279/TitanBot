@@ -38,7 +38,7 @@ class CustomCommands(commands.Cog):
 				admin_only = True
 
 		if isfile(path):
-			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
 																					command_name,
 																					shouldCheckForAdmin=admin_only)
 			if not failedPermissionCheck:
@@ -48,7 +48,7 @@ class CustomCommands(commands.Cog):
 			try:
 				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + metadata["aliases"][
 					command_name] + ".js"
-				embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+				embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
 																					command_name,
 																					shouldCheckForAdmin=admin_only)
 				if not failedPermissionCheck:
@@ -60,7 +60,7 @@ class CustomCommands(commands.Cog):
 				embed.description = "A matching command could not be found.\n\n"
 
 		await ctx.edit(embed=embed)
-		await self.mph.update_management_portal_command_used("customCommands", command_name, ctx.guild.id)
+		await self.mph.update_management_portal_command_used("custom_commands", command_name, ctx.guild.id)
 
 	@bot.bridge_command(aliases=["ac"])
 	@commands.guild_only()
@@ -68,14 +68,14 @@ class CustomCommands(commands.Cog):
 		"""Add a custom command to the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
 																				"add_command",
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
 			enable_vt_scanning = await self.mph.cm.get_guild_specific_value(ctx.guild.id, "enable_custom_commands_malware_scanning")
 			modal = CustomCommandModals.AddCommand(title="Add a custom command", vt_scan_enabled=enable_vt_scanning)
 			await ctx.send_modal(modal)
-			await self.mph.update_management_portal_command_used("customCommands", "add_command", ctx.guild.id)
+			await self.mph.update_management_portal_command_used("custom_commands", "add_command", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["rc"])
 	@commands.guild_only()
@@ -83,7 +83,7 @@ class CustomCommands(commands.Cog):
 		"""Remove a custom command from the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
 																				"remove_command",
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
@@ -127,7 +127,7 @@ class CustomCommands(commands.Cog):
 				embed.description = "You must specify a command name to remove."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("customCommands", "remove_command", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("custom_commands", "remove_command", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["cmdi"])
 	@commands.guild_only()
@@ -135,7 +135,7 @@ class CustomCommands(commands.Cog):
 		"""Get information about a custom command."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "customCommands",
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
 																				"command_info")
 		if not failedPermissionCheck:
 			if command_name is not None:
@@ -177,4 +177,4 @@ class CustomCommands(commands.Cog):
 				embed.description = "You must specify a command name to get information."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("customCommands", "command_info", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("custom_commands", "command_info", ctx.guild.id)
