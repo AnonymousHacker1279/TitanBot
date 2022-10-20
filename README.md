@@ -17,7 +17,7 @@ you will need to provide the server.
 
 #### What TitanBot needs:
 - A folder to operate in
-- A Python 3 installation (currently built with `3.10.6`, older versions may work but aren't verified)
+- A Python 3 installation (currently built with `3.10.7`, older versions may work but aren't verified)
 - Some `pip` modules. Those can be installed from the `requirements.txt` file in the repository.
 
 You will need to create a `.env` file in the root of the operating folder. This stores environment
@@ -25,21 +25,15 @@ variables that TitanBot needs. The file should look somewhat like this:
 
 ```txt
 DISCORD_TOKEN=<your bot token>
-LOG_LEVEL=1
-BOT_UPDATE_LOCATION=https://raw.githubusercontent.com/AnonymousHacker1279/TitanBot/v2.x/update.json
-GENIUS_API_TOKEN=<a Genius API token>
-ENABLE_CUSTOM_COMMANDS_MALWARE_SCANNING=True
-CUSTOM_COMMANDS_MAX_EXECUTION_TIME=30
-VIRUSTOTAL_API_KEY=<a VirusTotal API key>
+MANAGEMENT_PORTAL_URL<your management portal URL>
 ```
 
-You will need to replace any text within `<>` with your own data. `BOT_UPDATE_LOCATION` represents a 
-location to access an update metadata. The bot will not auto-update, however it will tell you the
-current and latest versions on the `about`command.
+You will need to replace any text within `<>` with your own data. 
 
-The `GENIUS_API_TOKEN` is not necessary if you do not wish to use the Genius music module. The 
-`VIRUSTOTAL_API_KEY` is not necessary if you do not wish to use custom commands, or plan to leave malware 
-scanning disabled via `ENABLE_CUSTOM_COMMANDS_MALWARE_SCANNING` (**highly unrecommended**).
+The management portal is a new feature starting with v2.3.0 that allows you to manage your bot from a web interface.
+The portal is required for the bot to operate. The source code for the portal is not yet available, but
+hopefully will be soon. Until then, please use v2.2.x. Alternatively, you could attempt to reverse-engineer
+the portal from the source code of TitanBot (though I'd imagine you have better things to do with your time).
 
 To run TitanBot, simply execute the following in your terminal: `python TitanBot.py`. A message will be
 logged stating that the bot has connected.
