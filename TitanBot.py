@@ -20,7 +20,7 @@ from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalH
 if __name__ == "__main__":
 
 	database_version = 5
-	ConfigurationValues.VERSION = "v2.3.0-indev"
+	ConfigurationValues.VERSION = "v2.3.0"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
