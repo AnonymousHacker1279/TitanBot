@@ -1,4 +1,5 @@
 import discord
+import requests
 from discord import Spotify
 from discord.ext import commands
 from discord.ext.bridge import bot
@@ -100,3 +101,22 @@ class Fun(commands.Cog):
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "speak", ctx.guild.id)
+
+	@bot.bridge_command(aliases=["insp"])
+	@commands.guild_only()
+	async def inspirobot_query(self, ctx: discord.ApplicationContext):
+		"""Generate a random image from InspiroBot."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
+		if not failedPermissionCheck:
+			# Get an image URL from InspiroBot
+			url = requests.get("https://inspirobot.me/api?generate=true").text
+
+			# Create the embed
+			embed.title = "InspiroBot Query"
+			embed.set_image(url=url)
+			embed.set_footer(text="Powered by InspiroBot")
+
+		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("fun", "inspirobot_query", ctx.guild.id)
