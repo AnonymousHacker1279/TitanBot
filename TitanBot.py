@@ -24,7 +24,7 @@ if __name__ == "__main__":
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
-	bot = bridge.Bot(command_prefix="$", intents=intents)
+	bot = bridge.Bot(command_prefix=commands.when_mentioned_or("$"), intents=intents)
 	bot.help_command = Help()
 
 	configuration_manager = ConfigurationManager()
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
 
 	@bot.event
-	async def on_command_error(ctx, error):
+	async def on_command_error(ctx: commands.Context, error: commands.CommandError):
 		logger.log_error("Error running command: " + str(error))
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		if isinstance(error, commands.errors.CommandInvokeError):
@@ -99,8 +99,8 @@ if __name__ == "__main__":
 		await ctx.send(embed=embed)
 
 	@bot.event
-	async def on_guild_join(ctx):
-		logger.log_info("TitanBot has joined a new guild: " + ctx.name)
+	async def on_guild_join(ctx: commands.Context):
+		logger.log_info("TitanBot has joined a new guild: " + ctx.guild.name)
 		logger.log_info("Updating storage metadata for new guild")
 		await FileAPI.check_storage_metadata(database_version, bot.guilds)
 
