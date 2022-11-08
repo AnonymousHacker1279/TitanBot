@@ -13,3 +13,7 @@ class ListCacheManager(DatabaseCacheManager):
 	async def remove_from_list_cache(self, removed_object: list) -> None:
 		"""Remove a list object from the cache."""
 		self.cache.remove(removed_object)
+
+	async def edit_list_cache(self, old_object: list, new_object: list) -> None:
+		"""Edit a list object in the cache."""
+		self.cache[self.cache.index(old_object)] = new_object

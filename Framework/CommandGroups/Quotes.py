@@ -1,16 +1,15 @@
 import math
-import re
 from datetime import datetime
 from random import randint
 
 import discord
-from discord.errors import HTTPException, NotFound
+from discord.errors import NotFound
 from discord.ext import commands
 from discord.ext.bridge import bot
 
 from ..FileSystemAPI import DatabaseObjects
 from ..FileSystemAPI.CacheManager.ListCacheManager import ListCacheManager
-from ..GeneralUtilities import GeneralUtilities, PermissionHandler
+from ..GeneralUtilities import GeneralUtilities, PermissionHandler, QuoteUtils
 
 
 class Quotes(commands.Cog):
@@ -41,56 +40,6 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
 		if not failedPermissionCheck:
 
-			async def prepare_quote(pAuthor, pContent, pId, pDate, pQuotedBy) -> discord.Embed:
-				embed.title = "Quote #" + pId
-
-				links = re.findall('https://[a-zA-Z0-9-./_&]*', pContent)
-				contentExcludingLinks = ""
-				iteration = 0
-
-				if pDate and pQuotedBy != "Unknown":
-					iso_date = datetime.fromisoformat(pDate)
-					readable_date = str(iso_date.month) + "/" + str(iso_date.day) + "/" + str(iso_date.year) \
-									+ " at " + str(iso_date.hour) + \
-									":" + str(iso_date.minute) + ":" + str(iso_date.second)
-				else:
-					readable_date = "Unknown"
-					pQuotedBy = "Unknown"
-
-				try:
-					int(pQuotedBy)
-					quoted_by_user = str(await ctx.bot.fetch_user(pQuotedBy))
-				except ValueError:
-					quoted_by_user = pQuotedBy
-
-				try:
-					author_user = await ctx.bot.fetch_user(pAuthor)
-					embed.set_thumbnail(url=author_user.display_avatar.url)
-					author_user = author_user.mention
-				except (HTTPException, NotFound, ValueError):
-					embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
-					author_user = str(pAuthor)
-
-				for _ in links:
-					contentExcludingLinks = re.sub(pattern=links[iteration], repl="", string=pContent)
-					iteration += 1
-				if len(links) != 0:
-					if contentExcludingLinks == "":
-						embed.set_image(url=links[0])
-						embed.description = author_user
-						embed.set_footer(text="Added " + readable_date + " by " + quoted_by_user)
-					else:
-						embed.description = '> "' + pContent + '"\n'
-						embed.description += " - " + author_user
-						embed.set_image(url=links[0])
-						embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
-				else:
-					embed.description = '> "' + pContent + '"\n'
-					embed.description += " - " + author_user
-					embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
-
-				return embed
-
 			# Check if an ID is provided, if not get a random quote
 			data = await self.cache_managers.get(ctx.guild.id).get_cache()
 			maxIndex = 0
@@ -108,7 +57,7 @@ class Quotes(commands.Cog):
 				date = data[random]["date"]
 				quoted_by = data[random]["quoted_by"]
 
-				embed = await prepare_quote(author, content, str(random), date, quoted_by)
+				embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, str(random), date, quoted_by)
 
 			else:
 				try:
@@ -121,7 +70,7 @@ class Quotes(commands.Cog):
 						author = data[int(quote_id)]["author"]
 						date = data[int(quote_id)]["date"]
 						quoted_by = data[int(quote_id)]["quoted_by"]
-						embed = await prepare_quote(author, content, quote_id, date, quoted_by)
+						embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, quote_id, date, quoted_by)
 				except ValueError:
 					embed.title = "Cannot get quote"
 					embed.description = "The quote ID must be a number."
@@ -212,15 +161,12 @@ class Quotes(commands.Cog):
 
 	@bot.bridge_command(aliases=["rq"])
 	@commands.guild_only()
-	async def remove_quote(self, ctx: discord.ApplicationContext, quote_id=None):
+	async def remove_quote(self, ctx: discord.ApplicationContext, quote_id: int):
 		"""Need to purge a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "remove_quote", True)
 		if not failedPermissionCheck:
-			if quote_id is None:
-				embed.title = "Failed to remove quote"
-				embed.description = "You must pass a quote ID to remove."
 
 			cache_manager = self.cache_managers.get(ctx.guild.id)
 			data = await cache_manager.get_cache()
@@ -230,23 +176,66 @@ class Quotes(commands.Cog):
 				maxIndex = maxIndex + 1
 			maxIndex = maxIndex - 1
 
-			try:
-				if int(quote_id) < 0 or int(quote_id) > maxIndex:
-					embed.title = "Failed to remove quote"
-					embed.description = "You must pass a quote ID to remove."
-				else:
-					await cache_manager.remove_from_list_cache(data[int(quote_id)])
-					await cache_manager.sync_cache_to_disk()
-
-				embed.title = "Quote Removed"
-				embed.description = "The quote has been purged from my archives. Total Quotes: **" + str(
-					maxIndex - 1) + ".**"
-			except ValueError:
+			if quote_id < 0 or quote_id > maxIndex:
 				embed.title = "Failed to remove quote"
-				embed.description = "The quote ID must be a number."
+				embed.description = "You must pass a quote ID to remove."
+			else:
+				await cache_manager.remove_from_list_cache(data[quote_id])
+				await cache_manager.sync_cache_to_disk()
+
+			embed.title = "Quote Removed"
+			embed.description = "The quote has been purged from my archives. Total Quotes: **" + str(
+				maxIndex - 1) + ".**"
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "remove_quote", ctx.guild.id)
+
+	@bot.bridge_command(aliases=["eq"])
+	@commands.guild_only()
+	async def edit_quote(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: str = ""):
+		"""Need to edit a quote? Use this. Only available to administrators."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "edit_quote", True)
+		if not failedPermissionCheck:
+
+			cache_manager = self.cache_managers.get(ctx.guild.id)
+			data = await cache_manager.get_cache()
+
+			maxIndex = 0
+			for _ in data:
+				maxIndex = maxIndex + 1
+			maxIndex = maxIndex - 1
+
+			if quote_id < 0 or quote_id > maxIndex:
+				embed.title = "Failed to edit quote"
+				embed.description = "You must pass a valid quote ID to edit. It must be greater than 0 and less" \
+									" than the total number of quotes."
+			elif quote == "" and author == "":
+				embed.title = "Failed to edit quote"
+				embed.description = "You must pass a quote and/or author to edit."
+			else:
+				# Get the quote data
+				quote_data = data[quote_id]
+				# If the content is not empty, update it
+				if quote != "":
+					quote_data["content"] = quote
+				# If the author is not empty, modify the author
+				if author != "":
+					try:
+						author = int(await GeneralUtilities.strip_usernames(author))
+					except ValueError:
+						pass
+					quote_data["author"] = author
+
+				await cache_manager.edit_list_cache(data[quote_id], quote_data)
+				await cache_manager.sync_cache_to_disk()
+
+			embed.title = "Quote Edited"
+			embed.description = "The quote has been edited in my archives."
+
+		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "edit_quote", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["sqa"])
 	@commands.guild_only()

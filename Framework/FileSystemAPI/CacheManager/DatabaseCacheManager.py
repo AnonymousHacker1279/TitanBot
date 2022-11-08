@@ -48,6 +48,10 @@ class DatabaseCacheManager:
 		"""Remove a key-value pair from the cache."""
 		self.cache.pop(key)
 
+	async def edit_cache(self, key, value) -> None:
+		"""Edit a key-value pair in the cache."""
+		self.cache[key] = value
+
 	async def sync_cache_to_disk(self) -> None:
 		"""Sync the cache to the disk."""
 		await self.__save_database()
