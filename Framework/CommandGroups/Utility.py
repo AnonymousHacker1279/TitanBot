@@ -5,6 +5,7 @@ from random import randint
 import discord
 import psutil as psutil
 import requests as requests
+from discord import HTTPException
 from discord.ext import commands
 from discord.ext.bridge import bot
 from requests import HTTPError
@@ -181,3 +182,33 @@ class Utility(commands.Cog):
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "status", ctx.guild.id)
+
+	@bot.bridge_command(aliases=["qrgen"])
+	@commands.guild_only()
+	async def qr_generator(self, ctx: discord.ApplicationContext, url: str, transparent: bool = False, pixel_size: int = 5):
+		"""Generate a QR code containing a URL."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "utility", "qr_generator")
+		if not failedPermissionCheck:
+			# Build the API URL
+			api_url = "https://qrtag.net/api/qr"
+			if transparent:
+				api_url += "_transparent"
+			api_url += "_" + str(pixel_size) + ".png?url=" + url
+
+			# Get the QR code
+			embed.title = "Generated QR Code"
+			embed.set_image(url=api_url)
+
+		try:
+			await ctx.respond(embed=embed)
+		except HTTPException:
+			# Reset the embed
+			embed = discord.Embed(color=discord.Color.dark_blue(),
+								title="Failed to generate QR code",
+								description='The QR code could not be generated. Check the URL and try again.')
+
+			await ctx.respond(embed=embed)
+
+		await self.mph.update_management_portal_command_used("utility", "qr_generator", ctx.guild.id)

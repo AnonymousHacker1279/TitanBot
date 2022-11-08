@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-import time
 
 from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.ConfigurationManager import BotStatus
