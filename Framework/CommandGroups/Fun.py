@@ -120,3 +120,22 @@ class Fun(commands.Cog):
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "inspirobot_query", ctx.guild.id)
+
+	@bot.bridge_command(aliases=["rfct"])
+	@commands.guild_only()
+	async def random_fact(self, ctx: discord.ApplicationContext):
+		"""Get a random and useless, but true, fact."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
+		if not failedPermissionCheck:
+			# Get a random fact
+			response = requests.get("https://uselessfacts.jsph.pl/random.json?language=en").json()
+
+			# Create the embed
+			embed.title = "Random Fact"
+			embed.description = response["text"]
+			embed.set_footer(text="Permalink: " + response["permalink"])
+
+		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("fun", "random_fact", ctx.guild.id)
