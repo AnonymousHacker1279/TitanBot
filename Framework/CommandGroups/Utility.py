@@ -1,4 +1,5 @@
 import json
+import sys
 from datetime import date
 from random import randint
 
@@ -174,6 +175,18 @@ class Utility(commands.Cog):
 			embed.description += "Memory Information: **"\
 								+ str(systemMemoryUsage) + "% usage, "\
 								+ str(totalSystemMemory) + " total GB**\n"
+			embed.description += "Disk Information: **" \
+								+ str(psutil.disk_usage('/')[3]) + "% usage, " \
+								+ str(round(psutil.disk_usage('/')[0] / (1024 * 1024 * 1024), 2)) + " total GB**\n"
+
+			embed.description += "\nDiscord Metrics: **" \
+								+ str(len(ctx.bot.guilds)) + " servers, " \
+								+ str(len(ctx.bot.users)) + " users**\n"
+
+			embed.description += "\nBot Setup: **" \
+								+ "TitanBot " + ConfigurationValues.VERSION + "\n" \
+								+ "- Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]) + "\n" \
+								+ "- Py-Cord " + str(discord.__version__) + "**\n"
 
 			if cpuUsage > 70:
 				embed.description += ":warning: High CPU usage, responsiveness may be degraded.\n"

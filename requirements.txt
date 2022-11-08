@@ -1,4 +1,4 @@
-Js2Py~=0.71
+Js2Py~=0.74
 lyricsgenius~=3.0.1
 psutil~=5.9.1
 python-dotenv~=0.21.0
