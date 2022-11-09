@@ -9,6 +9,7 @@ from discord.ext.bridge import bot
 
 from .Modals import CustomCommandModals
 from ..FileSystemAPI import DatabaseObjects
+from ..FileSystemAPI.CacheManager.DatabaseCacheManager import DatabaseCacheManager
 from ..GeneralUtilities import GeneralUtilities, OsmiumInterconnect, \
 	PermissionHandler
 
@@ -18,48 +19,83 @@ class CustomCommands(commands.Cog):
 
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
+		self.cache_managers = {}
+
+	async def post_initialize(self, bot: commands.Bot):
+		self.cache_managers["data"] = {}
+		self.cache_managers["metadata"] = {}
+
+		for guild in bot.guilds:
+			self.cache_managers["data"][guild.id] = DatabaseCacheManager("custom_commands_data", guild.id, management_portal_handler=self.mph)
+
+			# Load custom commands from file into cache
+			# Find all files ending in .js in the custom_commands directory
+			custom_commands_directory = await DatabaseObjects.get_custom_commands_directory(guild.id)
+			for file in os.listdir(custom_commands_directory):
+				if file.endswith(".js"):
+					# Load the file into the cache
+					with open(os.path.join(custom_commands_directory, file), "r") as f:
+						command = f.read()
+						await self.cache_managers["data"][guild.id].add_to_cache(str(file).rstrip(".js"), command)
+
+			self.cache_managers["metadata"][guild.id] = DatabaseCacheManager("custom_commands_data", guild.id,
+														management_portal_handler=self.mph,
+														path_to_database=await DatabaseObjects.get_custom_commands_metadata_database(guild.id))
+
+	# When the bot joins a new guild, caches need to be invalidated
+	async def invalidate_caches(self):
+		for guild in self.cache_managers:
+			await self.cache_managers[guild].sync_cache_to_disk()
+			await self.cache_managers[guild].invalidate_cache()
 
 	@bot.bridge_command(aliases=["cc"])
 	@commands.guild_only()
 	async def custom_command(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
 		"""Execute a custom command."""
+
+		# performance profiling: start timing
+		start_time = datetime.now().timestamp()
+
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='Executing your command, please be patient...')
 		await ctx.respond(embed=embed)
 
-		path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + command_name + ".js"
 		if args is None:
 			args = ""
 		args = await GeneralUtilities.arg_splitter(args)
 
-		with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), "r") as f:
-			metadata = json.load(f)
-			admin_only = False
-			if command_name in metadata["admin_only_commands"]:
-				admin_only = True
+		# Load command metadata from cache
+		metadata = await self.cache_managers["metadata"][ctx.guild.id].get_cache()
 
-		if isfile(path):
+		admin_only = False
+		if command_name in metadata["admin_only_commands"]:
+			admin_only = True
+
+		# Check if an alias was used
+		if command_name in metadata["aliases"]:
+			command_name = metadata["aliases"][command_name]
+
+		# Get the command from the cache
+		command_data_cache = await self.cache_managers["data"][ctx.guild.id].get_cache()
+		# Check if the command exists
+		try:
+			command_data = command_data_cache[command_name]
+
 			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
 																					command_name,
 																					shouldCheckForAdmin=admin_only)
 			if not failedPermissionCheck:
-				with open(path, "r") as f:
-					embed = await OsmiumInterconnect.execute_with_osmium(self.mph, ctx.guild.id, f.read(), args, embed)
-		else:
-			try:
-				path = await DatabaseObjects.get_custom_commands_directory(ctx.guild.id) + "\\" + metadata["aliases"][
-					command_name] + ".js"
-				embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
-																					command_name,
-																					shouldCheckForAdmin=admin_only)
-				if not failedPermissionCheck:
-					with open(path, "r") as f:
-						embed = await OsmiumInterconnect.execute_with_osmium(self.mph, ctx.guild.id, f.read(), args, embed)
-
-			except (ValueError, TypeError, KeyError):
-				embed.title = "Command Not Found"
-				embed.description = "A matching command could not be found.\n\n"
+				embed = await OsmiumInterconnect.execute_with_osmium(self.mph, ctx.guild.id, command_data, args, embed)
+		except KeyError:
+			embed.title = "Command Not Found"
+			embed.description = "A matching command could not be found.\n\n"
 
 		await ctx.edit(embed=embed)
+
+		# performance profiling: end timing
+		end_time = datetime.now().timestamp()
+		elapsed_time = (end_time - start_time) * 1000
+		print(f"Command {command_name} executed in {elapsed_time} ms.")
+
 		await self.mph.update_management_portal_command_used("custom_commands", command_name, ctx.guild.id)
 
 	@bot.bridge_command(aliases=["ac"])

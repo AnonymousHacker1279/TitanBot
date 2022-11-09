@@ -17,10 +17,10 @@ async def post_initialize(bot: commands.Bot, management_portal_handler):
 
 	for guild in bot.guilds:
 		cache_managers["revoked_commands"][guild.id] = \
-			ListCacheManager(await DatabaseObjects.get_revoked_commands_database(guild.id), "revoked_commands", guild.id, management_portal_handler)
+			ListCacheManager("revoked_commands", guild.id, await DatabaseObjects.get_revoked_commands_database(guild.id), management_portal_handler)
 
 		cache_managers["revoked_modules"][guild.id] = \
-			ListCacheManager(await DatabaseObjects.get_revoked_modules_database(guild.id), "revoked_modules", guild.id, management_portal_handler)
+			ListCacheManager("revoked_modules", guild.id, await DatabaseObjects.get_revoked_modules_database(guild.id), management_portal_handler)
 
 
 # When the bot joins a new guild, caches need to be invalidated

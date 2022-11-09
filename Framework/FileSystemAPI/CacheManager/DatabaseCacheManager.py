@@ -6,7 +6,7 @@ from Framework.GeneralUtilities import GeneralUtilities
 
 class DatabaseCacheManager:
 
-	def __init__(self, path_to_database: str, cache_name: str, guild_id: int, management_portal_handler,
+	def __init__(self, cache_name: str, guild_id: int, management_portal_handler, path_to_database: str = "",
 				logger_name: str = "DatabaseCacheManager"):
 		self.cache = {}
 		self.path_to_database = path_to_database
@@ -14,7 +14,9 @@ class DatabaseCacheManager:
 		self.guild_id = str(guild_id)
 		self.logger = ThreadedLogger(logger_name, management_portal_handler)
 
-		GeneralUtilities.run_and_get(self.__load_database())
+		# If the database path is specified, load the database into the cache
+		if self.path_to_database != "":
+			GeneralUtilities.run_and_get(self.__load_database())
 
 	async def __load_database(self) -> None:
 		"""Load the database into the cache."""

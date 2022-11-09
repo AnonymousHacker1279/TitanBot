@@ -8,7 +8,7 @@ from ..FileSystemAPI import DatabaseObjects
 from ..GeneralUtilities import CommandAccess, GeneralUtilities, PermissionHandler
 
 
-class RevokeAccess(commands.Cog):
+class AccessControl(commands.Cog):
 	"""Limit feature access for users who misbehave."""
 
 	def __init__(self, management_portal_handler):

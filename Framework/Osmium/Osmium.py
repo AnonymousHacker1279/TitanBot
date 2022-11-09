@@ -1,6 +1,9 @@
 import ast
 import multiprocessing
 import re
+import threading
+import time
+from datetime import datetime
 from multiprocessing import Process
 
 import js2py
@@ -56,25 +59,27 @@ class Osmium:
 	async def execute_js(self, js_code):
 		js_code = await self.inject(js_code)
 
-		with multiprocessing.Manager() as manager:
-			response = manager.dict()
+		max_exec_time = await self.mph.cm.get_guild_specific_value(self.guild_id, "custom_commands_max_execution_time")
 
-			max_exec_time = await self.mph.cm.get_guild_specific_value(self.guild_id, "custom_commands_max_execution_time")
+		# Make a shared dict to store the result and error
+		manager = multiprocessing.Manager()
+		response = manager.dict()
 
-			exec_process = Process(target=execution_handler, args=(js_code, response))
-			exec_process.start()
-			exec_process.join(max_exec_time)
-			exec_process.terminate()
+		p = Process(target=execution_handler, args=(js_code, response))
+		p.start()
+		p.join(max_exec_time)
 
-			try:
-				if response["result"] is not None:
-					self.result = ast.literal_eval(response["result"])
-				self.error = response["error"]
-			except ValueError:
-				self.error = "OSMIUM_ERROR: Watchdog terminated execution because it took too much time. The maximum " \
-							"execution time is " + str(max_exec_time) + " seconds."
+		if p.is_alive():
+			p.terminate()
+			p.join()
 
-			manager.shutdown()
+		try:
+			if response["result"] is not None:
+				self.result = ast.literal_eval(response["result"])
+			self.error = response["error"]
+		except ValueError:
+			self.error = "OSMIUM_ERROR: Watchdog terminated execution because it took too much time. The maximum " \
+						"execution time is " + str(max_exec_time) + " seconds."
 
 	async def inject(self, js_code):
 		return """

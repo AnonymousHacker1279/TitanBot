@@ -21,8 +21,9 @@ class Quotes(commands.Cog):
 
 	async def post_initialize(self, bot: commands.Bot):
 		for guild in bot.guilds:
-			self.cache_managers[guild.id] = ListCacheManager(await DatabaseObjects.get_quotes_database(guild.id),
-															"quotes", guild.id, management_portal_handler=self.mph)
+			self.cache_managers[guild.id] = ListCacheManager("quotes", guild.id,
+															await DatabaseObjects.get_quotes_database(guild.id),
+															management_portal_handler=self.mph)
 
 	# When the bot joins a new guild, caches need to be invalidated
 	async def invalidate_caches(self):

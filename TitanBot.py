@@ -6,7 +6,7 @@ from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
-from Framework.CommandGroups.RevokeAccess import RevokeAccess
+from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.Utility import Utility
 from Framework.FileSystemAPI import FileAPI
 from Framework.FileSystemAPI.ConfigurationManager import BotStatus, ConfigurationValues
@@ -39,13 +39,14 @@ if __name__ == "__main__":
 	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
 
 	quotes_module = Quotes(management_portal_handler)
+	custom_commands_module = CustomCommands(management_portal_handler)
 
 	bot.add_cog(quotes_module)
 	bot.add_cog(Fun(management_portal_handler))
 	bot.add_cog(Utility(management_portal_handler))
 	bot.add_cog(Genius(management_portal_handler))
-	bot.add_cog(RevokeAccess(management_portal_handler))
-	bot.add_cog(CustomCommands(management_portal_handler))
+	bot.add_cog(AccessControl(management_portal_handler))
+	bot.add_cog(custom_commands_module)
 
 
 	@bot.event
@@ -65,6 +66,7 @@ if __name__ == "__main__":
 		logger.log_info("Performing post-initialization for objects with a database cache")
 		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await Quotes.post_initialize(quotes_module, bot)
+		await CustomCommands.post_initialize(custom_commands_module, bot)
 
 		# Initialize the update manager and check for updates if enabled
 		update_manager = UpdateManager(management_portal_handler, configuration_manager, bot)
@@ -108,9 +110,11 @@ if __name__ == "__main__":
 		logger.log_info("Invalidating existing caches...")
 		await CommandAccess.invalidate_caches()
 		await quotes_module.invalidate_caches()
+		await custom_commands_module.invalidate_caches()
 		# Re-initialize objects with a database cache
 		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await Quotes.post_initialize(quotes_module, bot)
+		await CustomCommands.post_initialize(custom_commands_module, bot)
 		logger.log_info("All caches invalidated")
 
 

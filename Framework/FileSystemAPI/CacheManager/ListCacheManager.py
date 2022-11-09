@@ -3,8 +3,8 @@ from Framework.FileSystemAPI.CacheManager.DatabaseCacheManager import DatabaseCa
 
 class ListCacheManager(DatabaseCacheManager):
 
-	def __init__(self, path_to_database: str, cache_name: str, guild_id: int, management_portal_handler=None):
-		super().__init__(path_to_database, cache_name, guild_id, management_portal_handler, "ListCacheManager")
+	def __init__(self, cache_name: str, guild_id: int, path_to_database: str = "", management_portal_handler=None):
+		super().__init__(cache_name, guild_id, management_portal_handler, path_to_database, "ListCacheManager")
 
 	async def add_to_list_cache(self, new_object: list) -> None:
 		"""Add a new list object to the cache."""
