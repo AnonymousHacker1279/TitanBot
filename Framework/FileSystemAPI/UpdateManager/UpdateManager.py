@@ -47,17 +47,21 @@ class UpdateManager:
 		# If the current release is not the latest release, update is available
 		if current_release != latest_release:
 			self.update_available = True
-			self.logger.log_info("An update available: " + latest_release)
+			self.logger.log_info("An update is available: " + latest_release)
 
 			# Check if an update has already been downloaded, and is pending installation
 			if os.path.exists(await DatabaseObjects.get_update_metadata()):
 				with open(await DatabaseObjects.get_update_metadata(), "r") as file:
 					update_metadata = json.load(file)
-					if update_metadata["version"] == latest_release:
-						self.logger.log_info("An update has already been downloaded, and is pending installation")
-						# If it is unscheduled, the bot is just starting up, so install the update
-						if not self.scheduled:
-							await self.install_update()
+
+					try:
+						if update_metadata["version"] == latest_release:
+							self.logger.log_info("An update has already been downloaded, and is pending installation")
+							# If it is unscheduled, the bot is just starting up, so install the update
+							if not self.scheduled:
+								await self.install_update()
+					except TypeError:
+						await self.download_update(latest_release)
 			else:
 				await self.download_update(latest_release)
 

@@ -49,9 +49,6 @@ class CustomCommands(commands.Cog):
 	async def custom_command(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
 		"""Execute a custom command."""
 
-		# performance profiling: start timing
-		start_time = datetime.now().timestamp()
-
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='Executing your command, please be patient...')
 		await ctx.respond(embed=embed)
 
@@ -89,11 +86,6 @@ class CustomCommands(commands.Cog):
 			embed.description = "A matching command could not be found.\n\n"
 
 		await ctx.edit(embed=embed)
-
-		# performance profiling: end timing
-		end_time = datetime.now().timestamp()
-		elapsed_time = (end_time - start_time) * 1000
-		print(f"Command {command_name} executed in {elapsed_time} ms.")
 
 		await self.mph.update_management_portal_command_used("custom_commands", command_name, ctx.guild.id)
 
