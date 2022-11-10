@@ -76,6 +76,9 @@ if __name__ == "__main__":
 		if ConfigurationValues.AUTO_UPDATE_ENABLED:
 			await update_manager.check_for_updates()
 
+		# Update Osmium's import whitelist
+		await osmium.set_import_whitelist(await configuration_manager.get_value("osmium_import_whitelist"))
+
 		# Send the ready status to the management portal
 		await management_portal_handler.on_ready(update_manager)
 

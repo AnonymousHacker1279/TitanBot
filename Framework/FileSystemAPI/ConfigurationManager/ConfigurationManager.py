@@ -37,6 +37,7 @@ class ConfigurationManager:
 				self.bot_config["log_level"] = file["logging"]["logging_level"]
 				self.bot_config["genius_api_token"] = file["genius_music"]["genius_api_key"]
 				self.bot_config["virustotal_api_key"] = file["custom_commands"]["vt_api_key"]
+				self.bot_config["osmium_import_whitelist"] = file["custom_commands"]["import_whitelist"]
 
 				# This data is guild specific and could be different in each guild
 				self.bot_config[guild.id] = {}
