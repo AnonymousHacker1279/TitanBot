@@ -9,10 +9,11 @@ from Framework.GeneralUtilities import GeneralUtilities, VirusTotalQuery
 
 
 class AddCommand(discord.ui.Modal):
-	def __init__(self, vt_scan_enabled: bool, *args, **kwargs) -> None:
+	def __init__(self, vt_scan_enabled: bool, cache_managers, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 
 		self.vt_scan_enabled = vt_scan_enabled
+		self.cache_managers = cache_managers
 
 		self.add_item(discord.ui.InputText(label="Command Name"))
 		self.add_item(discord.ui.InputText(label="Command Alias (Short name)"))
@@ -91,9 +92,13 @@ class AddCommand(discord.ui.Modal):
 					embed.set_footer(text="")
 
 					if message is not None:
-						await interaction.edit_original_message(embed=embed)
+						await interaction.edit_original_response(embed=embed)
 					else:
 						await interaction.response.send_message(embed=embed)
+
+					# Invalidate the cache
+					await self.cache_managers["data"][interaction.guild_id].invalidate_cache()
+					await self.cache_managers["metadata"][interaction.guild_id].invalidate_cache()
 			else:
 				embed.title = "Failed to Add Custom Command"
 				embed.description = "You must provide code to run with the command."

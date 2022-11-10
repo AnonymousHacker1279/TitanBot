@@ -16,6 +16,7 @@ from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
 from Framework.GeneralUtilities import CommandAccess, GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
+from Framework.Osmium.Osmium import Osmium
 
 if __name__ == "__main__":
 
@@ -38,8 +39,10 @@ if __name__ == "__main__":
 	logger = ThreadedLogger("TitanBot", management_portal_handler)
 	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
 
+	osmium = Osmium(management_portal_handler)
+
 	quotes_module = Quotes(management_portal_handler)
-	custom_commands_module = CustomCommands(management_portal_handler)
+	custom_commands_module = CustomCommands(management_portal_handler, osmium)
 
 	bot.add_cog(quotes_module)
 	bot.add_cog(Fun(management_portal_handler))

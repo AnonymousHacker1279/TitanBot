@@ -9,16 +9,19 @@ from discord.ext.bridge import bot
 
 from .Modals import CustomCommandModals
 from ..FileSystemAPI import DatabaseObjects
+from ..FileSystemAPI.CacheManager.CacheLoaders import CustomCommandsCacheLoader
 from ..FileSystemAPI.CacheManager.DatabaseCacheManager import DatabaseCacheManager
-from ..GeneralUtilities import GeneralUtilities, OsmiumInterconnect, \
-	PermissionHandler
+from ..GeneralUtilities import GeneralUtilities, OsmiumInterconnect, PermissionHandler
+from ..ManagementPortal import ManagementPortalHandler
+from ..Osmium import Osmium
 
 
 class CustomCommands(commands.Cog):
 	"""Expand the power of TitanBot with custom commands."""
 
-	def __init__(self, management_portal_handler):
+	def __init__(self, management_portal_handler: ManagementPortalHandler, osmium: Osmium):
 		self.mph = management_portal_handler
+		self.osmium = osmium
 		self.cache_managers = {}
 
 	async def post_initialize(self, bot: commands.Bot):
@@ -26,17 +29,10 @@ class CustomCommands(commands.Cog):
 		self.cache_managers["metadata"] = {}
 
 		for guild in bot.guilds:
-			self.cache_managers["data"][guild.id] = DatabaseCacheManager("custom_commands_data", guild.id, management_portal_handler=self.mph)
-
-			# Load custom commands from file into cache
-			# Find all files ending in .js in the custom_commands directory
-			custom_commands_directory = await DatabaseObjects.get_custom_commands_directory(guild.id)
-			for file in os.listdir(custom_commands_directory):
-				if file.endswith(".js"):
-					# Load the file into the cache
-					with open(os.path.join(custom_commands_directory, file), "r") as f:
-						command = f.read()
-						await self.cache_managers["data"][guild.id].add_to_cache(str(file).rstrip(".js"), command)
+			self.cache_managers["data"][guild.id] = DatabaseCacheManager("custom_commands_data", guild.id,
+																		management_portal_handler=self.mph,
+																		cache_loader=CustomCommandsCacheLoader.CacheLoader(),
+																		load_with_empty_path=True)
 
 			self.cache_managers["metadata"][guild.id] = DatabaseCacheManager("custom_commands_data", guild.id,
 														management_portal_handler=self.mph,
@@ -84,7 +80,10 @@ class CustomCommands(commands.Cog):
 																					command_name,
 																					shouldCheckForAdmin=admin_only)
 			if not failedPermissionCheck:
-				embed = await OsmiumInterconnect.execute_with_osmium(self.mph, ctx.guild.id, command_data, args, embed)
+				max_exec_time = await self.mph.cm.get_guild_specific_value(ctx.guild_id,
+																			"custom_commands_max_execution_time")
+
+				embed = await OsmiumInterconnect.execute_with_osmium(self.osmium, command_data, args, max_exec_time, embed)
 		except KeyError:
 			embed.title = "Command Not Found"
 			embed.description = "A matching command could not be found.\n\n"
@@ -109,7 +108,7 @@ class CustomCommands(commands.Cog):
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
 			enable_vt_scanning = await self.mph.cm.get_guild_specific_value(ctx.guild.id, "enable_custom_commands_malware_scanning")
-			modal = CustomCommandModals.AddCommand(title="Add a custom command", vt_scan_enabled=enable_vt_scanning)
+			modal = CustomCommandModals.AddCommand(title="Add a custom command", vt_scan_enabled=enable_vt_scanning, cache_managers=self.cache_managers)
 			await ctx.send_modal(modal)
 			await self.mph.update_management_portal_command_used("custom_commands", "add_command", ctx.guild.id)
 
@@ -163,6 +162,11 @@ class CustomCommands(commands.Cog):
 				embed.description = "You must specify a command name to remove."
 
 		await ctx.respond(embed=embed)
+
+		# Invalidate the cache
+		await self.cache_managers["data"][ctx.guild_id].invalidate_cache()
+		await self.cache_managers["metadata"][ctx.guild_id].invalidate_cache()
+
 		await self.mph.update_management_portal_command_used("custom_commands", "remove_command", ctx.guild.id)
 
 	@bot.bridge_command(aliases=["cmdi"])

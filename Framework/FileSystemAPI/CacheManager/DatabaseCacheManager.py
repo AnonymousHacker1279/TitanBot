@@ -7,21 +7,28 @@ from Framework.GeneralUtilities import GeneralUtilities
 class DatabaseCacheManager:
 
 	def __init__(self, cache_name: str, guild_id: int, management_portal_handler, path_to_database: str = "",
-				logger_name: str = "DatabaseCacheManager"):
+				logger_name: str = "DatabaseCacheManager", cache_loader=None, load_with_empty_path: bool = False):
 		self.cache = {}
 		self.path_to_database = path_to_database
 		self.cache_name = cache_name
 		self.guild_id = str(guild_id)
 		self.logger = ThreadedLogger(logger_name, management_portal_handler)
+		self.cache_loader = cache_loader
+		self.load_with_empty_path = load_with_empty_path
 
 		# If the database path is specified, load the database into the cache
 		if self.path_to_database != "":
 			GeneralUtilities.run_and_get(self.__load_database())
+		elif self.load_with_empty_path:
+			GeneralUtilities.run_and_get(self.__load_database())
 
 	async def __load_database(self) -> None:
 		"""Load the database into the cache."""
-		with open(self.path_to_database, 'r') as f:
-			self.cache = json.load(f)
+		if self.cache_loader:
+			await self.cache_loader.load_data_cache(self, self.guild_id)
+		else:
+			with open(self.path_to_database, 'r') as f:
+				self.cache = json.load(f)
 
 		self.logger.log_debug("(Cache: " + self.cache_name + ", guild: " + self.guild_id + ") " +
 									"Loaded database from disk into cache")
