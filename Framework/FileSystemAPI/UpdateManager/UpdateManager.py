@@ -118,9 +118,7 @@ class UpdateManager:
 			updater.close()
 
 		# Run the update script, passing the path to the update metadata file and the project directory as args
-		os.system("python '" + updater.name + "' '"
-					+ await DatabaseObjects.get_update_metadata() + "' '"
-					+ project_directory + "'")
+		os.system(f"python '{updater.name}' '{await DatabaseObjects.get_update_metadata()}' '{project_directory}'")
 
 		exit(0)
 
