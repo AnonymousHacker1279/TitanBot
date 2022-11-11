@@ -18,4 +18,6 @@ class CacheLoader:
 				# Load the file into the cache
 				with open(os.path.join(custom_commands_directory, file), "r") as f:
 					command = f.read()
-					await cache_manager.add_to_cache(str(file).rstrip(".js"), command)
+					# Get the file name without extension
+					command_name = os.path.splitext(file)[0]
+					await cache_manager.add_to_cache(command_name, command)
