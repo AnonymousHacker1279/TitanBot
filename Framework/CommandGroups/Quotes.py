@@ -417,3 +417,5 @@ class Quotes(commands.Cog):
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "list_recent_quotes", ctx.guild.id)
+
+		
