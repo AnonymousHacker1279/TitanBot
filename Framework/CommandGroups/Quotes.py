@@ -379,3 +379,42 @@ class Quotes(commands.Cog):
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "search_quotes_text", ctx.guild.id)
+
+	@bot.bridge_command(aliases=["lrq"])
+	@commands.guild_only()
+	async def list_recent_quotes(self, ctx: discord.ApplicationContext):
+		"""Listing ten of the most recent quotes"""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "list_recent_quotes")
+		if not failedPermissionCheck:
+
+			# Get the quote data
+			data = await self.cache_managers.get(ctx.guild.id).get_cache()
+
+			maxIndex = 0
+			# Quote index for 10 newest quotes
+			quoteIndex = []
+			for i in data:
+
+				if len(quoteIndex) != 0:
+
+					# List the first 10 quotes if the length of the index isn't zero
+					embed.description += "Listing ten of the most recent quotes: \n\n"
+					iteration = 0
+					# Iterate through the index and build a response
+					for _ in quoteIndex:
+						embed.description += data[quoteIndex[iteration]]["content"] + " **Quote #" + str(
+						quoteIndex[iteration]) + "**\n" + ["author"]
+						iteration = iteration + 1
+						if iteration >= 10:
+							break
+					else:
+						embed.title = "Failed to List Recent Quotes"
+						embed.description = "I do not have any quotes in my archives."
+							break
+
+		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("quotes", "list_recent_quotes", ctx.guild.id)
+		
