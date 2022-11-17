@@ -383,7 +383,7 @@ class Quotes(commands.Cog):
 	@bot.bridge_command(aliases=["lrq"])
 	@commands.guild_only()
 	async def list_recent_quotes(self, ctx: discord.ApplicationContext):
-		"""Listing ten of the most recent quotes"""
+		"""List ten of the most recent quotes"""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
@@ -393,27 +393,29 @@ class Quotes(commands.Cog):
 			# Get the quote data
 			data = await self.cache_managers.get(ctx.guild.id).get_cache()
 
-			maxIndex = 0
-			# Quote index for 10 newest quotes
-			quoteIndex = []
-			for i in data:
+			# Get the index of the last ten quotes
+			quoteIndex = [i for i in range(len(data) - 10, len(data))]
+			# Purge any negative indexes, if there are any
+			quoteIndex = [i for i in quoteIndex if i >= 0]
+			quoteIndex.reverse()
 
-				if len(quoteIndex) != 0:
+			if len(quoteIndex) != 0:
+				# List the first 10 quotes if the length of the index isn't zero
+				embed.title = "Listing ten of the most recent quotes:"
+				iteration = 0
+				# Iterate through the index and build a response
+				for _ in quoteIndex:
+					author_user = await ctx.bot.fetch_user(data[quoteIndex[iteration]]["author"])
 
-					# List the first 10 quotes if the length of the index isn't zero
-					embed.description += "Listing ten of the most recent quotes: \n\n"
-					iteration = 0
-					# Iterate through the index and build a response
-					for _ in quoteIndex:
-						embed.description += data[quoteIndex[iteration]]["content"] + " **Quote #" + str(
-						quoteIndex[iteration]) + "**\n" + ["author"]
-						iteration = iteration + 1
-						if iteration >= 10:
-							break
-					else:
-						embed.title = "Failed to List Recent Quotes"
-						embed.description = "I do not have any quotes in my archives."
-							break
+					embed.description += data[quoteIndex[iteration]]["content"]\
+											+ " **Quote #" + str(quoteIndex[iteration])\
+											+ "** - " + author_user.mention + "\n"
+					iteration = iteration + 1
+					if iteration >= 10:
+						break
+			else:
+				embed.title = "Failed to List Recent Quotes"
+				embed.description = "I do not have any quotes in my archives."
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "list_recent_quotes", ctx.guild.id)
