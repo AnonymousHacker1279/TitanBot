@@ -70,6 +70,8 @@ class ThreadedLogger:
 				message = self.queue.get(block=True, timeout=1)
 			except Empty:
 				continue
+			except OSError:
+				return
 
 			# Write the message to the console
 			prepared_message = message[0] + message[1]

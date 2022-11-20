@@ -92,17 +92,27 @@ if __name__ == "__main__":
 
 	@bot.event
 	async def on_command_error(ctx: commands.Context, error: commands.CommandError):
-		logger.log_error("Error running command: " + str(error))
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+
+		should_log = True
+
 		if isinstance(error, commands.errors.CommandInvokeError):
 			embed.title = "Command Invocation Error"
 			embed.description = "An error occurred while trying to execute the command.\n\n"
 		elif isinstance(error, commands.errors.UserInputError):
 			embed.title = "Invalid Syntax"
 			embed.description = "A command was used improperly. Please read the descriptions for command usage.\n\n"
+		elif isinstance(error, commands.errors.CommandNotFound):
+			embed.title = "Command Not Found"
+			embed.description = "The command you entered does not exist.\n\n"
+
+			should_log = False  # Don't log this error, it's not really an error and just clutters the logs
 		else:
 			embed.title = "Unspecified Error"
 			embed.description = "An error was thrown during the handling of the command, but I don't know how to handle it.\n\n"
+
+		if should_log:
+			logger.log_error("Error running command: " + str(error))
 
 		await ctx.send(embed=embed)
 
