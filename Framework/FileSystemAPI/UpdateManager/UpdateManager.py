@@ -54,14 +54,14 @@ class UpdateManager:
 				with open(await DatabaseObjects.get_update_metadata(), "r") as file:
 					update_metadata = json.load(file)
 
-					try:
-						if update_metadata["version"] == latest_release:
-							self.logger.log_info("An update has already been downloaded, and is pending installation")
-							# If it is unscheduled, the bot is just starting up, so install the update
-							if not self.scheduled:
-								await self.install_update()
-					except TypeError:
-						await self.download_update(latest_release)
+				try:
+					if update_metadata["version"] == latest_release:
+						self.logger.log_info("An update has already been downloaded, and is pending installation")
+						# If it is unscheduled, the bot is just starting up, so install the update
+						if not self.scheduled:
+							await self.install_update()
+				except TypeError:
+					await self.download_update(latest_release)
 			else:
 				await self.download_update(latest_release)
 
@@ -95,6 +95,7 @@ class UpdateManager:
 					"previous_commit": ConfigurationValues.COMMIT,
 					"update_file": path,
 				}
+
 				json.dump(update_metadata, file, indent=4)
 
 			if self.scheduled and self.restart_on_update:

@@ -15,7 +15,10 @@ import sys
 import tempfile
 import time
 
+print("TitanBot Updater is starting...")
+
 # Wait 5 seconds, to ensure all files are unlocked by threads
+print("Waiting 5 seconds, to ensure files are unlocked...")
 time.sleep(5)
 
 # Get the metadata file from script arguments
@@ -27,6 +30,7 @@ target_directory = sys.argv[2]
 # Read the metadata file
 with open(metadata_file, "r") as file:
 	metadata = json.load(file)
+	file.close()
 print("Read metadata file")
 
 # Change to the target directory
@@ -45,11 +49,14 @@ shutil.unpack_archive(metadata["update_file"], temp_directory)
 update_directory = os.listdir(temp_directory)[0]
 
 # Backup the target directory
-backup_file = metadata["previous_version"] + "_" + metadata["previous_commit"] + "_backup.tar.gz"
+backup_file = metadata["previous_version"] + "_" + metadata["previous_commit"] + "_backup"
 
 # Create the backup file
 print("Backing up the target directory")
-os.system("tar -czf " + backup_file + " *")
+# Ignore existing backups in the "Backups" directory, by temporarily moving them to the temporary directory
+if os.path.exists(target_directory + "\\Storage\\UpdateManager\\Backups\\"):
+	shutil.move(target_directory + "\\Storage\\UpdateManager\\Backups\\", temp_directory + "\\Backups\\")
+shutil.make_archive(backup_file, "gztar", target_directory)
 
 # Delete some directories
 # This is purged in case an update deletes or renames a file, so that it is not left behind
@@ -74,7 +81,12 @@ for item in os.listdir(temp_directory + "\\" + update_directory):
 print("Moving backup file into the target directory")
 if not os.path.exists(target_directory + "\\Storage\\UpdateManager\\Backups\\"):
 	os.mkdir(target_directory + "\\Storage\\UpdateManager\\Backups\\")
-shutil.move(backup_file, target_directory + "\\Storage\\UpdateManager\\Backups\\")
+shutil.move(backup_file + ".tar.gz", target_directory + "\\Storage\\UpdateManager\\Backups\\")
+# Move the old backups back
+if os.path.exists(temp_directory + "\\Backups\\"):
+	# Move all files in the directory
+	for item in os.listdir(temp_directory + "\\Backups\\"):
+		shutil.move(temp_directory + "\\Backups\\" + item, target_directory + "\\Storage\\UpdateManager\\Backups\\")
 
 # Delete the extracted directory and its contents
 print("Cleaning up")
@@ -86,15 +98,22 @@ os.remove(metadata["update_file"])
 # Delete the metadata file
 os.remove(metadata_file)
 
-# Restart TitanBot using the venv in the target directory
+# Activate the virtual environment
+print("Activating virtual environment")
+if os.name == "nt":
+	os.system("start /B venv\\Scripts\\activate.bat")
+else:
+	os.system("source venv/bin/activate")
+
+# Update dependencies
+print("Updating dependencies")
+os.system("pip install -r requirements.txt")
+
+# Restart TitanBot
 print("Restarting TitanBot")
-script_directory = os.getcwd()
 # Use a new process so the current process can exit
-# Open it in the background so that it doesn't block the current process
+# Open it in the background
 if os.name == "nt":
 	os.system("start /B venv\\Scripts\\python.exe TitanBot.py")
 else:
-	os.system("source venv/bin/activate && python3 TitanBot.py &")
-
-# Delete this script, as it is a copy of the original
-os.remove(os.path.join(script_directory, "TitanBotUpdater.py"))
+	os.system("python3 TitanBot.py &")

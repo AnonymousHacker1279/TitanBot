@@ -12,7 +12,7 @@ from Framework.GeneralUtilities import GeneralUtilities
 
 class LogLevel(Enum):
 	"""
-	Log levels are used to determine what data is logged. Set the required log level in the config file.
+	Log levels are used to determine what data is logged. Set the required log level in the configuration.
 	"""
 	DEBUG = 0
 	INFO = 1
@@ -25,7 +25,6 @@ class ThreadedLogger:
 
 	# There will be multiple instances of this class, so we need to make sure that
 	# the log file is only opened once
-	# This is done by using a class variable to store the file handle
 	log_file_handle = None
 	log_file_path = None
 	log_file_lock = None
@@ -47,10 +46,6 @@ class ThreadedLogger:
 	def open_log_file(self):
 		# Open the log file
 		# The log file is stored in the bot log directory, with a name that is the current date
-		# The log file is opened in append mode, so that it can be written to by multiple instances of this class
-		# The log file is also opened in binary mode, so that it can be written to by multiple instances of this class
-		# The log file is opened in buffered mode, so that it doesn't need to be flushed after every write
-		# The log file is opened in exclusive mode, so that it can't be opened by multiple instances of this class
 		logs_directory = GeneralUtilities.run_and_get(DatabaseObjects.get_log_directory())
 
 		ThreadedLogger.log_file_path = logs_directory + "\\" + str(datetime.datetime.now().date()) + ".log"
@@ -81,14 +76,9 @@ class ThreadedLogger:
 			print(prepared_message, end="")
 
 			# Write the message to the log file
-			# The log file is opened in binary mode, so we need to encode the message before writing it
-			# The log file is opened in buffered mode, so we need to flush it after writing to it
-			# The log file is opened in exclusive mode, so we need to acquire a lock before writing to it
-			# The log file is opened in append mode, so we don't need to seek to the end of the file before writing to it
 			asyncio.run_coroutine_threadsafe(ThreadedLogger.log_file_lock.acquire(), self.loop)
 			ThreadedLogger.log_file_handle.write(prepared_message.encode())
 			ThreadedLogger.log_file_handle.flush()
-			# The log file is opened in exclusive mode, so we need to release the lock after writing to it
 			# Check if it is locked before releasing it
 			if ThreadedLogger.log_file_lock.locked():
 				ThreadedLogger.log_file_lock.release()
