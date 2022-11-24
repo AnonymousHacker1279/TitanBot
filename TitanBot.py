@@ -1,6 +1,7 @@
 import discord
 from discord.ext import bridge, commands
 
+from Framework.CommandGroups.AIChat import AIChat
 from Framework.CommandGroups.CustomCommands import CustomCommands
 from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
@@ -21,7 +22,7 @@ from Framework.Osmium.Osmium import Osmium
 if __name__ == "__main__":
 
 	database_version = 5
-	ConfigurationValues.VERSION = "v2.4.1"
+	ConfigurationValues.VERSION = "v2.5.0-indev"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
@@ -43,6 +44,7 @@ if __name__ == "__main__":
 
 	quotes_module = Quotes(management_portal_handler)
 	custom_commands_module = CustomCommands(management_portal_handler, osmium)
+	ai_chat_module = AIChat(management_portal_handler, ThreadedLogger("AIChat", management_portal_handler))
 
 	bot.add_cog(quotes_module)
 	bot.add_cog(Fun(management_portal_handler))
@@ -50,6 +52,7 @@ if __name__ == "__main__":
 	bot.add_cog(Genius(management_portal_handler))
 	bot.add_cog(AccessControl(management_portal_handler))
 	bot.add_cog(custom_commands_module)
+	bot.add_cog(ai_chat_module)
 
 
 	@bot.event
@@ -70,6 +73,7 @@ if __name__ == "__main__":
 		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await Quotes.post_initialize(quotes_module, bot)
 		await CustomCommands.post_initialize(custom_commands_module, bot)
+		await AIChat.post_initialize(ai_chat_module)
 
 		# Initialize the update manager and check for updates if enabled
 		update_manager = UpdateManager(management_portal_handler, configuration_manager, bot)
@@ -133,5 +137,14 @@ if __name__ == "__main__":
 		await CustomCommands.post_initialize(custom_commands_module, bot)
 		logger.log_info("All caches invalidated")
 
+	@bot.event
+	async def on_message(message: discord.Message):
+		if message.author == bot.user:
+			return
+
+		if message.content.startswith("$"):
+			await bot.process_commands(message)
+		else:
+			await ai_chat_module.handle_message_event(message)
 
 	bot.run(ConfigurationValues.TOKEN)

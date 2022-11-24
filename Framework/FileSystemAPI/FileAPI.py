@@ -3,13 +3,14 @@ import os
 
 from Framework.FileSystemAPI import DefaultDatabaseSchemas
 from Framework.FileSystemAPI.DataMigration.DataMigrator import migrate_storage_metadata
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 
 logger = None
 
 
 def initialize(management_portal_handler):
 	global logger
+
+	from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 	logger = ThreadedLogger("FileAPI", management_portal_handler)
 
 

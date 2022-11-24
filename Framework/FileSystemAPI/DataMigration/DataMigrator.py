@@ -2,7 +2,6 @@ import json
 import os
 
 from Framework.FileSystemAPI import DatabaseObjects
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.GeneralUtilities import GeneralUtilities
 
 logger = None
@@ -10,6 +9,8 @@ logger = None
 
 def initialize(management_portal_handler=None):
 	global logger
+
+	from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 	logger = ThreadedLogger("DataMigrator", management_portal_handler)
 
 
