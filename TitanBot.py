@@ -15,7 +15,7 @@ from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import Co
 from Framework.FileSystemAPI.DataMigration import DataMigrator
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
-from Framework.GeneralUtilities import CommandAccess, GeneralUtilities
+from Framework.GeneralUtilities import CommandAccess, ErrorHandler, GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 from Framework.Osmium.Osmium import Osmium
 
@@ -44,7 +44,9 @@ if __name__ == "__main__":
 
 	quotes_module = Quotes(management_portal_handler)
 	custom_commands_module = CustomCommands(management_portal_handler, osmium)
-	ai_chat_module = AIChat(management_portal_handler, ThreadedLogger("AIChat", management_portal_handler))
+	ai_chat_module = AIChat(management_portal_handler,
+							configuration_manager,
+							ThreadedLogger("AIChat", management_portal_handler))
 
 	bot.add_cog(quotes_module)
 	bot.add_cog(Fun(management_portal_handler))
@@ -96,29 +98,14 @@ if __name__ == "__main__":
 
 	@bot.event
 	async def on_command_error(ctx: commands.Context, error: commands.CommandError):
-		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed = await ErrorHandler.handle_error(error, logger)
+		await ctx.reply(embed=embed)
 
-		should_log = True
+	@bot.event
+	async def on_application_command_error(ctx: commands.Context, error: commands.CommandError):
+		embed = await ErrorHandler.handle_error(error, logger)
+		await ctx.reply(embed=embed)
 
-		if isinstance(error, commands.errors.CommandInvokeError):
-			embed.title = "Command Invocation Error"
-			embed.description = "An error occurred while trying to execute the command.\n\n"
-		elif isinstance(error, commands.errors.UserInputError):
-			embed.title = "Invalid Syntax"
-			embed.description = "A command was used improperly. Please read the descriptions for command usage.\n\n"
-		elif isinstance(error, commands.errors.CommandNotFound):
-			embed.title = "Command Not Found"
-			embed.description = "The command you entered does not exist.\n\n"
-
-			should_log = False  # Don't log this error, it's not really an error and just clutters the logs
-		else:
-			embed.title = "Unspecified Error"
-			embed.description = "An error was thrown during the handling of the command, but I don't know how to handle it.\n\n"
-
-		if should_log:
-			logger.log_error("Error running command: " + str(error))
-
-		await ctx.send(embed=embed)
 
 	@bot.event
 	async def on_guild_join(ctx: commands.Context):

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import random
+import re
 import threading
 import time
 from queue import Queue
@@ -13,6 +14,8 @@ from discord.ext.bridge import bot
 
 from ..FileSystemAPI import DatabaseObjects
 from ..FileSystemAPI.CacheManager.DatabaseCacheManager import DatabaseCacheManager
+from ..FileSystemAPI.ConfigurationManager import ConfigurationValues
+from ..FileSystemAPI.ConfigurationManager.ConfigurationManager import ConfigurationManager
 from ..FileSystemAPI.ThreadedLogger import ThreadedLogger
 from ..GeneralUtilities import PermissionHandler
 from ..ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
@@ -21,8 +24,9 @@ from ..ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 class AIChat(commands.Cog):
 	"""Talk to the bot, and it will try to respond with AI."""
 
-	def __init__(self, management_portal_handler: ManagementPortalHandler, logger: ThreadedLogger):
+	def __init__(self, management_portal_handler: ManagementPortalHandler, configuration_manager: ConfigurationManager, logger: ThreadedLogger):
 		self.mph = management_portal_handler
+		self.cm = configuration_manager
 		self.bot = management_portal_handler.bot
 		self.logger = logger
 
@@ -32,12 +36,12 @@ class AIChat(commands.Cog):
 		self.send_pending_messages_queue = Queue()
 
 		self.train_corpus = True
-		if os.path.exists(os.getcwd() + "\\Storage\\ai_chat_database.sqlite3"):
+		if os.path.exists(os.getcwd() + "\\Storage\\AIChat\\TrainingDatabase.sqlite3"):
 			self.train_corpus = False
 
 		self.chatbot = ChatBot('TitanBot',
 								storage_adapter={'import_path': 'chatterbot.storage.SQLStorageAdapter',
-												'database_uri': 'sqlite:///Storage/ai_chat_database.sqlite3'})
+												'database_uri': 'sqlite:///Storage/AIChat/TrainingDatabase.sqlite3'})
 		self.corpus_trainer = ChatterBotCorpusTrainer(self.chatbot, show_training_progress=False)
 		self.list_trainer = ListTrainer(self.chatbot, show_training_progress=False)
 		self.training_complete = threading.Event()
@@ -47,6 +51,8 @@ class AIChat(commands.Cog):
 			self.chat_settings[guild.id] = {"enabled": False,
 											"channel": None,
 											"minutes_remaining": 0,
+											"training_enabled": False,
+											"enable_ping_filter": True,
 											"train_only": False}
 
 		self.cache_manager = DatabaseCacheManager("ai_chat_learned_words",
@@ -104,7 +110,7 @@ class AIChat(commands.Cog):
 				message = entry["content"]
 				settings = entry["settings"]
 
-				response = chatbot.get_response(message)
+				response = str(chatbot.get_response(message))
 				outgoing_queue.put({"response": response, "settings": settings})
 
 				incoming_queue.task_done()
@@ -125,9 +131,15 @@ class AIChat(commands.Cog):
 				self.chat_settings[ctx.guild.id]["minutes_remaining"] = minutes
 				self.chat_settings[ctx.guild.id]["train_only"] = train_only
 
+				self.chat_settings[ctx.guild.id]["training_enabled"] = await self.cm.get_guild_specific_value(ctx.guild.id,
+																									"enable_ai_ping_filter")
+
 				embed.title = "AI Chat Response Enabled"
 				embed.description = "AI Chat Response is now enabled.\n" + f"It will be disabled in {minutes} minutes."
 				if train_only:
+					if self.chat_settings[ctx.guild.id]["training_enabled"] is False:
+						embed.description += "\n\nYou have enabled training only mode, but training is disabled in the" \
+												" configuration file. You will not be able to train the AI."
 					embed.description += "\n\nThis is a training-only session. No responses will be sent."
 			else:
 				embed.title = "AI Chat Response Cannot Be Enabled"
@@ -177,6 +189,7 @@ class AIChat(commands.Cog):
 
 	@tasks.loop(minutes=1)
 	async def tick_minutes_remaining(self):
+		"""Tick down the minutes remaining for each guild."""
 		for guild_id in self.chat_settings:
 			if self.chat_settings[guild_id]["enabled"]:
 				self.chat_settings[guild_id]["minutes_remaining"] -= 1
@@ -194,32 +207,61 @@ class AIChat(commands.Cog):
 
 	@tasks.loop(seconds=0.5)
 	async def send_pending_messages(self):
+		"""Send any pending messages to the chat channel."""
 		while not self.send_pending_messages_queue.empty():
 			entry = self.send_pending_messages_queue.get()
 			response = entry["response"]
 			settings = entry["settings"]
+
+			# Check if the ping filter is enabled
+			if settings["enable_ping_filter"]:
+				# Get a mention with the user's name by looking up the user ID
+				regex = re.search(r"<@!?(\d+)>", response)
+				if regex is not None:
+					name = self.bot.get_user(int(regex.group(1))).name
+					if name is None:
+						# Check if it is a role mention
+						role = discord.utils.get(settings["channel"].guild.roles, id=int(re.search(r"<@&(\d+)>", response).group(1)))
+						response = re.sub(r"<@&(\d+)>", role, response)
+					else:
+						response = re.sub(r"<@!?(\d+)>", name, response)
+
+				# Check for @everyone and @here mentions
+				response = re.sub(r"@everyone", "everyone", response)
+				response = re.sub(r"@here", "here", response)
 
 			await settings["channel"].send(response)
 
 			self.send_pending_messages_queue.task_done()
 
 	async def handle_message_event(self, message: discord.Message):
+		# Ignore messages from DMs
+		if message.guild is None:
+			return
+		# Ensure the chat settings have been built
 		if self.chat_settings == {}:
 			return
 
+		# Check if the bot should try responding to this message
 		if self.chat_settings[message.guild.id]["enabled"] and message.channel == self.chat_settings[message.guild.id]["channel"]:
 
+			# Ignore empty messages
 			if message.content == "":
 				return
 
+			# Do not send a response if its in training mode
 			if not self.chat_settings[message.guild.id]["train_only"]:
 				await message.channel.trigger_typing()
 				self.message_processing_queue.put(
 						{"content": message.content, "settings": self.chat_settings[message.guild.id]})
 
-			cache = await self.cache_manager.get_cache()
-			cache = cache["learned_content"]
+			if self.chat_settings[message.guild.id]["training_enabled"]:
+				cache = await self.cache_manager.get_cache()
+				cache = cache["learned_content"]
 
-			if message.content not in cache:
-				cache.append(message.content)
-				await self.cache_manager.sync_cache_to_disk()
+				# Add the message to the cache and save it, if it doesn't already exist
+				# TODO: look for a better way to do this; saving the cache every time a message is sent is not ideal
+				#   and could cause performance issues
+				if message.content not in cache:
+					cache.append(message.content)
+					await self.cache_manager.sync_cache_to_disk()

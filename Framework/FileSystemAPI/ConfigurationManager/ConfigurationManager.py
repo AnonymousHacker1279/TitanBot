@@ -46,6 +46,8 @@ class ConfigurationManager:
 					"enable_vt_scanning"]
 				self.bot_config[guild.id]["custom_commands_max_execution_time"] = file["custom_commands"]["command_timeout"]
 				self.bot_config[guild.id]["enabled_modules"] = file["enabled_modules"]
+				self.bot_config[guild.id]["enable_ai_training"] = file["ai_chat"]["enable_training"]
+				self.bot_config[guild.id]["enable_ai_ping_filter"] = file["ai_chat"]["enable_ping_filters"]
 
 		await self.update_configuration_constants(mph)
 
@@ -65,7 +67,7 @@ class ConfigurationManager:
 	async def insert_into_config(self, key, value):
 		self.bot_config[key] = value
 
-	async def get_guild_specific_value(self, guild_id: str, key):
+	async def get_guild_specific_value(self, guild_id, key):
 		return self.bot_config[guild_id][key]
 
 	async def get_value(self, key):
