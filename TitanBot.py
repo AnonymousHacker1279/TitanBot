@@ -1,3 +1,5 @@
+import atexit
+
 import discord
 from discord.ext import bridge, commands
 
@@ -15,7 +17,7 @@ from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import Co
 from Framework.FileSystemAPI.DataMigration import DataMigrator
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
-from Framework.GeneralUtilities import CommandAccess, ErrorHandler, GeneralUtilities
+from Framework.GeneralUtilities import CommandAccess, ErrorHandler, ExitHandler, GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 from Framework.Osmium.Osmium import Osmium
 
@@ -134,4 +136,8 @@ if __name__ == "__main__":
 		else:
 			await ai_chat_module.handle_message_event(message)
 
+	def on_exit():
+		GeneralUtilities.run_and_get_new_loop(ExitHandler.prepare_to_exit())
+
+	atexit.register(on_exit)
 	bot.run(ConfigurationValues.TOKEN)

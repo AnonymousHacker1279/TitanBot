@@ -3,6 +3,8 @@ import json
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.GeneralUtilities import GeneralUtilities
 
+instances = []
+
 
 class DatabaseCacheManager:
 
@@ -22,6 +24,9 @@ class DatabaseCacheManager:
 		elif self.load_with_empty_path:
 			GeneralUtilities.run_and_get(self.__load_database())
 
+		global instances
+		instances.append(self)
+
 	async def __load_database(self) -> None:
 		"""Load the database into the cache."""
 		if self.cache_loader:
@@ -37,13 +42,14 @@ class DatabaseCacheManager:
 
 	async def __save_database(self) -> None:
 		"""Save the cache to the database."""
-		with open(self.path_to_database, 'w') as f:
-			json.dump(self.cache, f, indent=4)
+		if self.path_to_database != "":
+			with open(self.path_to_database, 'w') as f:
+				json.dump(self.cache, f, indent=4)
 
-		self.logger.log_debug(f"(Cache: {self.cache_name}, guild: {self.guild_id}) " +
-								"Saved database from cache to disk")
-		self.logger.log_debug(f"(Cache: {self.cache_name}, guild: {self.guild_id}) " +
-								f"Cache objects saved: {str(len(self.cache))}")
+			self.logger.log_debug(f"(Cache: {self.cache_name}, guild: {self.guild_id}) " +
+									"Saved database from cache to disk")
+			self.logger.log_debug(f"(Cache: {self.cache_name}, guild: {self.guild_id}) " +
+									f"Cache objects saved: {str(len(self.cache))}")
 
 	async def get_cache(self) -> dict:
 		"""Get the cache object held by this manager."""

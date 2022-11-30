@@ -35,15 +35,13 @@ class PortalCommandHandler:
 				self.logger.log_info("Shutdown command received from management portal, shutting down")
 				await self.mph.update_management_portal_command_completed(command)
 
-			# Close the log file
-			self.logger.close()
-
 			exit(0)
 		elif command == "restart":
 			# Restart the bot
 			if not impersonate:
 				self.logger.log_info("Restart command received from management portal, restarting")
 				await self.mph.update_management_portal_command_completed(command)
+
 			python = sys.executable
 			os.execl(python, python, *sys.argv)
 		elif command == "update_configuration":

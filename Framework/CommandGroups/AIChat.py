@@ -14,7 +14,6 @@ from discord.ext.bridge import bot
 
 from ..FileSystemAPI import DatabaseObjects
 from ..FileSystemAPI.CacheManager.DatabaseCacheManager import DatabaseCacheManager
-from ..FileSystemAPI.ConfigurationManager import ConfigurationValues
 from ..FileSystemAPI.ConfigurationManager.ConfigurationManager import ConfigurationManager
 from ..FileSystemAPI.ThreadedLogger import ThreadedLogger
 from ..GeneralUtilities import PermissionHandler
@@ -32,6 +31,7 @@ class AIChat(commands.Cog):
 
 		self.chat_settings = {}
 		self.cache_manager = {}
+		self.pending_save_queue = Queue()
 		self.message_processing_queue = Queue()
 		self.send_pending_messages_queue = Queue()
 
@@ -77,6 +77,7 @@ class AIChat(commands.Cog):
 
 		self.tick_minutes_remaining.start()
 		self.send_pending_messages.start()
+		self.save_pending_messages.start()
 
 	def train_chatbot(self, corpus_trainer, list_trainer, logger, cache_manager, should_train_corpus, training_complete):
 		"""Train the chatbot with the English corpus and any learned phrases."""
@@ -98,7 +99,9 @@ class AIChat(commands.Cog):
 		logger.log_info("Training on learned words...")
 		cache = asyncio.run(cache_manager.get_cache())
 		learned_content = cache["learned_content"].copy()
-		random.shuffle(learned_content)
+		if random.randint(1, 3) == 1:
+			random.shuffle(learned_content)
+			self.logger.log_info("The learned words are being scrambled this time to improve the response diversity")
 		list_trainer.train(learned_content)
 
 	def get_chatbot_response(self, chatbot, incoming_queue, outgoing_queue):
@@ -175,6 +178,8 @@ class AIChat(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "ai_chat", "force_retrain", True)
 		if not failedPermissionCheck:
 			self.logger.log_info("Retraining AI chat responses...")
+
+			await self.save_pending_messages()
 			threading.Thread(
 					target=self.train_learned_responses,
 					args=(self.list_trainer, self.logger, self.cache_manager),
@@ -234,6 +239,23 @@ class AIChat(commands.Cog):
 
 			self.send_pending_messages_queue.task_done()
 
+	@tasks.loop(seconds=15)
+	async def save_pending_messages(self):
+		cache = await self.cache_manager.get_cache()
+		cache = cache["learned_content"]
+
+		while not self.pending_save_queue.empty():
+			items_in_queue = self.pending_save_queue.qsize()
+			message = self.pending_save_queue.get()["content"]
+			# Check if the message is already in the cache
+			if message not in cache:
+				cache.append(message)
+
+			if items_in_queue == 1:
+				await self.cache_manager.sync_cache_to_disk()
+
+			self.pending_save_queue.task_done()
+
 	async def handle_message_event(self, message: discord.Message):
 		# Ignore messages from DMs
 		if message.guild is None:
@@ -256,12 +278,5 @@ class AIChat(commands.Cog):
 						{"content": message.content, "settings": self.chat_settings[message.guild.id]})
 
 			if self.chat_settings[message.guild.id]["training_enabled"]:
-				cache = await self.cache_manager.get_cache()
-				cache = cache["learned_content"]
-
-				# Add the message to the cache and save it, if it doesn't already exist
-				# TODO: look for a better way to do this; saving the cache every time a message is sent is not ideal
-				#   and could cause performance issues
-				if message.content not in cache:
-					cache.append(message.content)
-					await self.cache_manager.sync_cache_to_disk()
+				# Add the message to the pending save queue
+				self.pending_save_queue.put({"content": message.content})

@@ -52,16 +52,9 @@ class ThreadedLogger:
 		ThreadedLogger.log_file_handle = open(ThreadedLogger.log_file_path, "ab", buffering=0)
 		ThreadedLogger.log_file_lock = asyncio.Lock()
 
-	def close(self):
-		# Close the log file
-		# This method is called when the bot is shutting down
-		ThreadedLogger.log_file_handle.close()
-
 	def _threaded_logger(self):
 		# This method is called in a separate thread
-		# It is responsible for writing to the log file
 		# It reads from the queue and writes to the log file
-		# If the queue is empty, it sleeps for 1 second
 		while True:
 			# Get the next message from the queue
 			# If the queue is empty, wait for 1 second and then try again
@@ -78,7 +71,13 @@ class ThreadedLogger:
 			print(prepared_message, end="")
 
 			# Write the message to the log file
-			asyncio.run_coroutine_threadsafe(ThreadedLogger.log_file_lock.acquire(), self.loop)
+			try:
+				asyncio.run_coroutine_threadsafe(ThreadedLogger.log_file_lock.acquire(), self.loop)
+			except RuntimeError:
+				# This happens when the bot is shutting down
+				ThreadedLogger.log_file_handle.close()
+				return
+
 			ThreadedLogger.log_file_handle.write(prepared_message.encode())
 			ThreadedLogger.log_file_handle.flush()
 			# Check if it is locked before releasing it
@@ -86,7 +85,6 @@ class ThreadedLogger:
 				ThreadedLogger.log_file_lock.release()
 
 			# Write the message to the management portal
-			# The management portal is accessed asynchronously, so we need to run it in a separate thread
 			asyncio.run_coroutine_threadsafe(self.mph.management_portal_log_data(self.instance_name, message[2].name, message[1], message[3]), self.loop)
 
 			# If this instance has a parent logger, pass the message to it

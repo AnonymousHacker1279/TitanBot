@@ -41,7 +41,6 @@ class CustomCommands(commands.Cog):
 	# When the bot joins a new guild, caches need to be invalidated
 	async def invalidate_caches(self):
 		for guild in self.cache_managers:
-			await self.cache_managers[guild].sync_cache_to_disk()
 			await self.cache_managers[guild].invalidate_cache()
 
 	@bot.bridge_command(aliases=["cc"])

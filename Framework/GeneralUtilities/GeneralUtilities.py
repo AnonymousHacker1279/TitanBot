@@ -69,5 +69,15 @@ def run_and_get(coro):
 	return task.result()
 
 
+def run_and_get_new_loop(coro):
+	loop = asyncio.new_event_loop()
+	asyncio.set_event_loop(loop)
+
+	task = loop.create_task(coro)
+	loop.run_until_complete(task)
+	loop.close()
+	return task.result()
+
+
 def get_git_revision_short_hash() -> str:
 	return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
