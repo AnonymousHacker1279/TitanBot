@@ -3,9 +3,9 @@ import sys
 from datetime import date
 from random import randint
 
+import aiohttp
 import discord
 import psutil as psutil
-import requests as requests
 from discord import HTTPException
 from discord.ext import commands
 from discord.ext.bridge import bot
@@ -110,10 +110,13 @@ class Utility(commands.Cog):
 			embed.description += "Providing features to servers since 7/15/21.\n\n"
 			# Get the latest version from GitHub
 			try:
-				response = requests.get("https://api.github.com/repos/{}/releases/latest".format(ConfigurationValues.UPDATE_REPOSITORY))
-				jsonResponse = json.loads(response.text)
-				latestVersion = jsonResponse["tag_name"]
-				changelog = jsonResponse["body"]
+				async with aiohttp.ClientSession() as session:
+					async with session.get("https://api.github.com/repos/{}/releases/latest"
+													.format(ConfigurationValues.UPDATE_REPOSITORY)) as response:
+
+						jsonResponse = json.loads(await response.text())
+						latestVersion = jsonResponse["tag_name"]
+						changelog = jsonResponse["body"]
 			except HTTPError:
 				latestVersion = "Unknown"
 				changelog = "Unknown"
@@ -225,3 +228,4 @@ class Utility(commands.Cog):
 			await ctx.respond(embed=embed)
 
 		await self.mph.update_management_portal_command_used("utility", "qr_generator", ctx.guild.id)
+		

@@ -1,5 +1,5 @@
+import aiohttp
 import discord
-import requests
 from discord import Spotify
 from discord.ext import commands
 from discord.ext.bridge import bot
@@ -111,11 +111,13 @@ class Fun(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
 		if not failedPermissionCheck:
 			# Get an image URL from InspiroBot
-			url = requests.get("https://inspirobot.me/api?generate=true").text
+			async with aiohttp.ClientSession() as session:
+				async with session.get("https://inspirobot.me/api?generate=true") as response:
+					image_url = await response.text()
 
 			# Create the embed
 			embed.title = "InspiroBot Query"
-			embed.set_image(url=url)
+			embed.set_image(url=image_url)
 			embed.set_footer(text="Powered by InspiroBot")
 
 		await ctx.respond(embed=embed)
@@ -130,12 +132,15 @@ class Fun(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
 		if not failedPermissionCheck:
 			# Get a random fact
-			response = requests.get("https://uselessfacts.jsph.pl/random.json?language=en").json()
+			async with aiohttp.ClientSession() as session:
+				async with session.get("https://uselessfacts.jsph.pl/random.json?language=en") as response:
+					data = await response.json()
 
 			# Create the embed
 			embed.title = "Random Fact"
-			embed.description = response["text"]
-			embed.set_footer(text="Permalink: " + response["permalink"])
+			embed.description = data["text"]
+			embed.set_footer(text="Permalink: " + data["permalink"])
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "random_fact", ctx.guild.id)
+		

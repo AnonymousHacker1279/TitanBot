@@ -1,7 +1,7 @@
 import json
 from enum import Enum
 
-import requests
+import aiohttp
 from discord.ext import tasks
 
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
@@ -25,20 +25,22 @@ class ManagementPortalHandler:
 
 	async def __post(self, endpoint, headers: dict = None):
 		# Connect to the management portal
-		response = requests.post(ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint, data=headers)
-		# Check the response code
-		await self.__check_connect_status(response.status_code, endpoint)
+		async with aiohttp.ClientSession() as session:
+			async with session.post(ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint, data=headers) as response:
+				# Check the response code
+				await self.__check_connect_status(response.status, endpoint)
 
 	async def __get(self, endpoint, headers: dict = None) -> dict:
 		# Connect to the management portal
-		response = requests.post(ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint, data=headers)
-		# Check the response code
-		await self.__check_connect_status(response.status_code, endpoint)
+		async with aiohttp.ClientSession() as session:
+			async with session.post(ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint, data=headers) as response:
+				# Check the response code
+				await self.__check_connect_status(response.status, endpoint)
 
-		try:
-			return response.json()
-		except json.decoder.JSONDecodeError:
-			return {}
+				try:
+					return await response.json()
+				except json.decoder.JSONDecodeError:
+					return {}
 
 	async def __check_connect_status(self, response_code: int, endpoint: str):
 		# If it is 401, then the parameters passed are invalid
@@ -134,3 +136,4 @@ class APIEndpoints(str, Enum):
 	CHECK_PENDING_COMMANDS = "/bot_check_pending_commands.php"
 	UPDATE_COMMAND_COMPLETED = "/bot_update_command_completed.php"
 	GET_CONFIGURATION = "/configurations/portal_get_configuration.php"
+	

@@ -3,8 +3,8 @@ import re
 import subprocess
 from hashlib import sha256
 
+import aiohttp
 import nest_asyncio
-import requests
 
 nest_asyncio.apply()
 
@@ -24,7 +24,9 @@ async def minimize_js(code: str) -> str:
 	for item in import_items:
 		js = js.replace(item, "")
 
-	js = requests.post('https://www.toptal.com/developers/javascript-minifier/raw', data={"input": js}).text
+	async with aiohttp.ClientSession() as session:
+		async with session.post("'https://www.toptal.com/developers/javascript-minifier/raw'", data={"input": js}) as response:
+			js = await response.text()
 
 	# Put the imports back at the beginning
 	for item in import_items:

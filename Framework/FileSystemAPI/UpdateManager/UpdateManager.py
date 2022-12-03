@@ -3,8 +3,8 @@ import os
 import tempfile
 from enum import Enum
 
+import aiohttp
 import discord
-import requests
 from discord.ext.bridge import Bot
 
 from Framework.FileSystemAPI import DatabaseObjects
@@ -73,20 +73,23 @@ class UpdateManager:
 			# Get the download URL for the latest release, target the .tar.gz file
 			download_url = self.latest_release_info["tarball_url"]
 			# Download the latest release
-			response = requests.get(download_url)
-			# Write the latest release to a file
-			# Delete the old update file if it exists
-			path = await DatabaseObjects.get_update_directory() + "\\update.tar.gz"
-			if os.path.exists(path):
-				os.remove(path)
+			async with aiohttp.ClientSession() as session:
+				async with session.get(download_url) as response:
+					# Write the latest release to a file
+					# Delete the old update file if it exists
+					path = await DatabaseObjects.get_update_directory() + "\\update.tar.gz"
+					if os.path.exists(path):
+						os.remove(path)
 
-			with open(path, "wb") as file:
-				file.write(response.content)
-			self.logger.log_info("Update downloaded to " + path)
+					with open(path, "wb") as file:
+						file.write(await response.read())
+					self.logger.log_info("Update downloaded to " + path)
 
 			# Create a metadata file for the update
 			with open(await DatabaseObjects.get_update_metadata(), "w") as file:
-				tag_release = requests.get(GHAPIEndpoints.TAG_RELEASE.format(self.gh_repository, tag_name)).json()
+				async with aiohttp.ClientSession() as session:
+					async with session.get(GHAPIEndpoints.TAG_RELEASE.format(self.gh_repository, tag_name)) as response:
+						tag_release = await response.json()
 
 				update_metadata = {
 					"commit": tag_release["object"]["sha"][:7],
@@ -126,8 +129,9 @@ class UpdateManager:
 	async def get_latest_release(self):
 		# Get the latest release from the GitHub repository
 		headers = {"Accept": "application/vnd.github.v3+json"}
-		response = requests.get(GHAPIEndpoints.LATEST_RELEASE.format(self.gh_repository), headers=headers)
-		self.latest_release_info = response.json()
+		async with aiohttp.ClientSession() as session:
+			async with session.get(GHAPIEndpoints.LATEST_RELEASE.format(self.gh_repository), headers=headers) as response:
+				self.latest_release_info = await response.json()
 		return self.latest_release_info["tag_name"]
 
 
