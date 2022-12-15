@@ -139,6 +139,10 @@ class AIChat(commands.Cog):
 
 				embed.title = "AI Chat Response Enabled"
 				embed.description = "AI Chat Response is now enabled.\n" + f"It will be disabled in {minutes} minutes."
+				
+				embed.description += "\n\n" + "**EXPERIMENTAL FEATURE: **" + "This feature is still in development and may not work as expected. " \
+																			"It may also be removed at any time."
+
 				if train_only:
 					if self.chat_settings[ctx.guild.id]["training_enabled"] is False:
 						embed.description += "\n\nYou have enabled training only mode, but training is disabled in the" \
