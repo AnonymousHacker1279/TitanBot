@@ -187,7 +187,7 @@ class AIChat(commands.Cog):
 					name="AI Chat Trainer").start()
 
 			embed.title = "AI Chat Response Retraining"
-			embed.description = "The bot is now retraining its responses."
+			embed.description = "The bot is now retraining its responses. Please be patient."
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("ai_chat", "force_retrain", ctx.guild.id)

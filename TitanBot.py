@@ -4,12 +4,12 @@ import discord
 from discord.ext import bridge, commands
 
 from Framework.CommandGroups.AIChat import AIChat
+from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.CustomCommands import CustomCommands
 from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
-from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.Utility import Utility
 from Framework.FileSystemAPI import FileAPI
 from Framework.FileSystemAPI.ConfigurationManager import BotStatus, ConfigurationValues
@@ -133,6 +133,18 @@ if __name__ == "__main__":
 
 		if message.content.startswith("$"):
 			await bot.process_commands(message)
+
+			# Send a warning message that prefixed commands will be removed in a future release
+			# TODO: Remove by v2.7.0
+			embed = discord.Embed(title="Warning:", description="Prefixed commands (starting with `$`) will be removed in a future release. ")
+			embed.add_field(name="Why?", value="Discord has deprecated the use of prefixed commands in favor of slash commands. "
+												"Slash commands are much more user-friendly and easier to use, and they also "
+												"allow for more customization. ")
+			embed.add_field(name="What do I need to do?", value="You can use slash commands by typing `/` in any channel. ")
+			embed.add_field(name="When will this happen?", value="Prefixed commands will be removed by at least v2.7.0, "
+															"though if the internal library updates in time, it may be v2.6.0. ")
+
+			await message.reply(embed=embed, mention_author=False)
 		else:
 			await ai_chat_module.handle_message_event(message)
 
