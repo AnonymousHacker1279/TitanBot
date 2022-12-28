@@ -1,5 +1,4 @@
 import json
-from enum import Enum
 
 import aiohttp
 from discord.ext import tasks
@@ -7,6 +6,7 @@ from discord.ext import tasks
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.GeneralUtilities import GeneralUtilities
+from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 from Framework.ManagementPortal.PortalCommandHandler import PortalCommandHandler
 
 
@@ -23,14 +23,29 @@ class ManagementPortalHandler:
 			'bot_token': GeneralUtilities.generate_sha256_no_async(ConfigurationValues.TOKEN)
 		}
 
-	async def __post(self, endpoint, headers: dict = None):
+		self.quotes = None
+		self.data_migration = None
+
+	async def post_init(self):
+		from Framework.ManagementPortal.Modules.DataMigrationAPI import DataMigrationAPI
+		from Framework.ManagementPortal.Modules.QuotesAPI import QuotesAPI
+
+		# Define API modules
+		self.data_migration = DataMigrationAPI(self.bot, self.cm)
+		self.quotes = QuotesAPI(self.bot, self.cm)
+
+	async def post(self, endpoint, headers: dict = None):
+		"""Send a POST request to the management portal."""
+
 		# Connect to the management portal
 		async with aiohttp.ClientSession() as session:
 			async with session.post(ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint, data=headers) as response:
 				# Check the response code
 				await self.__check_connect_status(response.status, endpoint)
 
-	async def __get(self, endpoint, headers: dict = None) -> dict:
+	async def get(self, endpoint, headers: dict = None) -> dict:
+		"""Send a POST request to the management portal, but returns a JSON response."""
+
 		# Connect to the management portal
 		async with aiohttp.ClientSession() as session:
 			async with session.post(ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint, data=headers) as response:
@@ -63,7 +78,7 @@ class ManagementPortalHandler:
 		headers["guilds"] = json.dumps(guilds)
 		headers["version"] = ConfigurationValues.VERSION
 
-		await self.__post(APIEndpoints.READY, headers)
+		await self.post(APIEndpoints.READY, headers)
 
 		self.update_management_portal_latency.start()
 		self.check_management_portal_pending_commands.start()
@@ -82,11 +97,11 @@ class ManagementPortalHandler:
 			headers["latency"] = str(9999)
 			self.logger.log_error("Unable to update management portal latency due to an overflow error, is the bot offline?")
 
-		await self.__post(APIEndpoints.UPDATE_LATENCY, headers)
+		await self.post(APIEndpoints.UPDATE_LATENCY, headers)
 
 	@tasks.loop(seconds=30)
 	async def check_management_portal_pending_commands(self):
-		response = await self.__get(APIEndpoints.CHECK_PENDING_COMMANDS, self.base_headers)
+		response = await self.get(APIEndpoints.CHECK_PENDING_COMMANDS, self.base_headers)
 		await self.command_handler.parse_pending_commands(response)
 
 	@tasks.loop(seconds=86400)
@@ -103,12 +118,12 @@ class ManagementPortalHandler:
 		headers = self.base_headers.copy()
 		headers["command"] = command
 
-		await self.__post(APIEndpoints.UPDATE_COMMAND_COMPLETED, headers)
+		await self.post(APIEndpoints.UPDATE_COMMAND_COMPLETED, headers)
 
 	async def get_management_portal_configuration(self, file_name: str) -> dict:
 		headers = self.base_headers.copy()
 		headers["name"] = file_name
-		return await self.__get(APIEndpoints.GET_CONFIGURATION, headers)
+		return await self.get(APIEndpoints.GET_CONFIGURATION, headers)
 
 	async def update_management_portal_command_used(self, module_name: str, command_name: str, guild_id: int):
 		headers = self.base_headers.copy()
@@ -116,7 +131,7 @@ class ManagementPortalHandler:
 		headers["command_name"] = command_name
 		headers["guild_id"] = str(guild_id)
 
-		await self.__post(APIEndpoints.UPDATE_COMMAND_USED, headers)
+		await self.post(APIEndpoints.UPDATE_COMMAND_USED, headers)
 
 	async def management_portal_log_data(self, source: str, level: str, message: str, timestamp: str):
 		headers = self.base_headers.copy()
@@ -125,15 +140,4 @@ class ManagementPortalHandler:
 		headers["message"] = message
 		headers["timestamp"] = timestamp
 
-		await self.__post(APIEndpoints.LOG_DATA, headers)
-
-
-class APIEndpoints(str, Enum):
-	READY = "/bot_ready.php"
-	UPDATE_LATENCY = "/bot_update_latency.php"
-	UPDATE_COMMAND_USED = "/bot_update_command_used.php"
-	LOG_DATA = "/bot_log_data.php"
-	CHECK_PENDING_COMMANDS = "/bot_check_pending_commands.php"
-	UPDATE_COMMAND_COMPLETED = "/bot_update_command_completed.php"
-	GET_CONFIGURATION = "/configurations/portal_get_configuration.php"
-	
+		await self.post(APIEndpoints.LOG_DATA, headers)

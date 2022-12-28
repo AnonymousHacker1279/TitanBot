@@ -1,39 +1,23 @@
 import math
-from datetime import datetime
-from random import randint
 
 import discord
 from discord.errors import NotFound
 from discord.ext import commands
 from discord.ext.bridge import bot
 
-from ..FileSystemAPI import DatabaseObjects
-from ..FileSystemAPI.CacheManager.ListCacheManager import ListCacheManager
 from ..GeneralUtilities import GeneralUtilities, PermissionHandler, QuoteUtils
+from ..ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
 class Quotes(commands.Cog):
 	"""Remember the silly stuff people say."""
 
-	def __init__(self, management_portal_handler):
-		self.cache_managers = {}
+	def __init__(self, management_portal_handler: ManagementPortalHandler):
 		self.mph = management_portal_handler
-
-	async def post_initialize(self, bot: commands.Bot):
-		for guild in bot.guilds:
-			self.cache_managers[guild.id] = ListCacheManager("quotes", guild.id,
-															await DatabaseObjects.get_quotes_database(guild.id),
-															management_portal_handler=self.mph)
-
-	# When the bot joins a new guild, caches need to be invalidated
-	async def invalidate_caches(self):
-		for guild in self.cache_managers:
-			await self.cache_managers[guild].sync_cache_to_disk()
-			await self.cache_managers[guild].invalidate_cache()
 
 	@bot.bridge_command(aliases=["q"])
 	@commands.guild_only()
-	async def quote(self, ctx: discord.ApplicationContext, quote_id=None):
+	async def quote(self, ctx: discord.ApplicationContext, quote_id: int = None):
 		"""Get a random quote, if an ID isn't provided."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -41,40 +25,26 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
 		if not failedPermissionCheck:
 
-			# Check if an ID is provided, if not get a random quote
-			data = await self.cache_managers.get(ctx.guild.id).get_cache()
-			maxIndex = 0
-			for _ in data:
-				maxIndex = maxIndex + 1
-			maxIndex = maxIndex - 1
+			# Check if a quote ID was provided
+			if quote_id is None:
+				# Get a random quote
+				quote_json = await self.mph.quotes.get_quote(ctx.guild.id, -1)
+			else:
+				# Get the quote with the provided ID
+				quote_json = await self.mph.quotes.get_quote(ctx.guild.id, quote_id)
 
-			if maxIndex == -1:
+			# Check if the response is empty
+			if len(quote_json) == 0:
 				embed.title = "Failed to Get Quote"
-				embed.description = "I do not have any quotes in my archives."
-			elif quote_id is None:
-				random = randint(0, maxIndex)
-				author = data[random]["author"]
-				content = data[random]["content"]
-				date = data[random]["date"]
-				quoted_by = data[random]["quoted_by"]
-
-				embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, str(random), date, quoted_by)
+				embed.description = "You either provided an invalid quote ID, or there are no quotes in the database."
 
 			else:
-				try:
-					if int(quote_id) < 0 or int(quote_id) > maxIndex:
-						embed.title = "Cannot get quote"
-						embed.description = "Invalid quote ID. It must not be less than zero and must be less than the " \
-							"total number of quotes. "
-					else:
-						content = data[int(quote_id)]["content"]
-						author = data[int(quote_id)]["author"]
-						date = data[int(quote_id)]["date"]
-						quoted_by = data[int(quote_id)]["quoted_by"]
-						embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, quote_id, date, quoted_by)
-				except ValueError:
-					embed.title = "Cannot get quote"
-					embed.description = "The quote ID must be a number."
+				content = quote_json["content"]
+				author = quote_json["author"]
+				date = quote_json["date"]
+				quoted_by = quote_json["quoted_by"]
+				quote_number = str(quote_json["quote_number"])
+				embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, quote_number, date, quoted_by)
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "quote", ctx.guild.id)
@@ -87,19 +57,14 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "total_quotes")
 		if not failedPermissionCheck:
-			data = await self.cache_managers.get(ctx.guild.id).get_cache()
-
-			maxIndex = 0
-			for _ in data:
-				maxIndex = maxIndex + 1
-			maxIndex = maxIndex - 1
+			response = await self.mph.quotes.get_total_quotes(ctx.guild.id)
+			total_quotes = response["total_quotes"]
 
 			embed.title = "Total Quotes"
-			if maxIndex == -1:
+			if total_quotes == 0:
 				embed.description = "I have do not have any quotes in my archives."
 			else:
-				embed.description = "I have " + str(maxIndex) + " quotes in my archives."
-			embed.set_footer(text="Note, this is zero-indexed and counting starts at zero, not one.")
+				embed.description = "I have " + str(total_quotes) + " quotes in my archives."
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "total_quotes", ctx.guild.id)
 
@@ -111,25 +76,23 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
-			cache_manager = self.cache_managers.get(ctx.guild.id)
-			data = await cache_manager.get_cache()
-
+			author_valid = True
 			try:
 				author = int(await GeneralUtilities.strip_usernames(author))
 			except ValueError:
-				pass
+				author_valid = False
 
-			maxIndex = 0
-			for _ in data:
-				maxIndex = maxIndex + 1
-			maxIndex = maxIndex - 1
+			if author_valid:
 
-			await cache_manager.add_to_list_cache({"content": quote, "author": author,
-												"date": datetime.now().isoformat(), "quoted_by": ctx.author.id})
-			await cache_manager.sync_cache_to_disk()
+				response = await self.mph.quotes.add_quote(ctx.guild.id, quote, author, ctx.author.id)
+				quote_number = response["quote_number"]
 
-			embed.title = "Quote Added"
-			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
+				embed.title = "Quote Added"
+				embed.description = "The quote has been added to my archives as **Quote #" + str(quote_number) + ".**"
+			else:
+				embed.title = "Invalid Author"
+				embed.description = "You must provide a valid author. Please use a mention or ID."
+
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
 
@@ -141,22 +104,13 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
-			cache_manager = self.cache_managers.get(ctx.guild.id)
-			data = await cache_manager.get_cache()
-
 			author = message.author.id
 
-			maxIndex = 0
-			for _ in data:
-				maxIndex = maxIndex + 1
-			maxIndex = maxIndex - 1
-
-			await cache_manager.add_to_list_cache({"content": message.content, "author": author,
-												"date": datetime.now().isoformat(), "quoted_by": ctx.author.id})
-			await cache_manager.sync_cache_to_disk()
+			response = await self.mph.quotes.add_quote(ctx.guild.id, message.content, author, ctx.author.id)
+			quote_number = response["quote_number"]
 
 			embed.title = "Quote Added"
-			embed.description = "The quote has been added to my archives as **Quote #" + str(maxIndex + 1) + ".**"
+			embed.description = "The quote has been added to my archives as **Quote #" + str(quote_number) + ".**"
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
 
@@ -169,24 +123,21 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "remove_quote", True)
 		if not failedPermissionCheck:
 
-			cache_manager = self.cache_managers.get(ctx.guild.id)
-			data = await cache_manager.get_cache()
-
-			maxIndex = 0
-			for _ in data:
-				maxIndex = maxIndex + 1
-			maxIndex = maxIndex - 1
-
-			if quote_id < 0 or quote_id > maxIndex:
+			if quote_id < 0:
 				embed.title = "Failed to remove quote"
-				embed.description = "You must pass a quote ID to remove."
+				embed.description = "You cannot remove a quote with a negative ID."
 			else:
-				await cache_manager.remove_from_list_cache(data[quote_id])
-				await cache_manager.sync_cache_to_disk()
+				# Remove the quote with the provided ID
+				response = await self.mph.quotes.remove_quote(ctx.guild.id, quote_id)
+				remaining_quotes = response["quote_count"]
 
-			embed.title = "Quote Removed"
-			embed.description = "The quote has been purged from my archives. Total Quotes: **" + str(
-				maxIndex - 1) + ".**"
+				# Check if the response is empty
+				if len(response) == 0:
+					embed.title = "Failed to remove quote"
+					embed.description = "You either provided an invalid quote ID (out of bounds), or there are no quotes in the database."
+				else:
+					embed.title = "Quote Removed"
+					embed.description = "The quote has been removed from my archives. There are now **" + str(remaining_quotes) + "** quotes in my archives."
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "remove_quote", ctx.guild.id)
@@ -200,15 +151,7 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "edit_quote", True)
 		if not failedPermissionCheck:
 
-			cache_manager = self.cache_managers.get(ctx.guild.id)
-			data = await cache_manager.get_cache()
-
-			maxIndex = 0
-			for _ in data:
-				maxIndex = maxIndex + 1
-			maxIndex = maxIndex - 1
-
-			if quote_id < 0 or quote_id > maxIndex:
+			if quote_id < 0:
 				embed.title = "Failed to edit quote"
 				embed.description = "You must pass a valid quote ID to edit. It must be greater than 0 and less" \
 									" than the total number of quotes."
@@ -216,24 +159,23 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to edit quote"
 				embed.description = "You must pass a quote and/or author to edit."
 			else:
-				# Get the quote data
-				quote_data = data[quote_id]
-				# If the content is not empty, update it
-				if quote != "":
-					quote_data["content"] = quote
 				# If the author is not empty, modify the author
+				valid_author = True
 				if author != "":
 					try:
 						author = int(await GeneralUtilities.strip_usernames(author))
 					except ValueError:
-						pass
-					quote_data["author"] = author
+						valid_author = False
 
-				await cache_manager.edit_list_cache(data[quote_id], quote_data)
-				await cache_manager.sync_cache_to_disk()
+				if not valid_author:
+					embed.title = "Invalid Author"
+					embed.description = "You must provide a valid author. Please use a mention or ID."
 
-			embed.title = "Quote Edited"
-			embed.description = "The quote has been edited in my archives."
+				else:
+					await self.mph.quotes.edit_quote(ctx.guild.id, quote_id, quote, author)
+
+					embed.title = "Quote Edited"
+					embed.description = "The quote has been edited in my archives."
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "edit_quote", ctx.guild.id)
@@ -241,24 +183,13 @@ class Quotes(commands.Cog):
 	@bot.bridge_command(aliases=["sqa"])
 	@commands.guild_only()
 	async def search_quotes_author(self, ctx: discord.ApplicationContext, quote_author: str, page: int = 0):
-		"""Search quotes by author. Lists up to 10 per page."""
+		"""Search quotes by author. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_quotes_author")
 		if not failedPermissionCheck:
 			quote_author = await GeneralUtilities.strip_usernames(quote_author)
-
-			# Get the quote data
-			data = await self.cache_managers.get(ctx.guild.id).get_cache()
-
-			maxIndex = 0
-			# The quote index here lists all quote IDs associated with the author
-			authorQuoteIndex = []
-			for i in data:
-				if quote_author in str(i['author']):
-					authorQuoteIndex.append(maxIndex)
-				maxIndex = maxIndex + 1
 
 			if page < 0:
 				embed.title = "Cannot search quotes"
@@ -272,47 +203,29 @@ class Quotes(commands.Cog):
 					authorDisplayName = authorUser.display_name
 					embed.set_thumbnail(url=authorUser.display_avatar.url)
 				except (NotFound, ValueError):
-					embed.set_footer(text="Cannot get the profile picture for this user, try using a mention")
+					embed.set_footer(text="Cannot get the profile picture for this user. Ensure the author is a valid user.")
 
-				embed.title = "Searching Quotes by " + authorDisplayName
+				# Get the quotes
+				response = await self.mph.quotes.search_quotes(ctx.guild.id, "author", author_id=quote_author, page=page)
+				quotes = response["quotes"]
+				total_quotes = response["total"]
 
-				# Check if we're on the first page
-				if page == 0:
-					if len(authorQuoteIndex) != 0:
-						# List the first 10 quotes if the length of the index isn't zero
-						embed.description += "Listing the first ten quotes by this author: \n\n"
-						iteration = 0
-						# Iterate through the index and build a response
-						for _ in authorQuoteIndex:
-							embed.description += data[authorQuoteIndex[iteration]]["content"] + " **Quote #" + str(
-								authorQuoteIndex[iteration]) + "**\n"
-							iteration = iteration + 1
-							if iteration >= 10:
-								break
-					else:
-						embed.description = "This author doesn't have any quotes."
+				# Check if the response is empty
+				if total_quotes == 0:
+					embed.title = "No Quotes Found"
+					embed.description = "This author has no quotes."
 				else:
-					# Check if there are enough quotes to fill a page
-					if len(authorQuoteIndex) <= 10 or len(authorQuoteIndex) <= (page * 10):
-						embed.description += "This author doesn't have enough quotes to reach this page. \n"
-						embed.description += "They have **" + str(
-							math.ceil(len(authorQuoteIndex) / 10)) + "** pages of quotes."
-					else:
-						# List the next 10 by page number
-						embed.description += "Listing the next ten quotes by this author (**Page " + str(page) + "**): \n\n"
-						# Set the iteration by multiplying the page number by 0. First, shift left 1 (as indexes start at 0)
-						iteration = page * 10
-						# Iterate through the index and build a response
-						currentQuotesOnPage = 0
-						remainingQuotes = len(authorQuoteIndex) - iteration
-						while remainingQuotes > 0:
-							embed.description += data[authorQuoteIndex[iteration]]["content"] + " **Quote #" + str(
-								authorQuoteIndex[iteration]) + "**\n"
-							iteration = iteration + 1
-							remainingQuotes = remainingQuotes - 1
-							currentQuotesOnPage = currentQuotesOnPage + 1
-							if currentQuotesOnPage >= 10:
-								break
+					embed.title = "Quotes by " + authorDisplayName
+
+					if page != 0:
+						embed.title += " (Page " + str(page) + ")"
+
+					embed.description = "There are **" + str(total_quotes) + "** quotes by this author " \
+										"(page " + str(page) + " of " + str(math.ceil(total_quotes / 10) - 1) + ")."
+
+					# Add the quotes to the embed
+					for quote in quotes:
+						embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "search_quotes_author", ctx.guild.id)
@@ -320,62 +233,40 @@ class Quotes(commands.Cog):
 	@bot.bridge_command(aliases=["sqt"])
 	@commands.guild_only()
 	async def search_quotes_text(self, ctx: discord.ApplicationContext, text: str, page: int = 0):
-		"""Search quotes by text. Lists up to 10 per page."""
+		"""Search quotes by text. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_quotes_text")
 		if not failedPermissionCheck:
-			# Get the quote data
-			data = await self.cache_managers.get(ctx.guild.id).get_cache()
 
-			maxIndex = 0
-			# The quote index here lists all quote IDs associated with the author
-			quoteIndex = []
-			for i in data:
-				if text.lower() in str(i['content']).lower():
-					quoteIndex.append(maxIndex)
-				maxIndex = maxIndex + 1
-
-			embed.title = "Searching Quotes containing '" + text + "'"
-
-			# Check if we're on the first page
-			if page == 0:
-				if len(quoteIndex) != 0:
-					# List the first 10 quotes if the length of the index isn't zero
-					embed.description += "Listing the first ten quotes found: \n\n"
-					iteration = 0
-					# Iterate through the index and build a response
-					for _ in quoteIndex:
-						embed.description += data[quoteIndex[iteration]]["content"] + " **Quote #" + str(
-								quoteIndex[iteration]) + "**\n"
-						iteration = iteration + 1
-						if iteration >= 10:
-							break
-				else:
-					embed.description = "No quotes were found with the text provided."
+			if page < 0:
+				embed.title = "Cannot search quotes"
+				embed.description = "Invalid page. The page must be greater than zero."
 			else:
-				# Check if there are enough quotes to fill a page
-				if len(quoteIndex) <= 10 or len(quoteIndex) <= (page * 10):
-					embed.description += "There aren't enough quotes to reach this page. \n"
-					embed.description += "They have **" + str(
-							math.ceil(len(quoteIndex) / 10)) + "** pages of quotes."
+
+				embed.title = "Quotes Containing '" + text + "'"
+
+				# Get the quotes
+				response = await self.mph.quotes.search_quotes(ctx.guild.id, "content", search_term=text, page=page)
+				quotes = response["quotes"]
+				total_quotes = response["total"]
+
+				# Check if the response is empty
+				if total_quotes == 0:
+					embed.title = "No Quotes Found"
+					embed.description = "No quotes were found containing this text."
 				else:
-					# List the next 10 by page number
-					embed.description += "Listing the next ten quotes found (**Page " + str(page) + "**): \n\n"
-					# Set the iteration by multiplying the page number by 0. First, shift left 1 (as indexes start at 0)
-					iteration = page * 10
-					# Iterate through the index and build a response
-					currentQuotesOnPage = 0
-					remainingQuotes = len(quoteIndex) - iteration
-					while remainingQuotes > 0:
-						embed.description += data[quoteIndex[iteration]]["content"] + " **Quote #" + str(
-								quoteIndex[iteration]) + "**\n"
-						iteration = iteration + 1
-						remainingQuotes = remainingQuotes - 1
-						currentQuotesOnPage = currentQuotesOnPage + 1
-						if currentQuotesOnPage >= 10:
-							break
+
+					if page != 0:
+						embed.title += " (Page " + str(page) + ")"
+
+					embed.description = "There are **" + str(total_quotes) + "** quotes containing this text " \
+										"(page " + str(page) + " of " + str(math.ceil(total_quotes / 10) - 1) + ")."
+
+					# Add the quotes to the embed
+					for quote in quotes:
+						embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "search_quotes_text", ctx.guild.id)
@@ -390,33 +281,20 @@ class Quotes(commands.Cog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "list_recent_quotes")
 		if not failedPermissionCheck:
 
-			# Get the quote data
-			data = await self.cache_managers.get(ctx.guild.id).get_cache()
+			# Get the quotes
+			response = await self.mph.quotes.list_recent_quotes(ctx.guild.id)
+			quotes = response["quotes"]
 
-			# Get the index of the last ten quotes
-			quoteIndex = [i for i in range(len(data) - 10, len(data))]
-			# Purge any negative indexes, if there are any
-			quoteIndex = [i for i in quoteIndex if i >= 0]
-			quoteIndex.reverse()
-
-			if len(quoteIndex) != 0:
-				# List the first 10 quotes if the length of the index isn't zero
-				embed.title = "Listing ten of the most recent quotes:"
-				iteration = 0
-				# Iterate through the index and build a response
-				for _ in quoteIndex:
-					author_user = await ctx.bot.fetch_user(data[quoteIndex[iteration]]["author"])
-
-					embed.description += data[quoteIndex[iteration]]["content"]\
-											+ " **Quote #" + str(quoteIndex[iteration])\
-											+ "** - " + author_user.mention + "\n"
-					iteration = iteration + 1
-					if iteration >= 10:
-						break
+			# Check if the response is empty
+			if len(quotes) == 0:
+				embed.title = "No Quotes Found"
+				embed.description = "No quotes have been added yet."
 			else:
-				embed.title = "Failed to List Recent Quotes"
-				embed.description = "I do not have any quotes in my archives."
+				embed.title = "Recent Quotes"
+
+				# Add the quotes to the embed
+				for quote in quotes:
+					embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "list_recent_quotes", ctx.guild.id)
-		

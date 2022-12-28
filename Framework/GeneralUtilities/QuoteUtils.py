@@ -12,7 +12,7 @@ async def prepare_quote(ctx, embed, author, content, quoteID, date, quotedBy) ->
 	contentExcludingLinks = ""
 	iteration = 0
 
-	if date and quotedBy != "Unknown":
+	if date != "1970-01-01 00:00:00":
 		iso_date = datetime.fromisoformat(date)
 		readable_date = str(iso_date.month) + "/" + str(iso_date.day) + "/" + str(iso_date.year) \
 						+ " at " + str(iso_date.hour) + \
@@ -44,7 +44,7 @@ async def prepare_quote(ctx, embed, author, content, quoteID, date, quotedBy) ->
 			embed.description = author_user
 			embed.set_footer(text="Added " + readable_date + " by " + quoted_by_user)
 		else:
-			embed.description = '> "' + content + '"\n'
+			embed.description = '> "' + contentExcludingLinks + '"\n'
 			embed.description += " - " + author_user
 			embed.set_image(url=links[0])
 			embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
