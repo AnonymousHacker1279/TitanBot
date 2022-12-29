@@ -24,7 +24,7 @@ from Framework.Osmium.Osmium import Osmium
 if __name__ == "__main__":
 
 	database_version = 6
-	ConfigurationValues.VERSION = "v2.5.0-indev"
+	ConfigurationValues.VERSION = "v2.5.0"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
