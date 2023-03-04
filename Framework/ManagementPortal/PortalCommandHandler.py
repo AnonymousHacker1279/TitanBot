@@ -61,6 +61,9 @@ class PortalCommandHandler:
 					server_specific_config = await self.mph.get_management_portal_configuration(guild.id)
 
 					# Merge the global configuration with the server specific configuration values
+					# If there is no server specific configuration, use the global configuration
+					if server_specific_config is None:
+						server_specific_config = {}
 					config = global_configuration
 					for group in server_specific_config:
 						for key in server_specific_config[group]:
