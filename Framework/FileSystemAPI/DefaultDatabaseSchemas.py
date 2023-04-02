@@ -14,12 +14,6 @@ async def get_storage_metadata_schema() -> dict:
 	}
 
 
-async def get_ai_chat_learned_content_schema() -> dict:
-	return {
-		"learned_content": []
-	}
-
-
 async def get_empty_schema() -> list:
 	return []
 

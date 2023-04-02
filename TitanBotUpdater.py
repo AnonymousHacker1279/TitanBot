@@ -47,6 +47,7 @@ shutil.unpack_archive(metadata["update_file"], temp_directory)
 
 # Get the name of the directory that contains the update files
 update_directory = os.listdir(temp_directory)[0]
+update_directory = str(update_directory)
 
 # Backup the target directory
 backup_file = metadata["previous_version"] + "_" + metadata["previous_commit"] + "_backup"

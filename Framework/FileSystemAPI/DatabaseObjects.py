@@ -50,14 +50,6 @@ async def get_configuration_database(guild: int = None) -> str:
 	return object_path
 
 
-async def get_ai_chat_learned_content_database() -> str:
-	object_path = os.path.abspath(os.getcwd() + "/Storage/AIChat/LearnedContent.json")
-	directory_path = os.path.dirname(object_path)
-
-	await FileAPI.prepare_to_get_database_object(directory_path, object_path, await DefaultDatabaseSchemas.get_ai_chat_learned_content_schema())
-	return object_path
-
-
 async def get_global_configuration_database() -> str:
 	object_path = os.path.abspath(os.getcwd() + "/Storage/GlobalConfig.json")
 	directory_path = os.path.dirname(object_path)

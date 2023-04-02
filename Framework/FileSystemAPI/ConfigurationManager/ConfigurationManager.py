@@ -46,8 +46,6 @@ class ConfigurationManager:
 					"enable_vt_scanning"]
 				self.bot_config[guild.id]["custom_commands_max_execution_time"] = file["custom_commands"]["command_timeout"]
 				self.bot_config[guild.id]["enabled_modules"] = file["enabled_modules"]
-				self.bot_config[guild.id]["enable_ai_training"] = file["ai_chat"]["enable_training"]
-				self.bot_config[guild.id]["enable_ai_ping_filter"] = file["ai_chat"]["enable_ping_filters"]
 
 		await self.update_configuration_constants(mph)
 

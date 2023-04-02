@@ -24,11 +24,11 @@ class CustomCommands(commands.Cog):
 		self.osmium = osmium
 		self.cache_managers = {}
 
-	async def post_initialize(self, bot: commands.Bot):
+	async def post_initialize(self, titanbot: commands.Bot):
 		self.cache_managers["data"] = {}
 		self.cache_managers["metadata"] = {}
 
-		for guild in bot.guilds:
+		for guild in titanbot.guilds:
 			self.cache_managers["data"][guild.id] = DatabaseCacheManager("custom_commands_data", guild.id,
 																		management_portal_handler=self.mph,
 																		cache_loader=CustomCommandsCacheLoader.CacheLoader(),

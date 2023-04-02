@@ -3,7 +3,6 @@ import atexit
 import discord
 from discord.ext import bridge, commands
 
-from Framework.CommandGroups.AIChat import AIChat
 from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.CustomCommands import CustomCommands
 from Framework.CommandGroups.Fun import Fun
@@ -24,7 +23,7 @@ from Framework.Osmium.Osmium import Osmium
 if __name__ == "__main__":
 
 	database_version = 6
-	ConfigurationValues.VERSION = "v2.5.0"
+	ConfigurationValues.VERSION = "v2.6.0-indev"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
@@ -45,9 +44,6 @@ if __name__ == "__main__":
 	osmium = Osmium(management_portal_handler)
 
 	custom_commands_module = CustomCommands(management_portal_handler, osmium)
-	ai_chat_module = AIChat(management_portal_handler,
-							configuration_manager,
-							ThreadedLogger("AIChat", management_portal_handler))
 
 	bot.add_cog(Quotes(management_portal_handler))
 	bot.add_cog(Fun(management_portal_handler))
@@ -55,7 +51,6 @@ if __name__ == "__main__":
 	bot.add_cog(Genius(management_portal_handler))
 	bot.add_cog(AccessControl(management_portal_handler))
 	bot.add_cog(custom_commands_module)
-	bot.add_cog(ai_chat_module)
 
 
 	@bot.event
@@ -78,7 +73,6 @@ if __name__ == "__main__":
 		logger.log_info("Performing post-initialization for objects with a database cache")
 		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await CustomCommands.post_initialize(custom_commands_module, bot)
-		await AIChat.post_initialize(ai_chat_module)
 
 		# Initialize the update manager and check for updates if enabled
 		update_manager = UpdateManager(management_portal_handler, configuration_manager, bot)
@@ -114,7 +108,7 @@ if __name__ == "__main__":
 	async def on_guild_join(ctx: commands.Context):
 		logger.log_info("TitanBot has joined a new guild: " + ctx.guild.name)
 		logger.log_info("Updating storage metadata for new guild")
-		await FileAPI.check_storage_metadata(database_version, bot.guilds)
+		await FileAPI.check_storage_metadata(database_version, data_migrator, bot.guilds)
 
 		# Invalidate existing caches
 		logger.log_info("Invalidating existing caches...")
@@ -143,8 +137,6 @@ if __name__ == "__main__":
 			embed.add_field(name="When will this happen?", value="Prefixed commands will be removed in v2.7.0.")
 
 			await message.reply(embed=embed, mention_author=False)
-		else:
-			await ai_chat_module.handle_message_event(message)
 
 	def on_exit():
 		GeneralUtilities.run_and_get_new_loop(ExitHandler.prepare_to_exit())

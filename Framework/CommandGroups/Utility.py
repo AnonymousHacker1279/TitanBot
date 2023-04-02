@@ -189,7 +189,7 @@ class Utility(commands.Cog):
 			embed.description += "\nBot Setup: **" \
 								+ "TitanBot " + ConfigurationValues.VERSION + "\n" \
 								+ "- Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]) + "\n" \
-								+ "- Py-Cord " + str(discord.__version__) + "**\n"
+								+ "- Pycord " + str(discord.__version__) + "**\n"
 
 			if cpuUsage > 70:
 				embed.description += ":warning: High CPU usage, responsiveness may be degraded.\n"
