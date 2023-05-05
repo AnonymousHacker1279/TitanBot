@@ -36,6 +36,7 @@ class ConfigurationManager:
 				self.bot_config["bot_update"] = file["bot_update"]
 				self.bot_config["log_level"] = file["logging"]["logging_level"]
 				self.bot_config["genius_api_token"] = file["genius_music"]["genius_api_key"]
+				self.bot_config["cf_api_token"] = file["curseforge"]["cf_api_key"]
 				self.bot_config["virustotal_api_key"] = file["custom_commands"]["vt_api_key"]
 				self.bot_config["osmium_import_whitelist"] = file["custom_commands"]["import_whitelist"]
 
@@ -60,6 +61,7 @@ class ConfigurationManager:
 		mph.check_for_updates.change_interval(seconds=ConfigurationValues.UPDATE_CHECK_FREQUENCY)
 
 		ConfigurationValues.GENIUS_API_TOKEN = await self.get_value("genius_api_token")
+		ConfigurationValues.CF_API_TOKEN = await self.get_value("cf_api_token")
 		ConfigurationValues.VIRUSTOTAL_API_KEY = await self.get_value("virustotal_api_key")
 
 	async def insert_into_config(self, key, value):

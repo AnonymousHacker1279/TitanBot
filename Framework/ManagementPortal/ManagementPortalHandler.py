@@ -25,14 +25,17 @@ class ManagementPortalHandler:
 
 		self.quotes = None
 		self.data_migration = None
+		self.cf_checker = None
 
 	async def post_init(self):
 		from Framework.ManagementPortal.Modules.DataMigrationAPI import DataMigrationAPI
 		from Framework.ManagementPortal.Modules.QuotesAPI import QuotesAPI
+		from Framework.ManagementPortal.Modules.CFCheckerAPI import CFCheckerAPI
 
 		# Define API modules
 		self.data_migration = DataMigrationAPI(self.bot, self.cm)
 		self.quotes = QuotesAPI(self.bot, self.cm)
+		self.cf_checker = CFCheckerAPI(self.bot, self.cm)
 
 	async def post(self, endpoint, headers: dict = None):
 		"""Send a POST request to the management portal."""
@@ -82,6 +85,7 @@ class ManagementPortalHandler:
 
 		self.update_management_portal_latency.start()
 		self.check_management_portal_pending_commands.start()
+		self.check_for_cf_project_updates.start()
 
 		self.update_manager = update_manager
 		if ConfigurationValues.AUTO_UPDATE_ENABLED:
@@ -113,6 +117,10 @@ class ManagementPortalHandler:
 			return
 
 		await self.update_manager.check_for_updates()
+
+	@tasks.loop(seconds=600)
+	async def check_for_cf_project_updates(self):
+		await self.cf_checker.check_for_updates()
 
 	async def update_management_portal_command_completed(self, command: str):
 		headers = self.base_headers.copy()

@@ -4,6 +4,7 @@ import discord
 from discord.ext import bridge, commands
 
 from Framework.CommandGroups.AccessControl import AccessControl
+from Framework.CommandGroups.CurseForge import CurseForge
 from Framework.CommandGroups.CustomCommands import CustomCommands
 from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
@@ -51,6 +52,7 @@ if __name__ == "__main__":
 	bot.add_cog(Genius(management_portal_handler))
 	bot.add_cog(AccessControl(management_portal_handler))
 	bot.add_cog(custom_commands_module)
+	bot.add_cog(CurseForge(management_portal_handler))
 
 
 	@bot.event
@@ -72,7 +74,7 @@ if __name__ == "__main__":
 		# Do post-initialization for objects with a database cache
 		logger.log_info("Performing post-initialization for objects with a database cache")
 		await CommandAccess.post_initialize(bot, management_portal_handler)
-		await CustomCommands.post_initialize(custom_commands_module, bot)
+		await custom_commands_module.post_initialize(bot)
 
 		# Initialize the update manager and check for updates if enabled
 		update_manager = UpdateManager(management_portal_handler, configuration_manager, bot)

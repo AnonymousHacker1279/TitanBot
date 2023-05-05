@@ -17,3 +17,6 @@ class APIEndpoints(str, Enum):
 	EDIT_QUOTE = "/v2/modules/quotes/edit_quote.php"
 	SEARCH_QUOTES = "/v2/modules/quotes/search_quotes.php"
 	LIST_RECENT_QUOTES = "/v2/modules/quotes/list_recent_quotes.php"
+	MODIFY_CF_UPDATE_CHECKER = "/v3/modules/curseforge/modify_project.php"
+	GET_CF_PROJECTS = "/v3/modules/curseforge/get_projects.php"
+	UPDATE_CF_PROJECT = "/v3/modules/curseforge/update_project.php"
