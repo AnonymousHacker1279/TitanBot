@@ -8,7 +8,6 @@ import discord
 import psutil as psutil
 from discord import HTTPException
 from discord.ext import commands
-from discord.ext.bridge import bot
 from requests import HTTPError
 
 from ..FileSystemAPI.ConfigurationManager import ConfigurationValues
@@ -18,10 +17,12 @@ from ..GeneralUtilities import PermissionHandler
 class Utility(commands.Cog):
 	"""Get some work done with tools and utilities."""
 
+	utility = discord.SlashCommandGroup("utility", description="Get some work done with tools and utilities.")
+
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
-	@bot.bridge_command()
+	@utility.command()
 	@commands.guild_only()
 	async def age(self, ctx: discord.ApplicationContext):
 		"""See the length of time I have existed."""
@@ -40,7 +41,7 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "age", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["cf"])
+	@utility.command()
 	@commands.guild_only()
 	async def coin_flip(self, ctx: discord.ApplicationContext):
 		"""Flip a coin."""
@@ -58,7 +59,7 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "coin_flip", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["rd"])
+	@utility.command()
 	@commands.guild_only()
 	async def roll_die(self, ctx: discord.ApplicationContext, sides: int = 6):
 		"""Roll a die. Defaults to six sides if not specified."""
@@ -76,7 +77,7 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "roll_die", ctx.guild.id)
 
-	@bot.bridge_command()
+	@utility.command()
 	@commands.guild_only()
 	async def ping(self, ctx: discord.ApplicationContext):
 		"""Get the latency of the bot."""
@@ -97,7 +98,7 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "ping", ctx.guild.id)
 
-	@bot.bridge_command()
+	@utility.command()
 	@commands.guild_only()
 	async def about(self, ctx: discord.ApplicationContext):
 		"""Learn about me."""
@@ -143,7 +144,7 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "about", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["tu"])
+	@utility.command()
 	@commands.guild_only()
 	async def total_users(self, ctx: discord.ApplicationContext):
 		"""Get the total number of users in the server."""
@@ -157,7 +158,7 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "total_users", ctx.guild.id)
 
-	@bot.bridge_command()
+	@utility.command()
 	@commands.guild_only()
 	async def status(self, ctx: discord.ApplicationContext):
 		"""Get the current system status."""
@@ -199,7 +200,7 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "status", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["qrgen"])
+	@utility.command()
 	@commands.guild_only()
 	async def qr_generator(self, ctx: discord.ApplicationContext, url: str, transparent: bool = False, pixel_size: int = 5):
 		"""Generate a QR code containing a URL."""

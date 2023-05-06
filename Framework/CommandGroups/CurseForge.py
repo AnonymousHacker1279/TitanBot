@@ -1,7 +1,6 @@
 import aiohttp
 import discord
 from discord.ext import commands
-from discord.ext.bridge import bot
 
 from ..FileSystemAPI.ConfigurationManager import ConfigurationValues
 from ..GeneralUtilities import PermissionHandler
@@ -10,10 +9,12 @@ from ..GeneralUtilities import PermissionHandler
 class CurseForge(commands.Cog):
 	"""Automatically announce updates from CurseForge projects."""
 
+	curseforge = discord.SlashCommandGroup("curseforge", description="Automatically announce updates from CurseForge projects.")
+
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
-	@bot.bridge_command()
+	@curseforge.command()
 	@commands.guild_only()
 	async def add_project(self, ctx: discord.ApplicationContext, project_id: int, announcement_channel: discord.TextChannel):
 		"""Add a new CF project to the update checker."""
@@ -50,7 +51,7 @@ class CurseForge(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("curseforge", "add_project", ctx.guild.id)
 
-	@bot.bridge_command()
+	@curseforge.command()
 	@commands.guild_only()
 	async def remove_project(self, ctx: discord.ApplicationContext, project_id: int):
 		"""Remove a CF project from the update checker."""
@@ -66,7 +67,7 @@ class CurseForge(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("curseforge", "remove_project", ctx.guild.id)
 
-	@bot.bridge_command()
+	@curseforge.command()
 	@commands.guild_only()
 	async def list_projects(self, ctx: discord.ApplicationContext):
 		"""List all CF projects being checked for updates."""
@@ -100,7 +101,7 @@ class CurseForge(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("curseforge", "list_projects", ctx.guild.id)
 
-	@bot.bridge_command()
+	@curseforge.command()
 	@commands.guild_only()
 	async def check_for_updates(self, ctx: discord.ApplicationContext):
 		"""Manually check for updates on CF projects."""

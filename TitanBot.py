@@ -1,7 +1,7 @@
 import atexit
 
 import discord
-from discord.ext import bridge, commands
+from discord.ext import commands
 
 from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.CurseForge import CurseForge
@@ -24,11 +24,11 @@ from Framework.Osmium.Osmium import Osmium
 if __name__ == "__main__":
 
 	database_version = 7
-	ConfigurationValues.VERSION = "v2.6.0"
+	ConfigurationValues.VERSION = "v2.7.0-indev"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
-	bot = bridge.Bot(command_prefix=commands.when_mentioned_or("$"), intents=intents)
+	bot = discord.Bot(intents=intents)
 	bot.help_command = Help()
 
 	configuration_manager = ConfigurationManager()
@@ -104,7 +104,6 @@ if __name__ == "__main__":
 		embed = await ErrorHandler.handle_error(error, logger)
 		await ctx.reply(embed=embed)
 
-
 	@bot.event
 	async def on_guild_join(ctx: commands.Context):
 		logger.log_info("TitanBot has joined a new guild: " + ctx.guild.name)
@@ -117,25 +116,6 @@ if __name__ == "__main__":
 		# Re-initialize objects with a database cache
 		await CustomCommands.post_initialize(custom_commands_module, bot)
 		logger.log_info("All caches invalidated")
-
-	@bot.event
-	async def on_message(message: discord.Message):
-		if message.author == bot.user:
-			return
-
-		if message.content.startswith("$"):
-			await bot.process_commands(message)
-
-			# Send a warning message that prefixed commands will be removed in a future release
-			# TODO: Remove by v2.7.0
-			embed = discord.Embed(title="Warning:", description="Prefixed commands (starting with `$`) will be removed in a future release. ")
-			embed.add_field(name="Why?", value="Discord has deprecated the use of prefixed commands in favor of slash commands. "
-												"Slash commands are much more user-friendly and easier to use, and they also "
-												"allow for more customization. ")
-			embed.add_field(name="What do I need to do?", value="You can use slash commands by typing `/` in any channel. ")
-			embed.add_field(name="When will this happen?", value="Prefixed commands will be removed in v2.7.0.")
-
-			await message.reply(embed=embed, mention_author=False)
 
 	def on_exit():
 		GeneralUtilities.run_and_get_new_loop(ExitHandler.prepare_to_exit())

@@ -5,7 +5,6 @@ from os.path import isfile
 
 import discord
 from discord.ext import commands
-from discord.ext.bridge import bot
 
 from .Modals import CustomCommandModals
 from ..FileSystemAPI import DatabaseObjects
@@ -18,6 +17,8 @@ from ..Osmium import Osmium
 
 class CustomCommands(commands.Cog):
 	"""Expand the power of TitanBot with custom commands."""
+
+	custom_commands = discord.SlashCommandGroup("custom_commands", description="Expand the power of TitanBot with custom commands.")
 
 	def __init__(self, management_portal_handler: ManagementPortalHandler, osmium: Osmium):
 		self.mph = management_portal_handler
@@ -43,7 +44,7 @@ class CustomCommands(commands.Cog):
 		for guild in self.cache_managers:
 			await self.cache_managers[guild].invalidate_cache()
 
-	@bot.bridge_command(aliases=["cc"])
+	@custom_commands.command()
 	@commands.guild_only()
 	async def custom_command(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
 		"""Execute a custom command."""
@@ -88,7 +89,7 @@ class CustomCommands(commands.Cog):
 
 		await self.mph.update_management_portal_command_used("custom_commands", command_name, ctx.guild.id)
 
-	@bot.bridge_command(aliases=["ac"])
+	@custom_commands.command()
 	@commands.guild_only()
 	async def add_command(self, ctx: discord.ApplicationContext):
 		"""Add a custom command to the archive."""
@@ -103,7 +104,7 @@ class CustomCommands(commands.Cog):
 			await ctx.send_modal(modal)
 			await self.mph.update_management_portal_command_used("custom_commands", "add_command", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["rc"])
+	@custom_commands.command()
 	@commands.guild_only()
 	async def remove_command(self, ctx: discord.ApplicationContext, command_name: str = None):
 		"""Remove a custom command from the archive."""
@@ -160,7 +161,7 @@ class CustomCommands(commands.Cog):
 
 		await self.mph.update_management_portal_command_used("custom_commands", "remove_command", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["cmdi"])
+	@custom_commands.command()
 	@commands.guild_only()
 	async def command_info(self, ctx: discord.ApplicationContext, command_name: str = None):
 		"""Get information about a custom command."""

@@ -2,18 +2,19 @@ import aiohttp
 import discord
 from discord import Spotify
 from discord.ext import commands
-from discord.ext.bridge import bot
 
 from ..GeneralUtilities import GeneralUtilities, PermissionHandler, CommandAccess
 
 
 class Fun(commands.Cog):
-	"""Have fun with some useless commands."""
+	"""Have fun with some miscellaneous commands."""
+	
+	fun = discord.SlashCommandGroup("fun", description="Have fun with some miscellaneous commands.")
 
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
-	@bot.bridge_command()
+	@fun.command()
 	@commands.guild_only()
 	async def stab(self, ctx: discord.ApplicationContext, user=None):
 		"""Stab someone, or something."""
@@ -31,7 +32,7 @@ class Fun(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "stab", ctx.guild.id)
 
-	@bot.bridge_command()
+	@fun.command()
 	@commands.guild_only()
 	async def spotify(self, ctx: discord.ApplicationContext, user=None):
 		"""Check the status of a user playing music via Spotify."""
@@ -66,7 +67,7 @@ class Fun(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "spotify", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["spk"])
+	@fun.command()
 	@commands.guild_only()
 	async def speak(self, ctx: discord.ApplicationContext, message: str, channel: discord.TextChannel = None, hide_user: bool = False):
 		"""Make the bot say something in a channel."""
@@ -102,7 +103,7 @@ class Fun(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "speak", ctx.guild.id)
 
-	@bot.bridge_command(guild_ids=[1025825210005475408])
+	@fun.command(guild_ids=[1025825210005475408])
 	@commands.guild_only()
 	async def speak_debug_only(self, ctx: discord.ApplicationContext, message: str, channel: str = None, hide_user: bool = False):
 		"""Make the bot say something in a channel. Debug only, allows any channel ID."""
@@ -140,7 +141,7 @@ class Fun(commands.Cog):
 
 		await ctx.respond(embed=embed)
 
-	@bot.bridge_command(aliases=["insp"])
+	@fun.command()
 	@commands.guild_only()
 	async def inspirobot_query(self, ctx: discord.ApplicationContext):
 		"""Generate a random image from InspiroBot."""
@@ -161,7 +162,7 @@ class Fun(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "inspirobot_query", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["rfct"])
+	@fun.command()
 	@commands.guild_only()
 	async def random_fact(self, ctx: discord.ApplicationContext):
 		"""Get a random and useless, but true, fact."""

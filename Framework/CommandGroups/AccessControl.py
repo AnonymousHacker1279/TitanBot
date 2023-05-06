@@ -1,17 +1,18 @@
 import discord
 from discord.ext import commands
-from discord.ext.bridge import bot
 
 from ..GeneralUtilities import PermissionHandler
 
 
 class AccessControl(commands.Cog):
 	"""Limit feature access for users who misbehave."""
+	
+	access_control = discord.SlashCommandGroup("access_control", description="Limit feature access for users who misbehave.")
 
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
-	@bot.bridge_command()
+	@access_control.command()
 	@commands.guild_only()
 	async def toggle_command_access(self, ctx: discord.ApplicationContext, user: discord.Member, command: str):
 		"""Toggle access to a specific command. Only available to administrators."""
@@ -27,7 +28,7 @@ class AccessControl(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("access_control", "toggle_command_access", ctx.guild.id)
 
-	@bot.bridge_command()
+	@access_control.command()
 	@commands.guild_only()
 	async def toggle_module_access(self, ctx: discord.ApplicationContext, user: discord.Member, module: str):
 		"""Toggle access to a specific module. Only available to administrators."""
@@ -43,7 +44,7 @@ class AccessControl(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("access_control", "toggle_module_access", ctx.guild.id)
 
-	@bot.bridge_command()
+	@access_control.command()
 	@commands.guild_only()
 	async def list_banned_commands(self, ctx: discord.ApplicationContext, user: discord.Member):
 		"""List all commands a user is banned from using. Only available to administrators."""
@@ -70,7 +71,7 @@ class AccessControl(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("access_control", "list_banned_commands", ctx.guild.id)
 
-	@bot.bridge_command()
+	@access_control.command()
 	@commands.guild_only()
 	async def list_banned_modules(self, ctx: discord.ApplicationContext, user: discord.Member):
 		"""List all modules a user is banned from using. Only available to administrators."""
