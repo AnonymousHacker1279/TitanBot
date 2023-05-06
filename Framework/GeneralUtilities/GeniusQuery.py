@@ -48,10 +48,11 @@ async def __get_lyrics(lyrics):
 
 async def __cleanup_lyrics(lyrics):
 	# Do some cleanup, to get rid of random text at the end
-	lyrics = re.sub('[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
-	lyrics = re.sub('[0-9]+Embed', "", lyrics)
-	lyrics = re.sub('Embed', "", lyrics)
-	lyrics = re.sub('You might also like', "", lyrics)
+	lyrics = re.sub(r'[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
+	lyrics = re.sub(r'[0-9]+Embed', "", lyrics)
+	lyrics = re.sub(r'Embed', "", lyrics)
+	lyrics = re.sub(r'You might also like', "", lyrics)
+	lyrics = re.sub(r'(.*) (LiveGet tickets as low as \$)(\d*)', "", lyrics)
 
 	# Remove the first line, which is the song title
 	lyrics = lyrics.splitlines(True)[1:]
