@@ -5,3 +5,5 @@ requests~=2.28.1
 python-dotenv~=1.0.0
 lyricsgenius~=3.0.1
 py-cord~=2.4.1
+nest_asyncio~=1.5.6
+vt-py~=0.17.5

@@ -82,7 +82,7 @@ class Fun(commands.Cog):
 			try:
 				send_failed = False
 				if hide_user:
-					if user.guild_permissions.administrator or CommandAccess.is_superuser(self.mph, user.id):
+					if user.guild_permissions.administrator or await CommandAccess.is_superuser(self.mph, user.id):
 						await channel.send(message)
 					else:
 						send_failed = True
