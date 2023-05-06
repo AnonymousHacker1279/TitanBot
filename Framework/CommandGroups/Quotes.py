@@ -22,7 +22,7 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "quote")
 		if not failedPermissionCheck:
 
 			# Check if a quote ID was provided
@@ -55,7 +55,7 @@ class Quotes(commands.Cog):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "total_quotes")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "total_quotes")
 		if not failedPermissionCheck:
 			response = await self.mph.quotes.get_total_quotes(ctx.guild.id)
 			total_quotes = response["total_quotes"]
@@ -74,7 +74,7 @@ class Quotes(commands.Cog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
 			author_valid = True
 			try:
@@ -102,7 +102,7 @@ class Quotes(commands.Cog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add_quote")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
 			author = message.author.id
 
@@ -120,7 +120,7 @@ class Quotes(commands.Cog):
 		"""Need to purge a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "remove_quote", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "remove_quote", True)
 		if not failedPermissionCheck:
 
 			if quote_id < 0:
@@ -148,7 +148,7 @@ class Quotes(commands.Cog):
 		"""Need to edit a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "edit_quote", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "edit_quote", True)
 		if not failedPermissionCheck:
 
 			if quote_id < 0:
@@ -187,7 +187,7 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_quotes_author")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_quotes_author")
 		if not failedPermissionCheck:
 			quote_author = await GeneralUtilities.strip_usernames(quote_author)
 
@@ -237,7 +237,7 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_quotes_text")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_quotes_text")
 		if not failedPermissionCheck:
 
 			if page < 0:
@@ -278,7 +278,7 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "list_recent_quotes")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "list_recent_quotes")
 		if not failedPermissionCheck:
 
 			# Get the quotes

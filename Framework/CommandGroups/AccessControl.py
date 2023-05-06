@@ -1,11 +1,8 @@
-import json
-
 import discord
 from discord.ext import commands
 from discord.ext.bridge import bot
 
-from ..FileSystemAPI import DatabaseObjects
-from ..GeneralUtilities import CommandAccess, GeneralUtilities, PermissionHandler
+from ..GeneralUtilities import PermissionHandler
 
 
 class AccessControl(commands.Cog):
@@ -14,188 +11,88 @@ class AccessControl(commands.Cog):
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
-	@bot.bridge_command(aliases=["rca"])
+	@bot.bridge_command()
 	@commands.guild_only()
-	async def revoke_command_access(self, ctx: discord.ApplicationContext, user=None, command=None):
-		"""Revoke access to a specific command. Only available to administrators."""
+	async def toggle_command_access(self, ctx: discord.ApplicationContext, user: discord.Member, command: str):
+		"""Toggle access to a specific command. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "revoke_command_access", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "access_control", "toggle_command_access", True)
 		if not failedPermissionCheck:
-			# Ensure the user and command arguments are provided
-			if user is None or command is None:
-				embed.title = "Failed to revoke command access"
-				embed.description = "You must specify a user to remove permissions from, and the command to affect."
-			else:
-				user = str(user)
-				command = str(command)
+			await self.mph.access_control.toggle_command_access(user.id, ctx.guild_id, command)
 
-				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
-				data = await cache_manager.get_cache()
-
-				maxIndex = 0
-				userData = None
-				userDataIndex = 0
-				# Check for existing user data
-				for _ in data:
-					if user in data[maxIndex]["user"]:
-						userData = data[maxIndex]
-						userDataIndex = maxIndex
-					maxIndex = maxIndex + 1
-
-				# If data does exist...
-				embed.title = "User Access Changed: " + command
-				if userData is not None:
-					# Check if the command is already in the database,
-					#  if so, remove it. Otherwise, add it.
-					if command in userData["revokedCommands"]:
-						# Remove the command from the data at our position
-						data[userDataIndex]["revokedCommands"].remove(command)
-						# If it's the last command in the data, remove the entire entry
-						if len(userData["revokedCommands"]) == 0:
-							data.pop(userDataIndex)
-						embed.description = "Access to the command has been restored to the user."
-					else:
-						data[userDataIndex]["revokedCommands"].append(command)
-						embed.description = "Access to the command has been revoked from the user."
-				else:
-					# Make a new entry in the database
-					dictionary = {"user": user, "revokedCommands": [command]}
-					data.append(dictionary)
-					embed.description = "Access to the command has been revoked from the user."
-
-				with open(await DatabaseObjects.get_revoked_commands_database(ctx.guild.id), 'w') as f:
-					json.dump(data, f, indent=4)
-
-				await cache_manager.invalidate_cache()
+			embed.title = "Command Access Toggled"
+			embed.description = f"Command access for {user.mention} has been toggled for `{command}`."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("access_control", "revoke_command_access", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("access_control", "toggle_command_access", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["vrc"])
+	@bot.bridge_command()
 	@commands.guild_only()
-	async def view_revoked_commands(self, ctx: discord.ApplicationContext, user=None):
-		"""See revoked commands for a user. Defaults to the author of the message if no user is provided."""
+	async def toggle_module_access(self, ctx: discord.ApplicationContext, user: discord.Member, module: str):
+		"""Toggle access to a specific module. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "view_revoked_commands")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "access_control", "toggle_module_access", True)
 		if not failedPermissionCheck:
-			# Check if a user is provided
-			if user is None:
-				user = ctx.author.mention
-			user = await GeneralUtilities.strip_usernames(user)
+			await self.mph.access_control.toggle_module_access(user.id, ctx.guild_id, module)
 
-			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
-			data = await cache_manager.get_cache()
-
-			maxIndex = 0
-			userData = None
-			# Check for existing user data
-			for _ in data:
-				if user in data[maxIndex]["user"]:
-					userData = data[maxIndex]
-				maxIndex = maxIndex + 1
-
-			userForDisplay = await ctx.bot.fetch_user(int(user))
-			embed.title = "Command Access for " + userForDisplay.display_name
-			if userData is None:
-				embed.description = "No commands have been revoked from this user."
-			else:
-				embed.description = "Listing revoked commands:\n"
-				embed.description += str(userData["revokedCommands"])
-
-			await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("access_control", "view_revoked_commands", ctx.guild.id)
-
-	@bot.bridge_command(aliases=["rma"])
-	@commands.guild_only()
-	async def revoke_module_access(self, ctx: discord.ApplicationContext, user=None, module=None):
-		"""Revoke access to an entire module. Only available to administrators."""
-
-		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "revoke_module_access", True)
-		if not failedPermissionCheck:
-			# Ensure the user and module arguments are provided
-			if user is None or module is None:
-				embed.title = "Failed to revoke module access"
-				embed.description = "You must specify a user to remove permissions from, and the module to affect."
-			else:
-				user = str(user)
-				module = str(module)
-
-				cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
-				data = await cache_manager.get_cache()
-
-				maxIndex = 0
-				userData = None
-				userDataIndex = 0
-				# Check for existing user data
-				for _ in data:
-					if user in data[maxIndex]["user"]:
-						userData = data[maxIndex]
-						userDataIndex = maxIndex
-					maxIndex = maxIndex + 1
-
-				# If data does exist...
-				embed.title = "User Access Changed: " + module
-				if userData is not None:
-					# Check if the module is already in the database,
-					#  if so, remove it. Otherwise, add it.
-					if module in userData["revokedModules"]:
-						# Remove the module from the data at our position
-						data[userDataIndex]["revokedModules"].remove(module)
-						# If it's the last module in the data, remove the entire entry
-						if len(userData["revokedModules"]) == 0:
-							data.pop(userDataIndex)
-						embed.description = "Access to the module has been restored to the user."
-					else:
-						data[userDataIndex]["revokedCommands"].append(module)
-						embed.description = "Access to the module has been revoked from the user."
-				else:
-					# Make a new entry in the database
-					dictionary = {"user": user, "revokedModules": [module]}
-					data.append(dictionary)
-					embed.description = "Access to the module has been revoked from the user."
-
-				with open(await DatabaseObjects.get_revoked_modules_database(ctx.guild.id), 'w') as f:
-					json.dump(data, f, indent=4)
-
-				await cache_manager.invalidate_cache()
+			embed.title = "Module Access Toggled"
+			embed.description = f"Module access for {user.mention} has been toggled for `{module}`."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("access_control", "revoke_module_access", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("access_control", "toggle_module_access", ctx.guild.id)
 
-	@bot.bridge_command(aliases=["vrm"])
+	@bot.bridge_command()
 	@commands.guild_only()
-	async def view_revoked_modules(self, ctx: discord.ApplicationContext, user=None):
-		"""See revoked modules for a user. Defaults to the author of the message if no user is provided."""
+	async def list_banned_commands(self, ctx: discord.ApplicationContext, user: discord.Member):
+		"""List all commands a user is banned from using. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "view_revoked_modules")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "access_control", "list_banned_commands", True)
 		if not failedPermissionCheck:
-			# Check if a user is provided
-			if user is None:
-				user = ctx.author.mention
-			user = await GeneralUtilities.strip_usernames(user)
-
-			cache_manager = CommandAccess.cache_managers["revoked_modules"].get(ctx.guild.id)
-			data = await cache_manager.get_cache()
-
-			maxIndex = 0
-			userData = None
-			# Check for existing user data
-			for _ in data:
-				if user in data[maxIndex]["user"]:
-					userData = data[maxIndex]
-				maxIndex = maxIndex + 1
-
-			userForDisplay = await ctx.bot.fetch_user(int(user))
-			embed.title = "Module Access for " + userForDisplay.display_name
-			if userData is None:
-				embed.description = "No modules have been revoked from this user."
+			banned_commands = await self.mph.access_control.get_banned_commands(user.id, ctx.guild_id)
+			if len(banned_commands) == 0:
+				embed.title = "No Banned Commands"
+				embed.description = f"{user.mention} is not banned from using any commands."
 			else:
-				embed.description = "Listing revoked modules:\n"
-				embed.description += str(userData["revokedModules"])
+				embed.title = "Banned Commands"
+				embed.description = f"{user.mention} is banned from using the following commands:\n"
 
-			await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("access_control", "view_revoked_modules", ctx.guild.id)
+				# Split the string by commas, then sort the list alphabetically
+				banned_commands = banned_commands.split(",")
+				banned_commands.sort()
+
+				# Add each command to the embed description
+				for command in banned_commands:
+					embed.description += f"- `{command}`\n"
+
+		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("access_control", "list_banned_commands", ctx.guild.id)
+
+	@bot.bridge_command()
+	@commands.guild_only()
+	async def list_banned_modules(self, ctx: discord.ApplicationContext, user: discord.Member):
+		"""List all modules a user is banned from using. Only available to administrators."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "access_control", "list_banned_modules", True)
+		if not failedPermissionCheck:
+			banned_modules = await self.mph.access_control.get_banned_modules(user.id, ctx.guild_id)
+			if len(banned_modules) == 0:
+				embed.title = "No Banned Modules"
+				embed.description = f"{user.mention} is not banned from using any modules."
+			else:
+				embed.title = "Banned Modules"
+				embed.description = f"{user.mention} is banned from using the following modules:\n"
+
+				# Split the string by commas, then sort the list alphabetically
+				banned_modules = banned_modules.split(",")
+				banned_modules.sort()
+
+				# Add each command to the embed description
+				for module in banned_modules:
+					embed.description += f"- `{module}`\n"
+
+		await ctx.respond(embed=embed)
+		await self.mph.update_management_portal_command_used("access_control", "list_banned_modules", ctx.guild.id)

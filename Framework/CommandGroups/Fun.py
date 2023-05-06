@@ -4,7 +4,7 @@ from discord import Spotify
 from discord.ext import commands
 from discord.ext.bridge import bot
 
-from ..GeneralUtilities import GeneralUtilities, PermissionHandler
+from ..GeneralUtilities import GeneralUtilities, PermissionHandler, CommandAccess
 
 
 class Fun(commands.Cog):
@@ -19,7 +19,7 @@ class Fun(commands.Cog):
 		"""Stab someone, or something."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "stab")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "stab")
 		if not failedPermissionCheck:
 			if user is None:
 				embed.title = "Failed to stab"
@@ -37,7 +37,7 @@ class Fun(commands.Cog):
 		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "spotify")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "spotify")
 		if not failedPermissionCheck:
 			if user is None:
 				user = ctx.author
@@ -72,7 +72,7 @@ class Fun(commands.Cog):
 		"""Make the bot say something in a channel."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "speak")
 		if not failedPermissionCheck:
 			user = ctx.author
 
@@ -82,7 +82,7 @@ class Fun(commands.Cog):
 			try:
 				send_failed = False
 				if hide_user:
-					if user.guild_permissions.administrator:
+					if user.guild_permissions.administrator or CommandAccess.is_superuser(self.mph, user.id):
 						await channel.send(message)
 					else:
 						send_failed = True
@@ -108,7 +108,7 @@ class Fun(commands.Cog):
 		"""Generate a random image from InspiroBot."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "inspirobot_query")
 		if not failedPermissionCheck:
 			# Get an image URL from InspiroBot
 			async with aiohttp.ClientSession() as session:
@@ -129,7 +129,7 @@ class Fun(commands.Cog):
 		"""Get a random and useless, but true, fact."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "random_fact")
 		if not failedPermissionCheck:
 			# Get a random fact
 			async with aiohttp.ClientSession() as session:

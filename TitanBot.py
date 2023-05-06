@@ -17,13 +17,13 @@ from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import Co
 from Framework.FileSystemAPI.DataMigration.DataMigrator import DataMigrator
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
-from Framework.GeneralUtilities import CommandAccess, ErrorHandler, ExitHandler, GeneralUtilities
+from Framework.GeneralUtilities import ErrorHandler, ExitHandler, GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 from Framework.Osmium.Osmium import Osmium
 
 if __name__ == "__main__":
 
-	database_version = 6
+	database_version = 7
 	ConfigurationValues.VERSION = "v2.6.0-indev"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
@@ -73,7 +73,6 @@ if __name__ == "__main__":
 
 		# Do post-initialization for objects with a database cache
 		logger.log_info("Performing post-initialization for objects with a database cache")
-		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await custom_commands_module.post_initialize(bot)
 
 		# Initialize the update manager and check for updates if enabled
@@ -114,10 +113,8 @@ if __name__ == "__main__":
 
 		# Invalidate existing caches
 		logger.log_info("Invalidating existing caches...")
-		await CommandAccess.invalidate_caches()
 		await custom_commands_module.invalidate_caches()
 		# Re-initialize objects with a database cache
-		await CommandAccess.post_initialize(bot, management_portal_handler)
 		await CustomCommands.post_initialize(custom_commands_module, bot)
 		logger.log_info("All caches invalidated")
 

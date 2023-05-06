@@ -19,7 +19,7 @@ class CurseForge(commands.Cog):
 		"""Add a new CF project to the update checker."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "add_project")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "curseforge", "add_project")
 		if not failedPermissionCheck:
 
 			async with aiohttp.ClientSession() as session:
@@ -56,7 +56,7 @@ class CurseForge(commands.Cog):
 		"""Remove a CF project from the update checker."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "remove_project")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "curseforge", "remove_project")
 		if not failedPermissionCheck:
 			await self.mph.cf_checker.remove_project(ctx.guild_id, project_id)
 
@@ -72,7 +72,7 @@ class CurseForge(commands.Cog):
 		"""List all CF projects being checked for updates."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "list_projects")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "curseforge", "list_projects")
 		if not failedPermissionCheck:
 			projects = await self.mph.cf_checker.get_projects(ctx.guild_id)
 
@@ -106,7 +106,7 @@ class CurseForge(commands.Cog):
 		"""Manually check for updates on CF projects."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "check_for_updates")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "curseforge", "check_for_updates")
 		if not failedPermissionCheck:
 			await self.mph.cf_checker.check_for_updates(ctx.guild_id)
 

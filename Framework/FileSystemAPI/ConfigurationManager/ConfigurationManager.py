@@ -33,6 +33,7 @@ class ConfigurationManager:
 
 				# This data is global and should be the same in all guilds
 				self.bot_config["discord_status"] = file["discord_status"]
+				self.bot_config["superuser_list"] = file["superuser_configuration"]["superuser_list"]
 				self.bot_config["bot_update"] = file["bot_update"]
 				self.bot_config["log_level"] = file["logging"]["logging_level"]
 				self.bot_config["genius_api_token"] = file["genius_music"]["genius_api_key"]

@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import shutil
 
 from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
@@ -37,7 +38,7 @@ class DataMigrator:
 			# Version 3 changed the author key in the quotes file to use ints instead of strings
 			metadata["guilds"][guild] = 3
 
-			with open(await DatabaseObjects.get_quotes_database(int(guild)), "r") as quotes_file:
+			with open(os.path.abspath(os.getcwd() + f"/Storage/{guild}/Quotes.json"), "r") as quotes_file:
 				quotes = json.load(quotes_file)
 
 			for quote in quotes:
@@ -46,7 +47,7 @@ class DataMigrator:
 				except ValueError:
 					pass
 
-			with open(await DatabaseObjects.get_quotes_database(int(guild)), "w") as quotes_file:
+			with open(os.path.abspath(os.getcwd() + f"/Storage/{guild}/Quotes.json"), "w") as quotes_file:
 				json.dump(quotes, quotes_file, indent=4)
 
 		# Migrate from version 3 to version 4
@@ -57,7 +58,7 @@ class DataMigrator:
 			# set with a value of "Unknown"
 			metadata["guilds"][guild] = 4
 
-			with open(await DatabaseObjects.get_quotes_database(int(guild)), "r") as quotes_file:
+			with open(os.path.abspath(os.getcwd() + f"/Storage/{guild}/Quotes.json"), "r") as quotes_file:
 				quotes = json.load(quotes_file)
 
 			for quote in quotes:
@@ -67,7 +68,7 @@ class DataMigrator:
 				except ValueError:
 					pass
 
-			with open(await DatabaseObjects.get_quotes_database(int(guild)), "w") as quotes_file:
+			with open(os.path.abspath(os.getcwd() + f"/Storage/{guild}/Quotes.json"), "w") as quotes_file:
 				json.dump(quotes, quotes_file, indent=4)
 
 		# Migrate from version 4 to version 5
@@ -88,7 +89,7 @@ class DataMigrator:
 			metadata["guilds"][guild] = 6
 
 			# Migrate the quotes database
-			with open(await DatabaseObjects.get_quotes_database(int(guild)), "r") as quotes_file:
+			with open(os.path.abspath(os.getcwd() + f"/Storage/{guild}/Quotes.json"), "r") as quotes_file:
 				json_data = json.load(quotes_file)
 
 				# Replace all "Unknown" date values with an empty timestamp
@@ -124,7 +125,15 @@ class DataMigrator:
 				await self.mp.data_migration.migrate_quotes(int(guild), data)
 
 			# Delete the old quotes database
-			os.remove(await DatabaseObjects.get_quotes_database(int(guild)))
+			os.remove(os.path.abspath(os.getcwd() + f"/Storage/{guild}/Quotes.json"))
+			
+		# Migrate from version 6 to version 7
+		if old_version == 6:
+			# Version 7 removes local storage of the Settings folder and everything within it
+			metadata["guilds"][guild] = 7
+			
+			# Delete the Settings folder for the guild
+			shutil.rmtree(os.path.abspath(os.getcwd() + f"/Storage/{guild}/Settings"))
 
 		with open(metadata_path, "w") as metadata_file:
 			json.dump(metadata, metadata_file, indent=4)

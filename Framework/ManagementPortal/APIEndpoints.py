@@ -20,3 +20,6 @@ class APIEndpoints(str, Enum):
 	MODIFY_CF_UPDATE_CHECKER = "/v3/modules/curseforge/modify_project.php"
 	GET_CF_PROJECTS = "/v3/modules/curseforge/get_projects.php"
 	UPDATE_CF_PROJECT = "/v3/modules/curseforge/update_project.php"
+	TOGGLE_FEATURE_ACCESS = "/v3/modules/access_control/toggle_access.php"
+	GET_USER_BANNED_COMMANDS = "/v3/modules/access_control/get_banned_commands.php"
+	GET_USER_BANNED_MODULES = "/v3/modules/access_control/get_banned_modules.php"

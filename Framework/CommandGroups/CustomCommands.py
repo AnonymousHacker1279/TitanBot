@@ -72,7 +72,7 @@ class CustomCommands(commands.Cog):
 		try:
 			command_data = command_data_cache[command_name]
 
-			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
+			embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "custom_commands",
 																					command_name,
 																					shouldCheckForAdmin=admin_only)
 			if not failedPermissionCheck:
@@ -94,7 +94,7 @@ class CustomCommands(commands.Cog):
 		"""Add a custom command to the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "custom_commands",
 																				"add_command",
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
@@ -109,7 +109,7 @@ class CustomCommands(commands.Cog):
 		"""Remove a custom command from the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "custom_commands",
 																				"remove_command",
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
@@ -166,7 +166,7 @@ class CustomCommands(commands.Cog):
 		"""Get information about a custom command."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "custom_commands",
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "custom_commands",
 																				"command_info")
 		if not failedPermissionCheck:
 			if command_name is not None:
