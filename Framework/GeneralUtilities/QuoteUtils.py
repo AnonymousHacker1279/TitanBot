@@ -1,8 +1,11 @@
+import math
 import re
 from datetime import datetime
 
 import discord
 from discord.errors import HTTPException, NotFound
+
+from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
 async def prepare_quote(ctx, embed, author, content, quoteID, date, quotedBy) -> discord.Embed:
@@ -54,3 +57,75 @@ async def prepare_quote(ctx, embed, author, content, quoteID, date, quotedBy) ->
 		embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
 
 	return embed
+
+
+async def handle_searching_author(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, quote_author: int):
+	if page < 0:
+		embed.title = "Cannot search quotes"
+		embed.description = "Invalid page. The page must be greater than zero."
+	else:
+		authorDisplayName = quote_author
+
+		# Try getting a profile picture for the author and a display name
+		try:
+			authorUser = await ctx.bot.fetch_user(quote_author)
+			authorDisplayName = authorUser.display_name
+			embed.set_thumbnail(url=authorUser.display_avatar.url)
+		except (NotFound, ValueError):
+			embed.set_footer(text="Cannot get the profile picture for this user. Ensure the author is a valid user.")
+
+		# Get the quotes
+		response = await mph.quotes.search_quotes(ctx.guild.id, "author", author_id=quote_author, page=page)
+		quotes = response["quotes"]
+		total_quotes = response["total"]
+
+		# Check if the response is empty
+		if total_quotes == 0:
+			embed.title = "No Quotes Found"
+			embed.description = "This author has no quotes."
+		else:
+			embed.title = "Quotes by " + authorDisplayName
+
+			if page != 0:
+				embed.title += " (Page " + str(page) + ")"
+
+			embed.description = "There are **" + str(total_quotes) + "** quotes by this author " \
+								"(page " + str(page) + " of " + str(math.ceil(total_quotes / 10) - 1) + ")."
+
+			# Add the quotes to the embed
+			for quote in quotes:
+				embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
+
+			return embed, total_quotes
+
+
+async def handle_searching_content(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, text: str):
+	if page < 0:
+		embed.title = "Cannot search quotes"
+		embed.description = "Invalid page. The page must be greater than zero."
+	else:
+
+		embed.title = "Quotes Containing '" + text + "'"
+
+		# Get the quotes
+		response = await mph.quotes.search_quotes(ctx.guild.id, "content", search_term=text, page=page)
+		quotes = response["quotes"]
+		total_quotes = response["total"]
+
+		# Check if the response is empty
+		if total_quotes == 0:
+			embed.title = "No Quotes Found"
+			embed.description = "No quotes were found containing this text."
+		else:
+
+			if page != 0:
+				embed.title += " (Page " + str(page) + ")"
+
+			embed.description = "There are **" + str(total_quotes) + "** quotes containing this text " \
+								"(page " + str(page) + " of " + str(math.ceil(total_quotes / 10) - 1) + ")."
+
+			# Add the quotes to the embed
+			for quote in quotes:
+				embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
+
+			return embed, total_quotes

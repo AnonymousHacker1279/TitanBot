@@ -14,7 +14,7 @@ class Genius(commands.Cog):
 
 	@genius.command()
 	@commands.guild_only()
-	async def search_songs(self, ctx: discord.ApplicationContext, artist, song):
+	async def search_songs(self, ctx: discord.ApplicationContext, artist: str, song: str):
 		"""Search for a song by artist and song name."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -36,7 +36,7 @@ class Genius(commands.Cog):
 
 	@genius.command()
 	@commands.guild_only()
-	async def get_lyrics_by_url(self, ctx: discord.ApplicationContext, url):
+	async def get_lyrics_by_url(self, ctx: discord.ApplicationContext, url: str):
 		"""Search for a song by its Genius URL."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -57,7 +57,7 @@ class Genius(commands.Cog):
 
 	@genius.command()
 	@commands.guild_only()
-	async def get_lyrics_by_id(self, ctx: discord.ApplicationContext, song_id):
+	async def get_lyrics_by_id(self, ctx: discord.ApplicationContext, song_id: int):
 		"""Search for a song by its Genius ID."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')

@@ -1,10 +1,10 @@
 import math
 
 import discord
-from discord.errors import NotFound
 from discord.ext import commands
 
-from ..GeneralUtilities import GeneralUtilities, PermissionHandler, QuoteUtils
+from .Views.SearchQuotesView import SearchQuotesView, SearchTypes
+from ..GeneralUtilities import PermissionHandler, QuoteUtils
 from ..ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
@@ -66,33 +66,23 @@ class Quotes(commands.Cog):
 				embed.description = "I have do not have any quotes in my archives."
 			else:
 				embed.description = "I have " + str(total_quotes) + " quotes in my archives."
+
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "total_quotes", ctx.guild.id)
 
 	@quotes.command()
 	@commands.guild_only()
-	async def add_quote(self, ctx: discord.ApplicationContext, quote: str, author: str):
+	async def add_quote(self, ctx: discord.ApplicationContext, quote: str, author: discord.User):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
-			author_valid = True
-			try:
-				author = int(await GeneralUtilities.strip_usernames(author))
-			except ValueError:
-				author_valid = False
+			response = await self.mph.quotes.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
+			quote_number = response["quote_number"]
 
-			if author_valid:
-
-				response = await self.mph.quotes.add_quote(ctx.guild.id, quote, author, ctx.author.id)
-				quote_number = response["quote_number"]
-
-				embed.title = "Quote Added"
-				embed.description = "The quote has been added to my archives as **Quote #" + str(quote_number) + ".**"
-			else:
-				embed.title = "Invalid Author"
-				embed.description = "You must provide a valid author. Please use a mention or ID."
+			embed.title = "Quote Added"
+			embed.description = "The quote has been added to my archives as **Quote #" + str(quote_number) + ".**"
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
@@ -105,13 +95,12 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add_quote")
 		if not failedPermissionCheck:
-			author = message.author.id
-
-			response = await self.mph.quotes.add_quote(ctx.guild.id, message.content, author, ctx.author.id)
+			response = await self.mph.quotes.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
 			quote_number = response["quote_number"]
 
 			embed.title = "Quote Added"
 			embed.description = "The quote has been added to my archives as **Quote #" + str(quote_number) + ".**"
+
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
 
@@ -145,7 +134,7 @@ class Quotes(commands.Cog):
 
 	@quotes.command()
 	@commands.guild_only()
-	async def edit_quote(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: str = ""):
+	async def edit_quote(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: discord.User = None):
 		"""Need to edit a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -156,79 +145,38 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to edit quote"
 				embed.description = "You must pass a valid quote ID to edit. It must be greater than 0 and less" \
 									" than the total number of quotes."
-			elif quote == "" and author == "":
+			elif quote == "" and author is None:
 				embed.title = "Failed to edit quote"
 				embed.description = "You must pass a quote and/or author to edit."
 			else:
-				# If the author is not empty, modify the author
-				valid_author = True
-				if author != "":
-					try:
-						author = int(await GeneralUtilities.strip_usernames(author))
-					except ValueError:
-						valid_author = False
+				await self.mph.quotes.edit_quote(ctx.guild.id, quote_id, quote, author)
 
-				if not valid_author:
-					embed.title = "Invalid Author"
-					embed.description = "You must provide a valid author. Please use a mention or ID."
-
-				else:
-					await self.mph.quotes.edit_quote(ctx.guild.id, quote_id, quote, author)
-
-					embed.title = "Quote Edited"
-					embed.description = "The quote has been edited in my archives."
+				embed.title = "Quote Edited"
+				embed.description = "The quote has been edited in my archives."
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "edit_quote", ctx.guild.id)
 
 	@quotes.command()
 	@commands.guild_only()
-	async def search_quotes_author(self, ctx: discord.ApplicationContext, quote_author: str, page: int = 0):
+	async def search_quotes_author(self, ctx: discord.ApplicationContext, quote_author: discord.User, page: int = 0):
 		"""Search quotes by author. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		total_quotes = 0
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_quotes_author")
 		if not failedPermissionCheck:
-			quote_author = await GeneralUtilities.strip_usernames(quote_author)
+			embed, total_quotes = await QuoteUtils.handle_searching_author(ctx, self.mph, page, embed, quote_author.id)
 
-			if page < 0:
-				embed.title = "Cannot search quotes"
-				embed.description = "Invalid page. The page must be greater than zero."
-			else:
-				authorDisplayName = quote_author
+		view = SearchQuotesView(ctx, self.mph, page, total_quotes, SearchTypes.AUTHOR, quote_author.id, None)
 
-				# Try getting a profile picture for the author and a display name
-				try:
-					authorUser = await ctx.bot.fetch_user(int(quote_author))
-					authorDisplayName = authorUser.display_name
-					embed.set_thumbnail(url=authorUser.display_avatar.url)
-				except (NotFound, ValueError):
-					embed.set_footer(text="Cannot get the profile picture for this user. Ensure the author is a valid user.")
+		if page <= 0:
+			view.previous_page.disabled = True
+		if page >= math.ceil(total_quotes / 10) - 1:
+			view.next_page.disabled = True
 
-				# Get the quotes
-				response = await self.mph.quotes.search_quotes(ctx.guild.id, "author", author_id=quote_author, page=page)
-				quotes = response["quotes"]
-				total_quotes = response["total"]
-
-				# Check if the response is empty
-				if total_quotes == 0:
-					embed.title = "No Quotes Found"
-					embed.description = "This author has no quotes."
-				else:
-					embed.title = "Quotes by " + authorDisplayName
-
-					if page != 0:
-						embed.title += " (Page " + str(page) + ")"
-
-					embed.description = "There are **" + str(total_quotes) + "** quotes by this author " \
-										"(page " + str(page) + " of " + str(math.ceil(total_quotes / 10) - 1) + ")."
-
-					# Add the quotes to the embed
-					for quote in quotes:
-						embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
-
-		await ctx.respond(embed=embed)
+		await ctx.respond(embed=embed, view=view)
 		await self.mph.update_management_portal_command_used("quotes", "search_quotes_author", ctx.guild.id)
 
 	@quotes.command()
@@ -237,39 +185,20 @@ class Quotes(commands.Cog):
 		"""Search quotes by text. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		total_quotes = 0
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_quotes_text")
 		if not failedPermissionCheck:
+			embed, total_quotes = await QuoteUtils.handle_searching_content(ctx, self.mph, page, embed, text)
 
-			if page < 0:
-				embed.title = "Cannot search quotes"
-				embed.description = "Invalid page. The page must be greater than zero."
-			else:
+		view = SearchQuotesView(ctx, self.mph, page, total_quotes, SearchTypes.CONTENT, None, text)
 
-				embed.title = "Quotes Containing '" + text + "'"
+		if page <= 0:
+			view.previous_page.disabled = True
+		if page >= math.ceil(total_quotes / 10) - 1:
+			view.next_page.disabled = True
 
-				# Get the quotes
-				response = await self.mph.quotes.search_quotes(ctx.guild.id, "content", search_term=text, page=page)
-				quotes = response["quotes"]
-				total_quotes = response["total"]
-
-				# Check if the response is empty
-				if total_quotes == 0:
-					embed.title = "No Quotes Found"
-					embed.description = "No quotes were found containing this text."
-				else:
-
-					if page != 0:
-						embed.title += " (Page " + str(page) + ")"
-
-					embed.description = "There are **" + str(total_quotes) + "** quotes containing this text " \
-										"(page " + str(page) + " of " + str(math.ceil(total_quotes / 10) - 1) + ")."
-
-					# Add the quotes to the embed
-					for quote in quotes:
-						embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
-
-		await ctx.respond(embed=embed)
+		await ctx.respond(embed=embed, view=view)
 		await self.mph.update_management_portal_command_used("quotes", "search_quotes_text", ctx.guild.id)
 
 	@quotes.command()

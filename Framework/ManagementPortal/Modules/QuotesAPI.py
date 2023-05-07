@@ -1,3 +1,5 @@
+import discord
+
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
@@ -41,12 +43,17 @@ class QuotesAPI(ManagementPortalHandler):
 
         return await self.get(APIEndpoints.GET_QUOTE_COUNT, headers)
 
-    async def edit_quote(self, guild_id: int, quote_id: int, content: str, author: int) -> dict:
+    async def edit_quote(self, guild_id: int, quote_id: int, content: str, author: discord.User) -> dict:
         headers = self.base_headers.copy()
         headers["guild_id"] = str(guild_id)
         headers["quote_id"] = str(quote_id)
         headers["content"] = content
-        headers["author"] = str(author)
+
+        if author is None:
+            author = ""
+        else:
+            author = str(author.id)
+        headers["author"] = author
 
         return await self.post(APIEndpoints.EDIT_QUOTE, headers)
 

@@ -3,7 +3,7 @@ import discord
 from discord import Spotify
 from discord.ext import commands
 
-from ..GeneralUtilities import GeneralUtilities, PermissionHandler, CommandAccess
+from ..GeneralUtilities import PermissionHandler, CommandAccess
 
 
 class Fun(commands.Cog):
@@ -16,25 +16,25 @@ class Fun(commands.Cog):
 
 	@fun.command()
 	@commands.guild_only()
-	async def stab(self, ctx: discord.ApplicationContext, user=None):
+	async def stab(self, ctx: discord.ApplicationContext, user: discord.User):
 		"""Stab someone, or something."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "stab")
 		if not failedPermissionCheck:
-			if user is None:
-				embed.title = "Failed to stab"
-				embed.description = "You have to tell me who you want to stab."
+			if await CommandAccess.is_superuser(self.mph, ctx.author.id):
+				embed.title = "Refusing to Stab"
+				embed.description = "How dare you try to stab a superuser!"
 			else:
 				embed.title = "A BLOODY MASSACRE"
-				embed.description = "*" + user + " was stabbed by " + ctx.author.mention + "*"
+				embed.description = "*" + user.mention + " was stabbed by " + ctx.author.mention + "*"
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "stab", ctx.guild.id)
 
 	@fun.command()
 	@commands.guild_only()
-	async def spotify(self, ctx: discord.ApplicationContext, user=None):
+	async def spotify(self, ctx: discord.ApplicationContext, user: discord.User = None):
 		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -43,8 +43,6 @@ class Fun(commands.Cog):
 			if user is None:
 				user = ctx.author
 			nonSpotifyActivities = 0
-			if isinstance(user, str):
-				user = ctx.guild.get_member(int(await GeneralUtilities.strip_usernames(user)))
 			if user.activities:
 				for activity in user.activities:
 					if isinstance(activity, Spotify):
