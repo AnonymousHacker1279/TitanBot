@@ -1,4 +1,5 @@
 import math
+from datetime import datetime
 
 import discord
 from discord.ext import commands
@@ -25,7 +26,6 @@ class Quotes(commands.Cog):
 
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "quote")
 		if not failedPermissionCheck:
-
 			# Check if a quote ID was provided
 			if quote_id is None:
 				# Get a random quote
@@ -44,7 +44,7 @@ class Quotes(commands.Cog):
 				author = quote_json["author"]
 				date = quote_json["date"]
 				quoted_by = quote_json["quoted_by"]
-				quote_number = str(quote_json["quote_number"])
+				quote_number = quote_json["quote_number"]
 				embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, quote_number, date, quoted_by)
 
 		await ctx.respond(embed=embed)
@@ -81,8 +81,11 @@ class Quotes(commands.Cog):
 			response = await self.mph.quotes.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
 			quote_number = response["quote_number"]
 
-			embed.title = "Quote Added"
-			embed.description = "The quote has been added to my archives as **Quote #" + str(quote_number) + ".**"
+			# Display the quote being added
+			current_date = str(datetime.now())
+			embed = await QuoteUtils.prepare_quote(ctx, embed, author.id, quote, quote_number, current_date, ctx.author.id)
+
+			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
@@ -98,8 +101,11 @@ class Quotes(commands.Cog):
 			response = await self.mph.quotes.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
 			quote_number = response["quote_number"]
 
-			embed.title = "Quote Added"
-			embed.description = "The quote has been added to my archives as **Quote #" + str(quote_number) + ".**"
+			# Display the quote being added
+			current_date = str(datetime.now())
+			embed = await QuoteUtils.prepare_quote(ctx, embed, message.author.id, message.content, quote_number, current_date, ctx.author.id)
+
+			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
@@ -119,13 +125,14 @@ class Quotes(commands.Cog):
 			else:
 				# Remove the quote with the provided ID
 				response = await self.mph.quotes.remove_quote(ctx.guild.id, quote_id)
-				remaining_quotes = response["quote_count"]
 
 				# Check if the response is empty
-				if len(response) == 0:
+				if response is None or len(response) == 0:
 					embed.title = "Failed to remove quote"
 					embed.description = "You either provided an invalid quote ID (out of bounds), or there are no quotes in the database."
 				else:
+					remaining_quotes = response["quote_count"]
+
 					embed.title = "Quote Removed"
 					embed.description = "The quote has been removed from my archives. There are now **" + str(remaining_quotes) + "** quotes in my archives."
 

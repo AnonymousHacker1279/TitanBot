@@ -16,7 +16,7 @@ class SearchQuotesView(discord.ui.View):
 
 	def __init__(self, ctx: discord.ApplicationContext, mph: ManagementPortalHandler,
 				page: int, total_quotes: int, search_type: SearchTypes, author_id: int = None, content: str = None):
-		super().__init__(timeout=None)
+		super().__init__(timeout=180)
 		self.ctx = ctx
 		self.mph = mph
 		self.page = page

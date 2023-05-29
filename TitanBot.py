@@ -93,16 +93,10 @@ if __name__ == "__main__":
 		await bot.change_presence(activity=status[0], status=status[1])
 		logger.log_info("TitanBot is ready to go!")
 
-
 	@bot.event
-	async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+	async def on_application_command_error(ctx: discord.ApplicationContext, error: commands.CommandError):
 		embed = await ErrorHandler.handle_error(error, logger)
-		await ctx.reply(embed=embed)
-
-	@bot.event
-	async def on_application_command_error(ctx: commands.Context, error: commands.CommandError):
-		embed = await ErrorHandler.handle_error(error, logger)
-		await ctx.reply(embed=embed)
+		await ctx.respond(embed=embed)
 
 	@bot.event
 	async def on_guild_join(ctx: commands.Context):

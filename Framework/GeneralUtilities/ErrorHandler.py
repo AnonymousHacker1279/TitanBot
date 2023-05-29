@@ -1,4 +1,5 @@
 import discord
+from discord import errors
 from discord.ext import commands
 
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
@@ -9,7 +10,7 @@ async def handle_error(error: commands.CommandError, logger: ThreadedLogger):
 
 	should_log = True
 
-	if isinstance(error, commands.errors.CommandInvokeError):
+	if isinstance(error, errors.ApplicationCommandInvokeError):
 		embed.title = "Command Invocation Error"
 		embed.description = "An error occurred while trying to execute the command.\n\n"
 	elif isinstance(error, commands.errors.UserInputError):
@@ -29,7 +30,10 @@ async def handle_error(error: commands.CommandError, logger: ThreadedLogger):
 		embed.title = "Unspecified Error"
 		embed.description = "An error was thrown during the handling of the command, but I don't know how to handle it.\n\n"
 
+	embed.description += "```" + str(error) + "```"
+
 	if should_log:
+		embed.set_footer(text="This error has been logged and will be visible on the management portal.")
 		logger.log_error("Error running command: " + str(error))
 
 	return embed

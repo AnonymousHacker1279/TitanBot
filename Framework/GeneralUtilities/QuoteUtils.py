@@ -8,8 +8,8 @@ from discord.errors import HTTPException, NotFound
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
-async def prepare_quote(ctx, embed, author, content, quoteID, date, quotedBy) -> discord.Embed:
-	embed.title = "Quote #" + quoteID
+async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, author: int, content: str, quoteID: int, date: str, quotedBy: int) -> discord.Embed:
+	embed.title = "Quote #" + str(quoteID)
 
 	links = re.findall('https://[a-zA-Z0-9-./_&]*', content)
 	contentExcludingLinks = ""
@@ -48,12 +48,12 @@ async def prepare_quote(ctx, embed, author, content, quoteID, date, quotedBy) ->
 			embed.set_footer(text="Added " + readable_date + " by " + quoted_by_user)
 		else:
 			embed.description = '> "' + contentExcludingLinks + '"\n'
-			embed.description += " - " + author_user
+			embed.description += " \\- " + author_user
 			embed.set_image(url=links[0])
 			embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
 	else:
 		embed.description = '> "' + content + '"\n'
-		embed.description += " - " + author_user
+		embed.description += " \\- " + author_user
 		embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
 
 	return embed
