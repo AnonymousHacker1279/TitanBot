@@ -14,6 +14,12 @@ class Fun(commands.Cog):
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
+	@discord.option(
+		name="user",
+		description="The user to stab.",
+		type=discord.User,
+		required=True
+	)
 	@fun.command()
 	@commands.guild_only()
 	async def stab(self, ctx: discord.ApplicationContext, user: discord.User):
@@ -32,6 +38,12 @@ class Fun(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "stab", ctx.guild.id)
 
+	@discord.option(
+		name="user",
+		description="The user to get a Spotify status from.",
+		type=discord.User,
+		required=False
+	)
 	@fun.command()
 	@commands.guild_only()
 	async def spotify(self, ctx: discord.ApplicationContext, user: discord.User = None):
@@ -65,6 +77,24 @@ class Fun(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "spotify", ctx.guild.id)
 
+	@discord.option(
+		name="message",
+		description="The message to send.",
+		type=str,
+		required=True
+	)
+	@discord.option(
+		name="channel",
+		description="The channel to send the message in.",
+		type=discord.TextChannel,
+		required=False
+	)
+	@discord.option(
+		name="hide_user",
+		description="Hide the user's identity. (Admin only)",
+		type=bool,
+		required=False
+	)
 	@fun.command()
 	@commands.guild_only()
 	async def speak(self, ctx: discord.ApplicationContext, message: str, channel: discord.TextChannel = None, hide_user: bool = False):

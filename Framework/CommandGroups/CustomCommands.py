@@ -44,6 +44,18 @@ class CustomCommands(commands.Cog):
 		for guild in self.cache_managers:
 			await self.cache_managers[guild].invalidate_cache()
 
+	@discord.option(
+		name="command_name",
+		description="The name of the command.",
+		type=str,
+		required=True
+	)
+	@discord.option(
+		name="args",
+		description="The arguments to pass to the command. Separate arguments with a comma.",
+		type=str,
+		required=False
+	)
 	@custom_commands.command()
 	@commands.guild_only()
 	async def custom_command(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
@@ -104,6 +116,12 @@ class CustomCommands(commands.Cog):
 			await ctx.send_modal(modal)
 			await self.mph.update_management_portal_command_used("custom_commands", "add_command", ctx.guild.id)
 
+	@discord.option(
+		name="command_name",
+		description="The name of the command.",
+		type=str,
+		required=False
+	)
 	@custom_commands.command()
 	@commands.guild_only()
 	async def remove_command(self, ctx: discord.ApplicationContext, command_name: str = None):
@@ -161,6 +179,12 @@ class CustomCommands(commands.Cog):
 
 		await self.mph.update_management_portal_command_used("custom_commands", "remove_command", ctx.guild.id)
 
+	@discord.option(
+		name="command_name",
+		description="The name of the command.",
+		type=str,
+		required=False
+	)
 	@custom_commands.command()
 	@commands.guild_only()
 	async def command_info(self, ctx: discord.ApplicationContext, command_name: str = None):

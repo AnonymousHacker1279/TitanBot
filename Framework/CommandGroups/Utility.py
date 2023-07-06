@@ -59,6 +59,12 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "coin_flip", ctx.guild.id)
 
+	@discord.option(
+		name="sides",
+		description="The number of sides on the die.",
+		type=int,
+		required=False
+	)
 	@utility.command()
 	@commands.guild_only()
 	async def roll_die(self, ctx: discord.ApplicationContext, sides: int = 6):
@@ -200,6 +206,24 @@ class Utility(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("utility", "status", ctx.guild.id)
 
+	@discord.option(
+		name="url",
+		description="The URL to generate a QR code for.",
+		type=str,
+		required=True
+	)
+	@discord.option(
+		name="transparent",
+		description="Whether or not the QR code should be transparent.",
+		type=bool,
+		required=False
+	)
+	@discord.option(
+		name="pixel_size",
+		description="The size of each pixel in the QR code.",
+		type=int,
+		required=False
+	)
 	@utility.command()
 	@commands.guild_only()
 	async def qr_generator(self, ctx: discord.ApplicationContext, url: str, transparent: bool = False, pixel_size: int = 5):

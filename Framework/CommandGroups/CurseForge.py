@@ -14,6 +14,18 @@ class CurseForge(commands.Cog):
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
+	@discord.option(
+		name="project_id",
+		description="The CurseForge project ID.",
+		type=int,
+		required=True
+	)
+	@discord.option(
+		name="announcement_channel",
+		description="The channel to announce updates in.",
+		type=discord.TextChannel,
+		required=True
+	)
 	@curseforge.command()
 	@commands.guild_only()
 	async def add_project(self, ctx: discord.ApplicationContext, project_id: int, announcement_channel: discord.TextChannel):
@@ -51,6 +63,12 @@ class CurseForge(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("curseforge", "add_project", ctx.guild.id)
 
+	@discord.option(
+		name="project_id",
+		description="The CurseForge project ID.",
+		type=int,
+		required=True
+	)
 	@curseforge.command()
 	@commands.guild_only()
 	async def remove_project(self, ctx: discord.ApplicationContext, project_id: int):

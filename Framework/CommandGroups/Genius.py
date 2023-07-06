@@ -12,6 +12,18 @@ class Genius(commands.Cog):
 	def __init__(self, management_portal_handler):
 		self.mph = management_portal_handler
 
+	@discord.option(
+		name="artist",
+		description="The artist of the song.",
+		type=str,
+		required=True
+	)
+	@discord.option(
+		name="song",
+		description="The name of the song.",
+		type=str,
+		required=True
+	)
 	@genius.command()
 	@commands.guild_only()
 	async def search_songs(self, ctx: discord.ApplicationContext, artist: str, song: str):
@@ -34,6 +46,12 @@ class Genius(commands.Cog):
 		else:
 			await ctx.respond(embed=embed)
 
+	@discord.option(
+		name="url",
+		description="The Genius URL of the song.",
+		type=str,
+		required=True
+	)
 	@genius.command()
 	@commands.guild_only()
 	async def get_lyrics_by_url(self, ctx: discord.ApplicationContext, url: str):
@@ -55,6 +73,12 @@ class Genius(commands.Cog):
 		else:
 			await ctx.respond(embed=embed)
 
+	@discord.option(
+		name="song_id",
+		description="The Genius ID of the song.",
+		type=int,
+		required=True
+	)
 	@genius.command()
 	@commands.guild_only()
 	async def get_lyrics_by_id(self, ctx: discord.ApplicationContext, song_id: int):

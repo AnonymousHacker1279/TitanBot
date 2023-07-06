@@ -18,6 +18,12 @@ class Quotes(commands.Cog):
 		self.mph = management_portal_handler
 
 	@quotes.command()
+	@discord.option(
+		name="quote_id",
+		description="The ID of a quote to get.",
+		type=int,
+		required=False
+	)
 	@commands.guild_only()
 	async def quote(self, ctx: discord.ApplicationContext, quote_id: int = None):
 		"""Get a random quote, if an ID isn't provided."""
@@ -71,6 +77,18 @@ class Quotes(commands.Cog):
 		await self.mph.update_management_portal_command_used("quotes", "total_quotes", ctx.guild.id)
 
 	@quotes.command()
+	@discord.option(
+		name="quote",
+		description="The quote to add.",
+		type=str,
+		required=True
+	)
+	@discord.option(
+		name="author",
+		description="The author of the quote.",
+		type=discord.User,
+		required=True
+	)
 	@commands.guild_only()
 	async def add_quote(self, ctx: discord.ApplicationContext, quote: str, author: discord.User):
 		"""Did someone say something stupid? Make them remember it with a quote."""
@@ -111,6 +129,12 @@ class Quotes(commands.Cog):
 		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
 
 	@quotes.command()
+	@discord.option(
+		name="quote_id",
+		description="The ID of a quote to remove.",
+		type=int,
+		required=True
+	)
 	@commands.guild_only()
 	async def remove_quote(self, ctx: discord.ApplicationContext, quote_id: int):
 		"""Need to purge a quote? Use this. Only available to administrators."""
@@ -140,6 +164,24 @@ class Quotes(commands.Cog):
 		await self.mph.update_management_portal_command_used("quotes", "remove_quote", ctx.guild.id)
 
 	@quotes.command()
+	@discord.option(
+		name="quote_id",
+		description="The ID of a quote to edit.",
+		type=int,
+		required=True
+	)
+	@discord.option(
+		name="quote",
+		description="A new quote to replace the old one.",
+		type=str,
+		required=False
+	)
+	@discord.option(
+		name="author",
+		description="A new author to replace the old one.",
+		type=discord.User,
+		required=False
+	)
 	@commands.guild_only()
 	async def edit_quote(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: discord.User = None):
 		"""Need to edit a quote? Use this. Only available to administrators."""
@@ -165,6 +207,18 @@ class Quotes(commands.Cog):
 		await self.mph.update_management_portal_command_used("quotes", "edit_quote", ctx.guild.id)
 
 	@quotes.command()
+	@discord.option(
+		name="quote_author",
+		description="An author to search for quotes by.",
+		type=discord.User,
+		required=True
+	)
+	@discord.option(
+		name="page",
+		description="The page of quotes to display. This is zero-indexed, so the first page is 0.",
+		type=int,
+		required=False
+	)
 	@commands.guild_only()
 	async def search_quotes_author(self, ctx: discord.ApplicationContext, quote_author: discord.User, page: int = 0):
 		"""Search quotes by author. Lists up to ten per page."""
@@ -186,6 +240,18 @@ class Quotes(commands.Cog):
 		await ctx.respond(embed=embed, view=view)
 		await self.mph.update_management_portal_command_used("quotes", "search_quotes_author", ctx.guild.id)
 
+	@discord.option(
+		name="text",
+		description="A snippet of text to search for.",
+		type=str,
+		required=True
+	)
+	@discord.option(
+		name="page",
+		description="The page of quotes to display. This is zero-indexed, so the first page is 0.",
+		type=int,
+		required=False
+	)
 	@quotes.command()
 	@commands.guild_only()
 	async def search_quotes_text(self, ctx: discord.ApplicationContext, text: str, page: int = 0):
