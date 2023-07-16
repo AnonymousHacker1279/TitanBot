@@ -58,11 +58,11 @@ class Quotes(commands.Cog):
 
 	@quotes.command()
 	@commands.guild_only()
-	async def total_quotes(self, ctx: discord.ApplicationContext):
+	async def total(self, ctx: discord.ApplicationContext):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "total_quotes")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "total")
 		if not failedPermissionCheck:
 			response = await self.mph.quotes.get_total_quotes(ctx.guild.id)
 			total_quotes = response["total_quotes"]
@@ -74,7 +74,7 @@ class Quotes(commands.Cog):
 				embed.description = "I have " + str(total_quotes) + " quotes in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "total_quotes", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "total", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -90,11 +90,11 @@ class Quotes(commands.Cog):
 		required=True
 	)
 	@commands.guild_only()
-	async def add_quote(self, ctx: discord.ApplicationContext, quote: str, author: discord.User):
+	async def add(self, ctx: discord.ApplicationContext, quote: str, author: discord.User):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add_quote")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add")
 		if not failedPermissionCheck:
 			response = await self.mph.quotes.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
 			quote_number = response["quote_number"]
@@ -106,15 +106,15 @@ class Quotes(commands.Cog):
 			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "add", ctx.guild.id)
 
 	@commands.message_command(name='Add Quote')
 	@commands.guild_only()
-	async def add_quote_message_cmd(self, ctx: discord.ApplicationContext, message: discord.Message):
+	async def add_message_cmd(self, ctx: discord.ApplicationContext, message: discord.Message):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add_quote")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add")
 		if not failedPermissionCheck:
 			response = await self.mph.quotes.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
 			quote_number = response["quote_number"]
@@ -126,7 +126,7 @@ class Quotes(commands.Cog):
 			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "add_quote", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "add", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -136,11 +136,11 @@ class Quotes(commands.Cog):
 		required=True
 	)
 	@commands.guild_only()
-	async def remove_quote(self, ctx: discord.ApplicationContext, quote_id: int):
+	async def remove(self, ctx: discord.ApplicationContext, quote_id: int):
 		"""Need to purge a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "remove_quote", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "remove", True)
 		if not failedPermissionCheck:
 
 			if quote_id < 0:
@@ -161,7 +161,7 @@ class Quotes(commands.Cog):
 					embed.description = "The quote has been removed from my archives. There are now **" + str(remaining_quotes) + "** quotes in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "remove_quote", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "remove", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -183,11 +183,11 @@ class Quotes(commands.Cog):
 		required=False
 	)
 	@commands.guild_only()
-	async def edit_quote(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: discord.User = None):
+	async def edit(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: discord.User = None):
 		"""Need to edit a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "edit_quote", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "edit", True)
 		if not failedPermissionCheck:
 
 			if quote_id < 0:
@@ -204,7 +204,7 @@ class Quotes(commands.Cog):
 				embed.description = "The quote has been edited in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "edit_quote", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "edit", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -220,13 +220,13 @@ class Quotes(commands.Cog):
 		required=False
 	)
 	@commands.guild_only()
-	async def search_quotes_author(self, ctx: discord.ApplicationContext, quote_author: discord.User, page: int = 0):
+	async def search_author(self, ctx: discord.ApplicationContext, quote_author: discord.User, page: int = 0):
 		"""Search quotes by author. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		total_quotes = 0
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_quotes_author")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_author")
 		if not failedPermissionCheck:
 			embed, total_quotes = await QuoteUtils.handle_searching_author(ctx, self.mph, page, embed, quote_author.id)
 
@@ -238,7 +238,7 @@ class Quotes(commands.Cog):
 			view.next_page.disabled = True
 
 		await ctx.respond(embed=embed, view=view)
-		await self.mph.update_management_portal_command_used("quotes", "search_quotes_author", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "search_author", ctx.guild.id)
 
 	@discord.option(
 		name="text",
@@ -254,13 +254,13 @@ class Quotes(commands.Cog):
 	)
 	@quotes.command()
 	@commands.guild_only()
-	async def search_quotes_text(self, ctx: discord.ApplicationContext, text: str, page: int = 0):
+	async def search_text(self, ctx: discord.ApplicationContext, text: str, page: int = 0):
 		"""Search quotes by text. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		total_quotes = 0
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_quotes_text")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_text")
 		if not failedPermissionCheck:
 			embed, total_quotes = await QuoteUtils.handle_searching_content(ctx, self.mph, page, embed, text)
 
@@ -272,16 +272,16 @@ class Quotes(commands.Cog):
 			view.next_page.disabled = True
 
 		await ctx.respond(embed=embed, view=view)
-		await self.mph.update_management_portal_command_used("quotes", "search_quotes_text", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "search_text", ctx.guild.id)
 
 	@quotes.command()
 	@commands.guild_only()
-	async def list_recent_quotes(self, ctx: discord.ApplicationContext):
+	async def list_recent(self, ctx: discord.ApplicationContext):
 		"""List ten of the most recent quotes"""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "list_recent_quotes")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "list_recent")
 		if not failedPermissionCheck:
 
 			# Get the quotes
@@ -300,4 +300,4 @@ class Quotes(commands.Cog):
 					embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "list_recent_quotes", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("quotes", "list_recent", ctx.guild.id)

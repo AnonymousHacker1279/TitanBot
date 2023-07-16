@@ -1,4 +1,5 @@
 import atexit
+import sys
 
 import discord
 from discord.ext import commands
@@ -24,7 +25,7 @@ from Framework.Osmium.Osmium import Osmium
 if __name__ == "__main__":
 
 	database_version = 7
-	ConfigurationValues.VERSION = "v2.7.0"
+	ConfigurationValues.VERSION = "v2.8.0-indev"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
@@ -41,6 +42,7 @@ if __name__ == "__main__":
 
 	logger = ThreadedLogger("TitanBot", management_portal_handler)
 	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
+	logger.log_info("Running on Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]))
 
 	osmium = Osmium(management_portal_handler)
 

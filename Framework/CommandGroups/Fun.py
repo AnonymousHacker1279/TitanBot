@@ -3,7 +3,7 @@ import discord
 from discord import Spotify
 from discord.ext import commands
 
-from ..GeneralUtilities import PermissionHandler, CommandAccess
+from ..GeneralUtilities import PermissionHandler
 
 
 class Fun(commands.Cog):
@@ -28,7 +28,7 @@ class Fun(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "stab")
 		if not failedPermissionCheck:
-			if await CommandAccess.is_superuser(self.mph, ctx.author.id):
+			if await PermissionHandler.is_superuser(self.mph, user.id):
 				embed.title = "Refusing to Stab"
 				embed.description = "How dare you try to stab a superuser!"
 			else:
@@ -111,7 +111,7 @@ class Fun(commands.Cog):
 			try:
 				send_failed = False
 				if hide_user:
-					if user.guild_permissions.administrator or await CommandAccess.is_superuser(self.mph, user.id):
+					if user.guild_permissions.administrator or await PermissionHandler.is_superuser(self.mph, user.id):
 						await channel.send(message)
 					else:
 						send_failed = True
@@ -150,7 +150,7 @@ class Fun(commands.Cog):
 			try:
 				send_failed = False
 				if hide_user:
-					if user.guild_permissions.administrator or CommandAccess.is_superuser(self.mph, user.id):
+					if user.guild_permissions.administrator or PermissionHandler.is_superuser(self.mph, user.id):
 						await channel.send(message)
 					else:
 						send_failed = True

@@ -58,7 +58,7 @@ class CustomCommands(commands.Cog):
 	)
 	@custom_commands.command()
 	@commands.guild_only()
-	async def custom_command(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
+	async def run(self, ctx: discord.ApplicationContext, command_name: str, args: str = None):
 		"""Execute a custom command."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='Executing your command, please be patient...')
@@ -103,18 +103,18 @@ class CustomCommands(commands.Cog):
 
 	@custom_commands.command()
 	@commands.guild_only()
-	async def add_command(self, ctx: discord.ApplicationContext):
+	async def add(self, ctx: discord.ApplicationContext):
 		"""Add a custom command to the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "custom_commands",
-																				"add_command",
+																				"add",
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
 			enable_vt_scanning = await self.mph.cm.get_guild_specific_value(ctx.guild.id, "enable_custom_commands_malware_scanning")
 			modal = CustomCommandModals.AddCommand(title="Add a custom command", vt_scan_enabled=enable_vt_scanning, cache_managers=self.cache_managers)
 			await ctx.send_modal(modal)
-			await self.mph.update_management_portal_command_used("custom_commands", "add_command", ctx.guild.id)
+			await self.mph.update_management_portal_command_used("custom_commands", "add", ctx.guild.id)
 
 	@discord.option(
 		name="command_name",
@@ -124,12 +124,12 @@ class CustomCommands(commands.Cog):
 	)
 	@custom_commands.command()
 	@commands.guild_only()
-	async def remove_command(self, ctx: discord.ApplicationContext, command_name: str = None):
+	async def remove(self, ctx: discord.ApplicationContext, command_name: str = None):
 		"""Remove a custom command from the archive."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "custom_commands",
-																				"remove_command",
+																				"remove",
 																				shouldCheckForAdmin=True)
 		if not failedPermissionCheck:
 			if command_name is not None:
@@ -177,7 +177,7 @@ class CustomCommands(commands.Cog):
 		await self.cache_managers["data"][ctx.guild_id].invalidate_cache()
 		await self.cache_managers["metadata"][ctx.guild_id].invalidate_cache()
 
-		await self.mph.update_management_portal_command_used("custom_commands", "remove_command", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("custom_commands", "remove", ctx.guild.id)
 
 	@discord.option(
 		name="command_name",
@@ -187,12 +187,12 @@ class CustomCommands(commands.Cog):
 	)
 	@custom_commands.command()
 	@commands.guild_only()
-	async def command_info(self, ctx: discord.ApplicationContext, command_name: str = None):
+	async def info(self, ctx: discord.ApplicationContext, command_name: str = None):
 		"""Get information about a custom command."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "custom_commands",
-																				"command_info")
+																				"info")
 		if not failedPermissionCheck:
 			if command_name is not None:
 				with open(await DatabaseObjects.get_custom_commands_metadata_database(ctx.guild.id), 'r') as f:
@@ -233,4 +233,4 @@ class CustomCommands(commands.Cog):
 				embed.description = "You must specify a command name to get information."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("custom_commands", "command_info", ctx.guild.id)
+		await self.mph.update_management_portal_command_used("custom_commands", "info", ctx.guild.id)

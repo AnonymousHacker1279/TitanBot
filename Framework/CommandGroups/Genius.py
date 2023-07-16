@@ -26,16 +26,16 @@ class Genius(commands.Cog):
 	)
 	@genius.command()
 	@commands.guild_only()
-	async def search_songs(self, ctx: discord.ApplicationContext, artist: str, song: str):
+	async def search(self, ctx: discord.ApplicationContext, artist: str, song: str):
 		"""Search for a song by artist and song name."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "genius", "search_songs")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "genius", "search")
 
 		if not failedPermissionCheck:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
-			await self.mph.update_management_portal_command_used("genius", "search_songs", ctx.guild.id)
+			await self.mph.update_management_portal_command_used("genius", "search", ctx.guild.id)
 
 			embed.title = artist + " - " + song
 			result, geniusID = await GeniusQuery.search_songs(artist, song)
@@ -54,16 +54,16 @@ class Genius(commands.Cog):
 	)
 	@genius.command()
 	@commands.guild_only()
-	async def get_lyrics_by_url(self, ctx: discord.ApplicationContext, url: str):
+	async def get_by_url(self, ctx: discord.ApplicationContext, url: str):
 		"""Search for a song by its Genius URL."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "genius", "get_lyrics_by_url")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "genius", "get_by_url")
 
 		if not failedPermissionCheck:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
-			await self.mph.update_management_portal_command_used("genius", "get_lyrics_by_url", ctx.guild.id)
+			await self.mph.update_management_portal_command_used("genius", "get_by_url", ctx.guild.id)
 
 			embed.title = "Lyrics by URL"
 			result = await GeniusQuery.get_lyrics_by_url(url)
@@ -81,17 +81,17 @@ class Genius(commands.Cog):
 	)
 	@genius.command()
 	@commands.guild_only()
-	async def get_lyrics_by_id(self, ctx: discord.ApplicationContext, song_id: int):
+	async def get_by_id(self, ctx: discord.ApplicationContext, song_id: int):
 		"""Search for a song by its Genius ID."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "genius",
-																				"get_lyrics_by_id")
+																				"get_by_id")
 
 		if not failedPermissionCheck:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
-			await self.mph.update_management_portal_command_used("genius", "get_lyrics_by_id", ctx.guild.id)
+			await self.mph.update_management_portal_command_used("genius", "get_by_id", ctx.guild.id)
 
 			embed.title = "Lyrics by ID"
 			result = await GeniusQuery.get_lyrics_by_id(song_id)

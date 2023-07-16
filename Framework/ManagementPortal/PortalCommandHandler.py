@@ -56,6 +56,7 @@ class PortalCommandHandler:
 			with open(await DatabaseObjects.get_global_configuration_database(), "w") as f:
 				json.dump(global_configuration, f, indent=4)
 
+			config_error_occurred = False
 			for guild in self.mph.bot.guilds:
 				with open(await DatabaseObjects.get_configuration_database(guild.id), "w") as f:
 					server_specific_config = await self.mph.get_management_portal_configuration(guild.id)
@@ -67,7 +68,14 @@ class PortalCommandHandler:
 					config = global_configuration
 					for group in server_specific_config:
 						for key in server_specific_config[group]:
-							config[group][key] = server_specific_config[group][key]
+							try:
+								config[group][key] = server_specific_config[group][key]
+							except KeyError:
+								self.logger.log_error("KeyError when merging global configuration with server specific configuration,"
+													" a key may exist on the server specific configuration but not in the global configuration")
+								self.logger.log_error("Offending entry, Key: " + key + ", Group: " + group)
+								config_error_occurred = True
+								pass
 
 					# Convert keys from strings if they are numbers or a boolean
 					for group in config:
@@ -84,8 +92,13 @@ class PortalCommandHandler:
 
 					json.dump(config, f, indent=4)
 
+			if config_error_occurred:
+				self.logger.log_error("An error occurred when updating the configuration, please check the logs for more information")
+				self.logger.log_error("The bot will attempt to run but unexpected failures may occur")
+
 			# Reload the configuration
 			await self.mph.cm.load_deferred_configs(self.mph, self.mph.bot.guilds)
+			self.logger.log_debug("Reloading deferred configurations")
 			# Update the bot status
 			status_config = await self.mph.cm.get_value("discord_status")
 			status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],

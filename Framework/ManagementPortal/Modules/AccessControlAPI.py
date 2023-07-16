@@ -7,11 +7,11 @@ class AccessControlAPI(ManagementPortalHandler):
 	def __int__(self):
 		return 0
 
-	async def toggle_command_access(self, user_id: int, guild_id: int, command_name: str) -> dict:
+	async def toggle_command_access(self, user_id: int, guild_id: int, module_name: str, command_name: str) -> dict:
 		headers = self.base_headers.copy()
 		headers["user_id"] = str(user_id)
 		headers["guild_id"] = str(guild_id)
-		headers["command_name"] = command_name
+		headers["command_name"] = command_name + "[" + module_name + "]"
 
 		return await self.post(APIEndpoints.TOGGLE_FEATURE_ACCESS, headers)
 

@@ -26,16 +26,16 @@ class AccessControl(commands.Cog):
 	)
 	@access_control.command()
 	@commands.guild_only()
-	async def toggle_command_access(self, ctx: discord.ApplicationContext, user: discord.User, command: str):
+	async def toggle_command_access(self, ctx: discord.ApplicationContext, user: discord.User, module: str, command: str):
 		"""Toggle access to a specific command. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "access_control", "toggle_command_access", True)
 		if not failedPermissionCheck:
-			await self.mph.access_control.toggle_command_access(user.id, ctx.guild_id, command)
+			await self.mph.access_control.toggle_command_access(user.id, ctx.guild_id, module, command)
 
 			embed.title = "Command Access Toggled"
-			embed.description = f"Command access for {user.mention} has been toggled for `{command}`."
+			embed.description = f"Command access for {user.mention} has been toggled for `{command}` in `{module}`."
 
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("access_control", "toggle_command_access", ctx.guild.id)
