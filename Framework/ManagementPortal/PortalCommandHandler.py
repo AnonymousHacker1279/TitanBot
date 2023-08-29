@@ -102,5 +102,6 @@ class PortalCommandHandler:
 			# Update the bot status
 			status_config = await self.mph.cm.get_value("discord_status")
 			status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
-												status_config["activity_url"], status_config["status_level"])
+												status_config["activity_url"], status_config["activity_emoji"],
+												status_config["status_level"])
 			await self.mph.bot.change_presence(activity=status[0], status=status[1])

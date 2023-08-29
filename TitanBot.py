@@ -91,7 +91,8 @@ if __name__ == "__main__":
 		# Set the bot status
 		status_config = await configuration_manager.get_value("discord_status")
 		status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
-											status_config["activity_url"], status_config["status_level"])
+											status_config["activity_url"], status_config["activity_emoji"],
+											status_config["status_level"])
 		await bot.change_presence(activity=status[0], status=status[1])
 		logger.log_info("TitanBot is ready to go!")
 
