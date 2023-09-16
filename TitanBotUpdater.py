@@ -41,14 +41,6 @@ os.chdir(target_directory)
 print("Making temporary directory")
 temp_directory = tempfile.mkdtemp()
 
-# Extract the update file to the temporary directory
-print("Unpacking update file")
-shutil.unpack_archive(metadata["update_file"], temp_directory)
-
-# Get the name of the directory that contains the update files
-update_directory = os.listdir(temp_directory)[0]
-update_directory = str(update_directory)
-
 # Backup the target directory
 backup_file = metadata["previous_version"] + "_" + metadata["previous_commit"] + "_backup"
 
@@ -58,24 +50,6 @@ print("Backing up the target directory")
 if os.path.exists(target_directory + "\\Storage\\UpdateManager\\Backups\\"):
 	shutil.move(target_directory + "\\Storage\\UpdateManager\\Backups\\", temp_directory + "\\Backups\\")
 shutil.make_archive(backup_file, "gztar", target_directory)
-
-# Delete some directories
-# This is purged in case an update deletes or renames a file, so that it is not left behind
-print("Purging directories")
-shutil.rmtree("Framework")
-shutil.rmtree("Resources")
-
-# Move the contents of the update directory to the target directory
-# Directories and files must be done separately, otherwise shutil.move will throw an error
-print("Moving update files to target directory")
-for item in os.listdir(temp_directory + "\\" + update_directory):
-	# check if the item is a file or directory
-	if os.path.isfile(temp_directory + "\\" + update_directory + "\\" + item):
-		# move the file
-		shutil.copy2(temp_directory + "\\" + update_directory + "\\" + item, target_directory)
-	else:
-		# move the directory
-		shutil.copytree(temp_directory + "\\" + update_directory + "\\" + item, target_directory + "\\" + item)
 
 # Move the backup file to the target directory
 # Make the directory if it does not exist
@@ -89,12 +63,15 @@ if os.path.exists(temp_directory + "\\Backups\\"):
 	for item in os.listdir(temp_directory + "\\Backups\\"):
 		shutil.move(temp_directory + "\\Backups\\" + item, target_directory + "\\Storage\\UpdateManager\\Backups\\")
 
+# Use Git to update the target directory
+print("Updating from GitHub repository")
+gh_branch = metadata["github_branch"]
+os.system("git fetch --all")
+os.system("git reset --hard origin/" + gh_branch)
+
 # Delete the extracted directory and its contents
 print("Cleaning up")
 shutil.rmtree(temp_directory)
-
-# Delete the update file
-os.remove(metadata["update_file"])
 
 # Delete the metadata file
 os.remove(metadata_file)

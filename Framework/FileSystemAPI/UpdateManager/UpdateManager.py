@@ -27,6 +27,7 @@ class UpdateManager:
 		self.update_configuration = GeneralUtilities.run_and_get(cm.get_value("bot_update"))
 
 		self.gh_repository = ConfigurationValues.UPDATE_REPOSITORY
+		self.gh_branch = ConfigurationValues.UPDATE_BRANCH
 		self.restart_on_update = self.update_configuration["restart_on_update"]
 
 		self.update_available = False
@@ -69,21 +70,7 @@ class UpdateManager:
 		# Download the latest release from the GitHub repository
 		if self.update_available:
 			await self.bot.change_presence(activity=discord.Game(name="Downloading updates..."), status=discord.Status.dnd)
-			self.logger.log_info("Downloading update...")
-			# Get the download URL for the latest release, target the .tar.gz file
-			download_url = self.latest_release_info["tarball_url"]
-			# Download the latest release
-			async with aiohttp.ClientSession() as session:
-				async with session.get(download_url) as response:
-					# Write the latest release to a file
-					# Delete the old update file if it exists
-					path = await DatabaseObjects.get_update_directory() + "\\update.tar.gz"
-					if os.path.exists(path):
-						os.remove(path)
-
-					with open(path, "wb") as file:
-						file.write(await response.read())
-					self.logger.log_info("Update downloaded to " + path)
+			self.logger.log_info("Preparing for update...")
 
 			# Create a metadata file for the update
 			with open(await DatabaseObjects.get_update_metadata(), "w") as file:
@@ -96,7 +83,8 @@ class UpdateManager:
 					"version": tag_name,
 					"previous_version": ConfigurationValues.VERSION,
 					"previous_commit": ConfigurationValues.COMMIT,
-					"update_file": path,
+					"github_repository": self.gh_repository,
+					"github_branch": self.gh_branch
 				}
 
 				json.dump(update_metadata, file, indent=4)

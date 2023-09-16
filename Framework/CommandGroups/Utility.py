@@ -253,4 +253,3 @@ class Utility(commands.Cog):
 			await ctx.respond(embed=embed)
 
 		await self.mph.update_management_portal_command_used("utility", "qr_generator", ctx.guild.id)
-		
