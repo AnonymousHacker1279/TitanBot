@@ -131,44 +131,6 @@ class Fun(commands.Cog):
 		await ctx.respond(embed=embed)
 		await self.mph.update_management_portal_command_used("fun", "speak", ctx.guild.id)
 
-	@fun.command(guild_ids=[1025825210005475408])
-	@commands.guild_only()
-	async def speak_debug_only(self, ctx: discord.ApplicationContext, message: str, channel: str = None, hide_user: bool = False):
-		"""Make the bot say something in a channel. Debug only, allows any channel ID."""
-
-		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "speak")
-		if not failedPermissionCheck:
-			user = ctx.author
-
-			if channel is None:
-				channel = ctx.channel
-			else:
-				# lookup channel by id
-				channel = ctx.bot.get_channel(int(channel))
-
-			try:
-				send_failed = False
-				if hide_user:
-					if user.guild_permissions.administrator or PermissionHandler.is_superuser(self.mph, user.id):
-						await channel.send(message)
-					else:
-						send_failed = True
-				else:
-					await channel.send(f"({user.name}) " + message)
-
-				if send_failed:
-					embed.title = "Failed to speak"
-					embed.description = "You do not have permission to hide your identity."
-				else:
-					embed.title = "Message sent"
-					embed.description = f"Sent message to {channel.mention}"
-			except discord.Forbidden:
-				embed.title = "Failed to speak"
-				embed.description = "I don't have permission to speak in that channel."
-
-		await ctx.respond(embed=embed)
-
 	@fun.command()
 	@commands.guild_only()
 	async def inspirobot_query(self, ctx: discord.ApplicationContext):

@@ -5,6 +5,7 @@ from enum import Enum
 
 import aiohttp
 import discord
+import semver
 from discord.ext.bridge import Bot
 
 from Framework.FileSystemAPI import DatabaseObjects
@@ -45,31 +46,35 @@ class UpdateManager:
 		if "-indev" in current_release:
 			self.logger.log_warning("Development version detected, skipping update check")
 			return
-		# If the current release is not the latest release, update is available
-		if current_release != latest_release:
-			self.update_available = True
-			self.logger.log_info("An update is available: " + latest_release)
+		# Use semver to compare the current release to the latest release (strip the v from the version string)
+		match semver.compare(current_release[1:], latest_release[1:]):
+			case -1:
+				self.update_available = True
+				self.logger.log_info("An update is available: " + latest_release)
 
-			# Check if an update has already been downloaded, and is pending installation
-			if os.path.exists(await DatabaseObjects.get_update_metadata()):
-				with open(await DatabaseObjects.get_update_metadata(), "r") as file:
-					update_metadata = json.load(file)
-
-				try:
-					if update_metadata["version"] == latest_release:
-						self.logger.log_info("An update has already been downloaded, and is pending installation")
-						# If it is unscheduled, the bot is just starting up, so install the update
-						if not self.scheduled:
-							await self.install_update()
-				except TypeError:
+				# Check if an update has already been downloaded, and is pending installation
+				if os.path.exists(await DatabaseObjects.get_update_metadata()):
+					with open(await DatabaseObjects.get_update_metadata(), "r") as file:
+						update_metadata = json.load(file)
+					try:
+						if update_metadata["version"] == latest_release:
+							self.logger.log_info("An update has already been downloaded, and is pending installation")
+							# If it is unscheduled, the bot is just starting up, so install the update
+							if not self.scheduled:
+								await self.install_update()
+					except TypeError:
+						await self.download_update(latest_release)
+				else:
 					await self.download_update(latest_release)
-			else:
-				await self.download_update(latest_release)
+			case 0:
+				self.logger.log_info("TitanBot is up to date")
+			case 1:
+				self.logger.log_info("Running a newer version than the latest release, assuming development version")
 
 	async def download_update(self, tag_name: str):
 		# Download the latest release from the GitHub repository
 		if self.update_available:
-			await self.bot.change_presence(activity=discord.Game(name="Downloading updates..."), status=discord.Status.dnd)
+			await self.bot.change_presence(activity=discord.CustomActivity(name="Downloading updates..."), status=discord.Status.dnd)
 			self.logger.log_info("Preparing for update...")
 
 			# Create a metadata file for the update

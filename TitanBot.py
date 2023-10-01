@@ -7,6 +7,7 @@ from discord.ext import commands
 from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.CurseForge import CurseForge
 from Framework.CommandGroups.CustomCommands import CustomCommands
+from Framework.CommandGroups.Debugging import Debugging
 from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
@@ -25,7 +26,7 @@ from Framework.Osmium.Osmium import Osmium
 if __name__ == "__main__":
 
 	database_version = 7
-	ConfigurationValues.VERSION = "v2.8.0-indev"
+	ConfigurationValues.VERSION = "v2.8.0"
 	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
 
 	intents = discord.Intents.all()
@@ -55,12 +56,13 @@ if __name__ == "__main__":
 	bot.add_cog(AccessControl(management_portal_handler))
 	bot.add_cog(custom_commands_module)
 	bot.add_cog(CurseForge(management_portal_handler))
+	bot.add_cog(Debugging(management_portal_handler))
 
 
 	@bot.event
 	async def on_ready():
 		logger.log_info("TitanBot has connected to Discord")
-		await bot.change_presence(activity=discord.Game(name="Initializing..."), status=discord.Status.dnd)
+		await bot.change_presence(activity=discord.CustomActivity(name="Initializing..."), status=discord.Status.dnd)
 
 		# Perform post-initialization for the management portal
 		await management_portal_handler.post_init()
