@@ -1,10 +1,13 @@
 import discord
 
-from Framework.Osmium.Osmium import Osmium
+# from Framework.Osmium.Osmium import Osmium
 
 
-async def execute_with_osmium(osmium: Osmium, js_code, arguments: list, max_execution_time: int, embed: discord.Embed):
-	result, error = await osmium.execute(js_code, arguments, max_execution_time)
+async def execute_with_osmium(osmium, js_code, arguments: list, max_execution_time: int, embed: discord.Embed):
+	# TODO: re-implement once js2py is up to date, or look for alternatives
+	# result, error = await osmium.execute(js_code, arguments, max_execution_time)
+	error = "Custom Commands are currently unavailable due to js2py not supporting Python 3.12"
+	result = []
 	if error is not None:
 		embed.title = "Failed to Execute Custom Command"
 		embed.description = "An error occurred while executing the custom command.\n```" + error + "\n```"

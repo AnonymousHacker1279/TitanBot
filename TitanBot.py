@@ -21,7 +21,8 @@ from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
 from Framework.GeneralUtilities import ErrorHandler, ExitHandler, GeneralUtilities
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
-from Framework.Osmium.Osmium import Osmium
+
+# from Framework.Osmium.Osmium import Osmium
 
 if __name__ == "__main__":
 
@@ -45,9 +46,9 @@ if __name__ == "__main__":
 	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
 	logger.log_info("Running on Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]))
 
-	osmium = Osmium(management_portal_handler)
+	# osmium = Osmium(management_portal_handler)
 
-	custom_commands_module = CustomCommands(management_portal_handler, osmium)
+	custom_commands_module = CustomCommands(management_portal_handler, None)
 
 	bot.add_cog(Quotes(management_portal_handler))
 	bot.add_cog(Fun(management_portal_handler))
@@ -72,6 +73,7 @@ if __name__ == "__main__":
 		await FileAPI.check_storage_metadata(database_version, data_migrator, bot.guilds)
 
 		# Update local configurations and load deferred config values
+		logger.log_info("Updating local configurations and loading deferred config values")
 		await management_portal_handler.command_handler.handle_command("update_configuration", True)
 		await configuration_manager.load_deferred_configs(management_portal_handler, bot.guilds)
 
@@ -85,7 +87,7 @@ if __name__ == "__main__":
 			await update_manager.check_for_updates()
 
 		# Update Osmium's import whitelist
-		await osmium.set_import_whitelist(await configuration_manager.get_value("osmium_import_whitelist"))
+		# await osmium.set_import_whitelist(await configuration_manager.get_value("osmium_import_whitelist"))
 
 		# Send the ready status to the management portal
 		await management_portal_handler.on_ready(update_manager)

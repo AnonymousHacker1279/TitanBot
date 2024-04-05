@@ -12,7 +12,9 @@ from ..FileSystemAPI.CacheManager.CacheLoaders import CustomCommandsCacheLoader
 from ..FileSystemAPI.CacheManager.DatabaseCacheManager import DatabaseCacheManager
 from ..GeneralUtilities import GeneralUtilities, OsmiumInterconnect, PermissionHandler
 from ..ManagementPortal import ManagementPortalHandler
-from ..Osmium import Osmium
+
+
+# from ..Osmium import Osmium
 
 
 class CustomCommands(commands.Cog):
@@ -20,7 +22,7 @@ class CustomCommands(commands.Cog):
 
 	custom_commands = discord.SlashCommandGroup("custom_commands", description="Expand the power of TitanBot with custom commands.")
 
-	def __init__(self, management_portal_handler: ManagementPortalHandler, osmium: Osmium):
+	def __init__(self, management_portal_handler: ManagementPortalHandler, osmium):
 		self.mph = management_portal_handler
 		self.osmium = osmium
 		self.cache_managers = {}
