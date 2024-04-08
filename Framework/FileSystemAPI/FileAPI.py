@@ -1,9 +1,6 @@
 import json
 import os
 
-from Framework.FileSystemAPI import DefaultDatabaseSchemas
-from Framework.FileSystemAPI.DataMigration.DataMigrator import DataMigrator
-
 logger = None
 
 
@@ -43,34 +40,3 @@ async def create_default_database_from_schema(file: str, default_schema: dict) -
 async def create_empty_file(file: str) -> None:
 	with open(file, "w") as f:
 		f.write("")
-
-
-async def check_storage_metadata(current_database_version: int, data_migrator: DataMigrator, guilds) -> None:
-	object_path = os.path.abspath(
-			os.getcwd() + "/Storage/GuildStorageMetadata.json")
-	directory_path = os.path.dirname(object_path)
-
-	await prepare_to_get_database_object(directory_path, object_path,
-										await DefaultDatabaseSchemas.get_storage_metadata_schema())
-
-	with open(object_path, "r") as f:
-		metadata = json.load(f)
-
-	# Check if the metadata contains all the guilds
-	for guild in guilds:
-		# Check if data needs to be migrated from an older version
-		try:
-			if metadata["guilds"][str(guild.id)] < current_database_version:
-				logger.log_info("Migrating guild storage metadata for guild " + str(guild.id))
-				await data_migrator.migrate_storage_metadata(str(guild.id), metadata["guilds"][str(guild.id)])
-		except KeyError:
-			logger.log_info("Adding guild storage metadata for new guild " + str(guild.id))
-
-			# Reload the metadata file to make sure we don't overwrite any changes
-			with open(object_path, "r") as f:
-				metadata = json.load(f)
-
-			metadata["guilds"][str(guild.id)] = current_database_version
-
-			with open(object_path, "w") as f:
-				json.dump(metadata, f, indent=4)

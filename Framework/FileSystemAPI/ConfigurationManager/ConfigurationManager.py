@@ -38,15 +38,10 @@ class ConfigurationManager:
 				self.bot_config["log_level"] = file["logging"]["logging_level"]
 				self.bot_config["genius_api_token"] = file["genius_music"]["genius_api_key"]
 				self.bot_config["cf_api_token"] = file["curseforge"]["cf_api_key"]
-				self.bot_config["virustotal_api_key"] = file["custom_commands"]["vt_api_key"]
-				self.bot_config["osmium_import_whitelist"] = file["custom_commands"]["import_whitelist"]
 
 				# This data is guild specific and could be different in each guild
 				self.bot_config[guild.id] = {}
 				self.bot_config[guild.id]["enable_logging"] = file["logging"]["enable_logging"]
-				self.bot_config[guild.id]["enable_custom_commands_malware_scanning"] = file["custom_commands"][
-					"enable_vt_scanning"]
-				self.bot_config[guild.id]["custom_commands_max_execution_time"] = file["custom_commands"]["command_timeout"]
 				self.bot_config[guild.id]["enabled_modules"] = file["enabled_modules"]
 
 		await self.update_configuration_constants(mph)
@@ -63,7 +58,6 @@ class ConfigurationManager:
 
 		ConfigurationValues.GENIUS_API_TOKEN = await self.get_value("genius_api_token")
 		ConfigurationValues.CF_API_TOKEN = await self.get_value("cf_api_token")
-		ConfigurationValues.VIRUSTOTAL_API_KEY = await self.get_value("virustotal_api_key")
 
 	async def insert_into_config(self, key, value):
 		self.bot_config[key] = value

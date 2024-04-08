@@ -24,19 +24,16 @@ class ManagementPortalHandler:
 		}
 
 		self.quotes = None
-		self.data_migration = None
 		self.cf_checker = None
 		self.access_control = None
 
 	async def post_init(self):
 		"""Initialize the API modules after the bot has connected to Discord."""
-		from Framework.ManagementPortal.Modules.DataMigrationAPI import DataMigrationAPI
 		from Framework.ManagementPortal.Modules.QuotesAPI import QuotesAPI
 		from Framework.ManagementPortal.Modules.CFCheckerAPI import CFCheckerAPI
 		from Framework.ManagementPortal.Modules.AccessControlAPI import AccessControlAPI
 
 		# Define API modules
-		self.data_migration = DataMigrationAPI(self.bot, self.cm)
 		self.quotes = QuotesAPI(self.bot, self.cm)
 		self.cf_checker = CFCheckerAPI(self.bot, self.cm)
 		self.access_control = AccessControlAPI(self.bot, self.cm)
