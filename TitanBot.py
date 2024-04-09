@@ -29,7 +29,7 @@ if __name__ == "__main__":
 	bot.help_command = Help()
 
 	configuration_manager = ConfigurationManager()
-	GeneralUtilities.run_and_get(configuration_manager.load_configs())
+	GeneralUtilities.run_and_get(configuration_manager.load_core_config())
 
 	management_portal_handler = ManagementPortalHandler(bot, configuration_manager)
 
@@ -57,8 +57,7 @@ if __name__ == "__main__":
 		await management_portal_handler.post_init()
 
 		# Update local configurations and load deferred config values
-		logger.log_info("Updating local configurations and loading deferred config values")
-		await management_portal_handler.command_handler.handle_command("update_configuration", True)
+		logger.log_info("Loading configuration data from the management portal")
 		await configuration_manager.load_deferred_configs(management_portal_handler, bot.guilds)
 
 		# Initialize the update manager and check for updates if enabled
