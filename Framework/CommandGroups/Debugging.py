@@ -1,16 +1,14 @@
 import discord
 from discord.ext import commands
 
+from .BasicCog import BasicCog
 from ..GeneralUtilities import PermissionHandler
 
 
-class Debugging(commands.Cog):
+class Debugging(BasicCog):
 	"""Debug only commands."""
 
 	debugging = discord.SlashCommandGroup("debugging", description="Debug only commands", guild_ids=[1025825210005475408])
-
-	def __init__(self, management_portal_handler):
-		self.mph = management_portal_handler
 
 	@debugging.command()
 	@commands.guild_only()
@@ -18,7 +16,7 @@ class Debugging(commands.Cog):
 		"""Make the bot say something in a channel. Debug only, allows any channel ID."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "speak")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
 		if not failedPermissionCheck:
 			user = ctx.author
 
@@ -31,7 +29,7 @@ class Debugging(commands.Cog):
 			try:
 				send_failed = False
 				if hide_user:
-					if user.guild_permissions.administrator or PermissionHandler.is_superuser(self.mph, user.id):
+					if user.guild_permissions.administrator or PermissionHandler.is_superuser(user.id):
 						await channel.send(message)
 					else:
 						send_failed = True

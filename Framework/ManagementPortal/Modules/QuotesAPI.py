@@ -6,9 +6,6 @@ from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalH
 
 class QuotesAPI(ManagementPortalHandler):
 
-    def __int__(self):
-        return 0
-
     async def get_quote(self, guild_id: int, quote_id: int) -> dict:
         headers = self.base_headers.copy()
         headers["guild_id"] = str(guild_id)

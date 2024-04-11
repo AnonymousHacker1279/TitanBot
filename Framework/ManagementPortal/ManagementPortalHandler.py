@@ -1,42 +1,42 @@
 import json
 
 import aiohttp
+from aiohttp import ContentTypeError
 from discord.ext import tasks
 
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
-from Framework.GeneralUtilities import GeneralUtilities
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
-from Framework.ManagementPortal.PortalCommandHandler import PortalCommandHandler
+from GeneralUtilities import GeneralUtilities
 
 
 class ManagementPortalHandler:
+	bot = None
+	base_headers = {}
+	quotes_api = None
+	cf_checker_api = None
+	access_control_api = None
 
-	def __init__(self, bot, configuration_manager):
-		self.bot = bot
-		self.cm = configuration_manager
-		self.logger = ThreadedLogger("ManagementPortalHandler", self)
-		self.command_handler = PortalCommandHandler(self)
+	def __init__(self):
+		self.logger = ThreadedLogger("ManagementPortalHandler")
+		self.command_handler = None
 		self.update_manager = None
 		self.is_first_update_check = True
-		self.base_headers = {
-			'bot_token': GeneralUtilities.generate_sha256_no_async(ConfigurationValues.TOKEN)
-		}
 
-		self.quotes = None
-		self.cf_checker = None
-		self.access_control = None
+	def initialize(self, bot):
+		"""Initialize core variables and API modules."""
+		self.bot = bot
+		self.base_headers["bot_token"] = GeneralUtilities.generate_sha256_no_async(ConfigurationValues.TOKEN)
 
-	async def post_init(self):
-		"""Initialize the API modules after the bot has connected to Discord."""
-		from Framework.ManagementPortal.Modules.QuotesAPI import QuotesAPI
-		from Framework.ManagementPortal.Modules.CFCheckerAPI import CFCheckerAPI
-		from Framework.ManagementPortal.Modules.AccessControlAPI import AccessControlAPI
+		self.__init_api_modules()
 
-		# Define API modules
-		self.quotes = QuotesAPI(self.bot, self.cm)
-		self.cf_checker = CFCheckerAPI(self.bot, self.cm)
-		self.access_control = AccessControlAPI(self.bot, self.cm)
+	def __init_api_modules(self):
+		"""Initialize extra API modules."""
+		from Framework.ManagementPortal.Modules import mp_quotes_api, mp_cf_checker_api, mp_access_control_api
+
+		self.quotes_api = mp_quotes_api
+		self.cf_checker_api = mp_cf_checker_api
+		self.access_control_api = mp_access_control_api
 
 	async def post(self, endpoint, headers: dict = None):
 		"""Send a POST request to the management portal."""
@@ -59,6 +59,10 @@ class ManagementPortalHandler:
 				try:
 					return await response.json()
 				except json.decoder.JSONDecodeError:
+					return {}
+				except ContentTypeError:
+					if response.status != 401 or response.status != 403:
+						self.logger.log_error(f"Unexpected content type received (expected JSON but got {response.content_type}). Response from server: {await response.text()}")
 					return {}
 
 	async def __check_connect_status(self, response_code: int, endpoint: str):
@@ -86,7 +90,7 @@ class ManagementPortalHandler:
 
 		self.update_management_portal_latency.start()
 		self.check_management_portal_pending_commands.start()
-		self.check_for_cf_project_updates.start()
+		self.cf_checker_api.check_for_updates.start()
 
 		self.update_manager = update_manager
 		if ConfigurationValues.AUTO_UPDATE_ENABLED:
@@ -107,6 +111,11 @@ class ManagementPortalHandler:
 	@tasks.loop(seconds=30)
 	async def check_management_portal_pending_commands(self):
 		response = await self.get(APIEndpoints.CHECK_PENDING_COMMANDS, self.base_headers)
+
+		if self.command_handler is None:
+			from Framework.ManagementPortal import portal_command_handler
+			self.command_handler = portal_command_handler
+
 		await self.command_handler.parse_pending_commands(response)
 
 	@tasks.loop(seconds=86400)
@@ -118,35 +127,3 @@ class ManagementPortalHandler:
 			return
 
 		await self.update_manager.check_for_updates()
-
-	@tasks.loop(seconds=600)
-	async def check_for_cf_project_updates(self):
-		await self.cf_checker.check_for_updates()
-
-	async def update_management_portal_command_completed(self, command: str):
-		headers = self.base_headers.copy()
-		headers["command"] = command
-
-		await self.post(APIEndpoints.UPDATE_COMMAND_COMPLETED, headers)
-
-	async def get_management_portal_configuration(self, file_name: str) -> dict:
-		headers = self.base_headers.copy()
-		headers["name"] = file_name
-		return await self.get(APIEndpoints.GET_CONFIGURATION, headers)
-
-	async def update_management_portal_command_used(self, module_name: str, command_name: str, guild_id: int):
-		headers = self.base_headers.copy()
-		headers["module_name"] = module_name
-		headers["command_name"] = command_name
-		headers["guild_id"] = str(guild_id)
-
-		await self.post(APIEndpoints.UPDATE_COMMAND_USED, headers)
-
-	async def management_portal_log_data(self, source: str, level: str, message: str, timestamp: str):
-		headers = self.base_headers.copy()
-		headers["source"] = source
-		headers["log_level"] = level
-		headers["message"] = message
-		headers["timestamp"] = timestamp
-
-		await self.post(APIEndpoints.LOG_DATA, headers)

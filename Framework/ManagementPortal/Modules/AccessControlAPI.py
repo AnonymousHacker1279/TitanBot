@@ -4,9 +4,6 @@ from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalH
 
 class AccessControlAPI(ManagementPortalHandler):
 
-	def __int__(self):
-		return 0
-
 	async def toggle_command_access(self, user_id: int, guild_id: int, module_name: str, command_name: str) -> dict:
 		headers = self.base_headers.copy()
 		headers["user_id"] = str(user_id)

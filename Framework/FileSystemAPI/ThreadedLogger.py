@@ -5,6 +5,7 @@ from multiprocessing import Queue
 from queue import Empty
 from threading import Thread
 
+from APIEndpoints import APIEndpoints
 from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.GeneralUtilities import GeneralUtilities
@@ -29,7 +30,7 @@ class ThreadedLogger:
 	log_file_path = None
 	log_file_lock = None
 
-	def __init__(self, instance_name, management_portal_handler, parent_logger=None):
+	def __init__(self, instance_name, parent_logger=None):
 		self.instance_name = instance_name
 		self.parent_logger = parent_logger
 		self.queue = Queue()
@@ -37,7 +38,7 @@ class ThreadedLogger:
 		self.thread = Thread(target=self._threaded_logger, daemon=True, name="ThreadedLogger-" + instance_name)
 		self.thread.start()
 
-		self.mph = management_portal_handler
+		self.mph = None
 
 		# If this is the first instance of this class, open the log file
 		if ThreadedLogger.log_file_handle is None:
@@ -85,11 +86,25 @@ class ThreadedLogger:
 				ThreadedLogger.log_file_lock.release()
 
 			# Write the message to the management portal
-			asyncio.run_coroutine_threadsafe(self.mph.management_portal_log_data(self.instance_name, message[2].name, message[1], message[3]), self.loop)
+			if self.mph is None:
+				from Framework.ManagementPortal import management_portal_handler
+				self.mph = management_portal_handler
+
+			asyncio.run_coroutine_threadsafe(self.__log_to_mp(self.instance_name, message[2].name, message[1], message[3]), self.loop)
 
 			# If this instance has a parent logger, pass the message to it
 			if self.parent_logger is not None:
 				self.parent_logger.queue.put(message)
+
+	async def __log_to_mp(self, source: str, level: str, message: str, timestamp: str):
+		"""Send a log entry to the management portal."""
+		headers = self.mph.base_headers.copy()
+		headers["source"] = source
+		headers["log_level"] = level
+		headers["message"] = message
+		headers["timestamp"] = timestamp
+
+		await self.mph.post(APIEndpoints.LOG_DATA, headers)
 
 	def log(self, level: LogLevel, message: str):
 		# Check if logging is enabled

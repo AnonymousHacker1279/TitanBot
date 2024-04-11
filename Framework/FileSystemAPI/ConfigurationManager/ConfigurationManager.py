@@ -2,16 +2,8 @@ import os
 
 from dotenv import load_dotenv
 
+from APIEndpoints import APIEndpoints
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues, BotStatus
-
-
-async def update_bot_status(mph):
-	# Update the bot status
-	status_config = await mph.cm.get_value("discord_status")
-	status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
-										status_config["activity_url"], status_config["activity_emoji"],
-										status_config["status_level"])
-	await mph.bot.change_presence(activity=status[0], status=status[1])
 
 
 class ConfigurationManager:
@@ -31,8 +23,10 @@ class ConfigurationManager:
 		ConfigurationValues.TOKEN = self.bot_config["bot_token"]
 		ConfigurationValues.MANAGEMENT_PORTAL_URL = self.bot_config["management_portal_url"]
 
-	async def load_deferred_configs(self, mph, guilds):
-		self.global_config = await mph.get_management_portal_configuration("global")
+	async def load_deferred_configs(self, guilds):
+		from Framework.ManagementPortal import management_portal_handler as mph
+
+		self.global_config = await self.__get_configuration(mph, "global")
 
 		self.bot_config["discord_status"] = self.global_config["discord_status"]
 		self.bot_config["superuser_list"] = self.global_config["superuser_configuration"]["superuser_list"]
@@ -42,14 +36,14 @@ class ConfigurationManager:
 		self.bot_config["cf_api_token"] = self.global_config["curseforge"]["cf_api_key"]
 
 		for guild in guilds:
-			server_config = await mph.get_management_portal_configuration(guild.id)
+			server_config = await self.__get_configuration(mph, guild.id)
 
 			self.bot_config[guild.id] = {}
 			self.bot_config[guild.id]["enable_logging"] = await self.__get_server_specific_config_value(server_config, "logging", "enable_logging")
 			self.bot_config[guild.id]["enabled_modules"] = server_config["enabled_modules"]
 
 		await self.update_configuration_constants(mph)
-		await update_bot_status(mph)
+		await self.update_bot_status(mph)
 
 	async def __get_server_specific_config_value(self, server_config: dict, *sections):
 		"""
@@ -64,6 +58,20 @@ class ConfigurationManager:
 			for section in sections:
 				global_config = global_config[section]
 			return global_config
+
+	async def __get_configuration(self, mph, file_name: str) -> dict:
+		"""Get a configuration from the management portal."""
+		headers = mph.base_headers.copy()
+		headers["name"] = file_name
+		return await mph.get(APIEndpoints.GET_CONFIGURATION, headers)
+
+	async def update_bot_status(self, mph):
+		# Update the bot status
+		status_config = await self.get_value("discord_status")
+		status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
+											status_config["activity_url"], status_config["activity_emoji"],
+											status_config["status_level"])
+		await mph.bot.change_presence(activity=status[0], status=status[1])
 
 	async def update_configuration_constants(self, mph):
 		ConfigurationValues.LOG_LEVEL = await self.get_value("log_level")

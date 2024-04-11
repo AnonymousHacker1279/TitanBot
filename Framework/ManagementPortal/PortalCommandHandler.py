@@ -1,13 +1,16 @@
 import os
 import sys
 
+from APIEndpoints import APIEndpoints
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 
 
 class PortalCommandHandler:
 
-	def __init__(self, management_portal_handler):
-		self.logger = ThreadedLogger("PortalCommandHandler", management_portal_handler)
+	def __init__(self):
+		from Framework.ManagementPortal import management_portal_handler
+
+		self.logger = ThreadedLogger("PortalCommandHandler")
 		self.mph = management_portal_handler
 
 	async def parse_pending_commands(self, content):
@@ -29,19 +32,25 @@ class PortalCommandHandler:
 		if command == "shutdown":
 			# Shutdown the bot
 			self.logger.log_info("Shutdown command received from management portal, shutting down")
-			await self.mph.update_management_portal_command_completed(command)
+			await self.__update_management_portal_command_completed(command)
 
 			exit(0)
 		elif command == "restart":
 			# Restart the bot
 			self.logger.log_info("Restart command received from management portal, restarting")
-			await self.mph.update_management_portal_command_completed(command)
+			await self.__update_management_portal_command_completed(command)
 
 			python = sys.executable
 			os.execl(python, python, *sys.argv)
 		elif command == "update_configuration":
 			# Update the bot configuration
 			self.logger.log_info("Update configuration command received from management portal, updating configuration")
-			await self.mph.update_management_portal_command_completed(command)
+			await self.__update_management_portal_command_completed(command)
 
 			await self.mph.cm.load_deferred_configs(self.mph, self.mph.bot.guilds)
+
+	async def __update_management_portal_command_completed(self, command: str):
+		headers = self.mph.base_headers.copy()
+		headers["command"] = command
+
+		await self.mph.post(APIEndpoints.UPDATE_COMMAND_COMPLETED, headers)

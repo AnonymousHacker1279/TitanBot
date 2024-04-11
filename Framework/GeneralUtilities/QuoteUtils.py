@@ -75,7 +75,7 @@ async def handle_searching_author(ctx: discord.ApplicationContext, mph: Manageme
 			embed.set_footer(text="Cannot get the profile picture for this user. Ensure the author is a valid user.")
 
 		# Get the quotes
-		response = await mph.quotes.search_quotes(ctx.guild.id, "author", author_id=quote_author, page=page)
+		response = await mph.quotes_api.search_quotes(ctx.guild.id, "author", author_id=quote_author, page=page)
 		quotes = response["quotes"]
 		total_quotes = response["total"]
 
@@ -108,7 +108,7 @@ async def handle_searching_content(ctx: discord.ApplicationContext, mph: Managem
 		embed.title = "Quotes Containing '" + text + "'"
 
 		# Get the quotes
-		response = await mph.quotes.search_quotes(ctx.guild.id, "content", search_term=text, page=page)
+		response = await mph.quotes_api.search_quotes(ctx.guild.id, "content", search_term=text, page=page)
 		quotes = response["quotes"]
 		total_quotes = response["total"]
 

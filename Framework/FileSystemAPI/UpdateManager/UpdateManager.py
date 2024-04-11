@@ -13,15 +13,14 @@ from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.FileSystemAPI.ConfigurationManager.ConfigurationManager import ConfigurationManager
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.GeneralUtilities import GeneralUtilities
-from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
 # The update manger checks for new updates on the GitHub repository and
 # downloads/installs them if they are available
 class UpdateManager:
 
-	def __init__(self, mph: ManagementPortalHandler, cm: ConfigurationManager, bot: Bot, scheduled: bool = False):
-		self.logger = ThreadedLogger("UpdateManager", mph)
+	def __init__(self, cm: ConfigurationManager, bot: Bot, scheduled: bool = False):
+		self.logger = ThreadedLogger("UpdateManager")
 		self.configuration_manager = cm
 		self.bot = bot
 		self.scheduled = scheduled

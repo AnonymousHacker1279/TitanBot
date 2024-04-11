@@ -4,18 +4,15 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
+from .BasicCog import BasicCog
 from .Views.SearchQuotesView import SearchQuotesView, SearchTypes
 from ..GeneralUtilities import PermissionHandler, QuoteUtils
-from ..ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
-class Quotes(commands.Cog):
+class Quotes(BasicCog):
 	"""Remember the silly stuff people say."""
 
 	quotes = discord.SlashCommandGroup("quotes", description="Remember the silly stuff people say.")
-
-	def __init__(self, management_portal_handler: ManagementPortalHandler):
-		self.mph = management_portal_handler
 
 	@quotes.command()
 	@discord.option(
@@ -30,15 +27,15 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "quote")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
 		if not failedPermissionCheck:
 			# Check if a quote ID was provided
 			if quote_id is None:
 				# Get a random quote
-				quote_json = await self.mph.quotes.get_quote(ctx.guild.id, -1)
+				quote_json = await self.mph.quotes_api.get_quote(ctx.guild.id, -1)
 			else:
 				# Get the quote with the provided ID
-				quote_json = await self.mph.quotes.get_quote(ctx.guild.id, quote_id)
+				quote_json = await self.mph.quotes_api.get_quote(ctx.guild.id, quote_id)
 
 			# Check if the response is empty
 			if len(quote_json) == 0:
@@ -54,7 +51,7 @@ class Quotes(commands.Cog):
 				embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, quote_number, date, quoted_by)
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "quote", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "quote", ctx.guild.id)
 
 	@quotes.command()
 	@commands.guild_only()
@@ -62,9 +59,9 @@ class Quotes(commands.Cog):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "total")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "total")
 		if not failedPermissionCheck:
-			response = await self.mph.quotes.get_total_quotes(ctx.guild.id)
+			response = await self.mph.quotes_api.get_total_quotes(ctx.guild.id)
 			total_quotes = response["total_quotes"]
 
 			embed.title = "Total Quotes"
@@ -74,7 +71,7 @@ class Quotes(commands.Cog):
 				embed.description = "I have " + str(total_quotes) + " quotes in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "total", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "total", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -94,9 +91,9 @@ class Quotes(commands.Cog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add")
 		if not failedPermissionCheck:
-			response = await self.mph.quotes.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
+			response = await self.mph.quotes_api.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
 			quote_number = response["quote_number"]
 
 			# Display the quote being added
@@ -106,7 +103,7 @@ class Quotes(commands.Cog):
 			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "add", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "add", ctx.guild.id)
 
 	@commands.message_command(name='Add Quote')
 	@commands.guild_only()
@@ -114,9 +111,9 @@ class Quotes(commands.Cog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "add")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add")
 		if not failedPermissionCheck:
-			response = await self.mph.quotes.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
+			response = await self.mph.quotes_api.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
 			quote_number = response["quote_number"]
 
 			# Display the quote being added
@@ -126,7 +123,7 @@ class Quotes(commands.Cog):
 			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "add", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "add", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -140,7 +137,7 @@ class Quotes(commands.Cog):
 		"""Need to purge a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "remove", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "remove", True)
 		if not failedPermissionCheck:
 
 			if quote_id < 0:
@@ -148,7 +145,7 @@ class Quotes(commands.Cog):
 				embed.description = "You cannot remove a quote with a negative ID."
 			else:
 				# Remove the quote with the provided ID
-				response = await self.mph.quotes.remove_quote(ctx.guild.id, quote_id)
+				response = await self.mph.quotes_api.remove_quote(ctx.guild.id, quote_id)
 
 				# Check if the response is empty
 				if response is None or len(response) == 0:
@@ -161,7 +158,7 @@ class Quotes(commands.Cog):
 					embed.description = "The quote has been removed from my archives. There are now **" + str(remaining_quotes) + "** quotes in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "remove", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "remove", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -187,7 +184,7 @@ class Quotes(commands.Cog):
 		"""Need to edit a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "edit", True)
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "edit", True)
 		if not failedPermissionCheck:
 
 			if quote_id < 0:
@@ -198,13 +195,13 @@ class Quotes(commands.Cog):
 				embed.title = "Failed to edit quote"
 				embed.description = "You must pass a quote and/or author to edit."
 			else:
-				await self.mph.quotes.edit_quote(ctx.guild.id, quote_id, quote, author)
+				await self.mph.quotes_api.edit_quote(ctx.guild.id, quote_id, quote, author)
 
 				embed.title = "Quote Edited"
 				embed.description = "The quote has been edited in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "edit", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "edit", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -226,7 +223,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		total_quotes = 0
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_author")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_author")
 		if not failedPermissionCheck:
 			embed, total_quotes = await QuoteUtils.handle_searching_author(ctx, self.mph, page, embed, quote_author.id)
 
@@ -238,7 +235,7 @@ class Quotes(commands.Cog):
 			view.next_page.disabled = True
 
 		await ctx.respond(embed=embed, view=view)
-		await self.mph.update_management_portal_command_used("quotes", "search_author", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "search_author", ctx.guild.id)
 
 	@discord.option(
 		name="text",
@@ -260,7 +257,7 @@ class Quotes(commands.Cog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		total_quotes = 0
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "search_text")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_text")
 		if not failedPermissionCheck:
 			embed, total_quotes = await QuoteUtils.handle_searching_content(ctx, self.mph, page, embed, text)
 
@@ -272,7 +269,7 @@ class Quotes(commands.Cog):
 			view.next_page.disabled = True
 
 		await ctx.respond(embed=embed, view=view)
-		await self.mph.update_management_portal_command_used("quotes", "search_text", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "search_text", ctx.guild.id)
 
 	@quotes.command()
 	@commands.guild_only()
@@ -281,11 +278,11 @@ class Quotes(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "quotes", "list_recent")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "quotes", "list_recent")
 		if not failedPermissionCheck:
 
 			# Get the quotes
-			response = await self.mph.quotes.list_recent_quotes(ctx.guild.id)
+			response = await self.mph.quotes_api.list_recent_quotes(ctx.guild.id)
 			quotes = response["quotes"]
 
 			# Check if the response is empty
@@ -300,4 +297,4 @@ class Quotes(commands.Cog):
 					embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("quotes", "list_recent", ctx.guild.id)
+		await self.update_management_portal_command_used("quotes", "list_recent", ctx.guild.id)

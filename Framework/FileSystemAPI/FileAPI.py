@@ -4,11 +4,11 @@ import os
 logger = None
 
 
-def initialize(management_portal_handler):
+def initialize():
 	global logger
 
 	from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
-	logger = ThreadedLogger("FileAPI", management_portal_handler)
+	logger = ThreadedLogger("FileAPI")
 
 
 async def prepare_to_get_database_object(directory_path: str, object_path: str, default_database_schema=None,

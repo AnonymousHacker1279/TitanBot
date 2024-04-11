@@ -1,5 +1,6 @@
 import aiohttp
 import discord
+from discord.ext import tasks
 
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
@@ -8,9 +9,7 @@ from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalH
 
 class CFCheckerAPI(ManagementPortalHandler):
 
-	def __int__(self):
-		return 0
-
+	@tasks.loop(seconds=600)
 	async def check_for_updates(self, guild_id: int = None):
 		# Get projects list
 		if guild_id is None:

@@ -3,16 +3,14 @@ import discord
 from discord import Spotify
 from discord.ext import commands
 
+from .BasicCog import BasicCog
 from ..GeneralUtilities import PermissionHandler
 
 
-class Fun(commands.Cog):
+class Fun(BasicCog):
 	"""Have fun with some miscellaneous commands."""
 	
 	fun = discord.SlashCommandGroup("fun", description="Have fun with some miscellaneous commands.")
-
-	def __init__(self, management_portal_handler):
-		self.mph = management_portal_handler
 
 	@discord.option(
 		name="user",
@@ -26,9 +24,9 @@ class Fun(commands.Cog):
 		"""Stab someone, or something."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "stab")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "stab")
 		if not failedPermissionCheck:
-			if await PermissionHandler.is_superuser(self.mph, user.id):
+			if await PermissionHandler.is_superuser(user.id):
 				embed.title = "Refusing to Stab"
 				embed.description = "How dare you try to stab a superuser!"
 			else:
@@ -36,7 +34,7 @@ class Fun(commands.Cog):
 				embed.description = "*" + user.mention + " was stabbed by " + ctx.author.mention + "*"
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("fun", "stab", ctx.guild.id)
+		await self.update_management_portal_command_used("fun", "stab", ctx.guild.id)
 
 	@discord.option(
 		name="user",
@@ -50,7 +48,7 @@ class Fun(commands.Cog):
 		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "spotify")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "spotify")
 		if not failedPermissionCheck:
 			if user is None:
 				user = ctx.author
@@ -75,7 +73,7 @@ class Fun(commands.Cog):
 				embed.description = "The user is not listening to Spotify."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("fun", "spotify", ctx.guild.id)
+		await self.update_management_portal_command_used("fun", "spotify", ctx.guild.id)
 
 	@discord.option(
 		name="message",
@@ -101,7 +99,7 @@ class Fun(commands.Cog):
 		"""Make the bot say something in a channel."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "speak")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
 		if not failedPermissionCheck:
 			user = ctx.author
 
@@ -111,7 +109,7 @@ class Fun(commands.Cog):
 			try:
 				send_failed = False
 				if hide_user:
-					if user.guild_permissions.administrator or await PermissionHandler.is_superuser(self.mph, user.id):
+					if user.guild_permissions.administrator or await PermissionHandler.is_superuser(user.id):
 						await channel.send(message)
 					else:
 						send_failed = True
@@ -129,7 +127,7 @@ class Fun(commands.Cog):
 				embed.description = "I don't have permission to speak in that channel."
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("fun", "speak", ctx.guild.id)
+		await self.update_management_portal_command_used("fun", "speak", ctx.guild.id)
 
 	@fun.command()
 	@commands.guild_only()
@@ -137,7 +135,7 @@ class Fun(commands.Cog):
 		"""Generate a random image from InspiroBot."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "inspirobot_query")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
 		if not failedPermissionCheck:
 			# Get an image URL from InspiroBot
 			async with aiohttp.ClientSession() as session:
@@ -150,7 +148,7 @@ class Fun(commands.Cog):
 			embed.set_footer(text="Powered by InspiroBot")
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("fun", "inspirobot_query", ctx.guild.id)
+		await self.update_management_portal_command_used("fun", "inspirobot_query", ctx.guild.id)
 
 	@fun.command()
 	@commands.guild_only()
@@ -158,7 +156,7 @@ class Fun(commands.Cog):
 		"""Get a random and useless, but true, fact."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, self.mph, embed, "fun", "random_fact")
+		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
 		if not failedPermissionCheck:
 			# Get a random fact
 			async with aiohttp.ClientSession() as session:
@@ -171,5 +169,5 @@ class Fun(commands.Cog):
 			embed.set_footer(text="Permalink: " + data["permalink"])
 
 		await ctx.respond(embed=embed)
-		await self.mph.update_management_portal_command_used("fun", "random_fact", ctx.guild.id)
+		await self.update_management_portal_command_used("fun", "random_fact", ctx.guild.id)
 		
