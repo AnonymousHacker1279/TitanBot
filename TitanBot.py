@@ -1,4 +1,5 @@
 import sys
+import threading
 
 import discord
 from discord.ext import commands
@@ -16,6 +17,7 @@ from Framework.FileSystemAPI.ConfigurationManager import BotStatus, Configuratio
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
 from Framework.GeneralUtilities import ErrorHandler, GeneralUtilities
+from Framework.IPC import ipc_handler
 from Framework.ManagementPortal import management_portal_handler
 
 if __name__ == "__main__":
@@ -29,6 +31,7 @@ if __name__ == "__main__":
 
 	# Perform initialization for the management portal
 	management_portal_handler.initialize(bot)
+	ThreadedLogger.initialize(management_portal_handler)
 
 	FileAPI.initialize()
 
@@ -69,6 +72,9 @@ if __name__ == "__main__":
 											status_config["activity_url"], status_config["activity_emoji"],
 											status_config["status_level"])
 		await bot.change_presence(activity=status[0], status=status[1])
+
+		# Start the IPC server
+		threading.Thread(target=ipc_handler.start_server).start()
 
 		logger.log_info("TitanBot is ready to go!")
 

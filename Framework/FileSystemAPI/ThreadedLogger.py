@@ -5,10 +5,10 @@ from multiprocessing import Queue
 from queue import Empty
 from threading import Thread
 
-from APIEndpoints import APIEndpoints
 from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.GeneralUtilities import GeneralUtilities
+from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
 class LogLevel(Enum):
@@ -45,6 +45,9 @@ class ThreadedLogger:
 	log_file_path = None
 	log_file_lock = None
 
+	mph = None
+	ipc_handler = None
+
 	def __init__(self, instance_name, parent_logger=None):
 		self.instance_name = instance_name
 		self.parent_logger = parent_logger
@@ -53,11 +56,16 @@ class ThreadedLogger:
 		self.thread = Thread(target=self._threaded_logger, daemon=True, name="ThreadedLogger-" + instance_name)
 		self.thread.start()
 
-		self.mph = None
-
 		# If this is the first instance of this class, open the log file
 		if ThreadedLogger.log_file_handle is None:
 			self.open_log_file()
+
+	@classmethod
+	def initialize(cls, management_portal_handler):
+		from Framework.IPC import ipc_handler
+
+		cls.mph = management_portal_handler
+		cls.ipc = ipc_handler
 
 	def open_log_file(self):
 		# Open the log file
@@ -83,7 +91,7 @@ class ThreadedLogger:
 				return
 
 			# Write the message to the console
-			prepared_message = message[0] + message[1]
+			prepared_message: str = message[0] + message[1]
 			ansi_color = get_ansi_code(message[2])
 			print(ansi_color + prepared_message, end="")
 
@@ -102,11 +110,10 @@ class ThreadedLogger:
 				ThreadedLogger.log_file_lock.release()
 
 			# Write the message to the management portal
-			if self.mph is None:
-				from Framework.ManagementPortal import management_portal_handler
-				self.mph = management_portal_handler
-
 			asyncio.run_coroutine_threadsafe(self.__log_to_mp(self.instance_name, message[2].name, message[1], message[3]), self.loop)
+
+			# Send messages to connected IPC clients
+			self.ipc.send_update(prepared_message.rstrip("\n"))
 
 			# If this instance has a parent logger, pass the message to it
 			if self.parent_logger is not None:

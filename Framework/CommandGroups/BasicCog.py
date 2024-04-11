@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from APIEndpoints import APIEndpoints
+from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
 class BasicCog(commands.Cog):

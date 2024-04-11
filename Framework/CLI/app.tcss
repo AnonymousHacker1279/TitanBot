@@ -1,0 +1,5 @@
+Input {
+    dock: bottom;
+    margin-bottom: 2;
+    height: 3;
+}

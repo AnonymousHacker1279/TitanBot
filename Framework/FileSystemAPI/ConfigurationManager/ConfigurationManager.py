@@ -2,14 +2,13 @@ import os
 
 from dotenv import load_dotenv
 
-from APIEndpoints import APIEndpoints
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues, BotStatus
+from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
 class ConfigurationManager:
 
 	def __init__(self):
-		self.is_legacy = False
 		self.global_config = {}
 		self.bot_config = {}
 
@@ -19,9 +18,13 @@ class ConfigurationManager:
 		load_dotenv()
 		self.bot_config["bot_token"] = os.getenv("DISCORD_TOKEN")
 		self.bot_config["management_portal_url"] = os.getenv("MANAGEMENT_PORTAL_URL")
+		self.bot_config["ipc_address"] = os.getenv("IPC_ADDRESS")
+		self.bot_config["ipc_port"] = int(os.getenv("IPC_PORT"))
 
 		ConfigurationValues.TOKEN = self.bot_config["bot_token"]
 		ConfigurationValues.MANAGEMENT_PORTAL_URL = self.bot_config["management_portal_url"]
+		ConfigurationValues.IPC_ADDRESS = self.bot_config["ipc_address"]
+		ConfigurationValues.IPC_PORT = self.bot_config["ipc_port"]
 
 	async def load_deferred_configs(self, guilds):
 		from Framework.ManagementPortal import management_portal_handler as mph

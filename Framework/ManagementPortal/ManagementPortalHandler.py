@@ -6,8 +6,8 @@ from discord.ext import tasks
 
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.GeneralUtilities import GeneralUtilities
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
-from GeneralUtilities import GeneralUtilities
 
 
 class ManagementPortalHandler:

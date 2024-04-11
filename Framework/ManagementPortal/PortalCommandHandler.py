@@ -1,7 +1,7 @@
 import os
 import sys
 
-from APIEndpoints import APIEndpoints
+from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
 
 
