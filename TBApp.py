@@ -6,6 +6,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, RichLog, Input
 
 from Framework.CLI.IPCClient import IPCClient
+from Framework.CLI.LogHighlighter import LogHighlighter
 from Framework.GeneralUtilities import GeneralUtilities
 
 
@@ -18,16 +19,17 @@ def load_config() -> tuple[str, int]:
 class TitanBotApp(App):
 	"""A Textual app providing access over IPC calls to TitanBot, allowing for management without keeping the original terminal open."""
 
-	BINDINGS = [("d", "toggle_dark", "Toggle dark mode")]
+	BINDINGS = [("e", "exit", "Exit")]
 	CSS_PATH = "Framework/CLI/app.tcss"
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 
-		self.ipc_server = load_config()
+		self.ipc_address = load_config()
 
-		self.client = IPCClient(self.ipc_server)
+		self.client = IPCClient(self.ipc_address)
 		self.rich_log_widget = RichLog(highlight=True)
+		self.rich_log_widget.highlighter = LogHighlighter()
 		self.command_input_widget = Input(placeholder="Enter a command...")
 
 	def on_mount(self) -> None:
@@ -47,9 +49,10 @@ class TitanBotApp(App):
 		await self.client.send(message.value)
 		self.command_input_widget.clear()
 
-	def action_toggle_dark(self) -> None:
-		"""An action to toggle dark mode."""
-		self.dark = not self.dark
+	def action_exit(self) -> None:
+		"""An action to exit the app."""
+		self.client.close()
+		self.exit()
 
 	def receive_updates(self):
 		while True:
