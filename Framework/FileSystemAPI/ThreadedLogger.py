@@ -22,6 +22,21 @@ class LogLevel(Enum):
 	CRITICAL = 4
 
 
+def get_ansi_code(level: LogLevel):
+	"""Get the ANSI color code for the given log level."""
+	match level:
+		case LogLevel.DEBUG:
+			return "\033[94m"
+		case LogLevel.INFO:
+			return "\033[92m"
+		case LogLevel.WARNING:
+			return "\033[93m"
+		case LogLevel.ERROR:
+			return "\033[91m"
+		case LogLevel.CRITICAL:
+			return "\033[95m"
+
+
 class ThreadedLogger:
 
 	# There will be multiple instances of this class, so we need to make sure that
@@ -69,7 +84,8 @@ class ThreadedLogger:
 
 			# Write the message to the console
 			prepared_message = message[0] + message[1]
-			print(prepared_message, end="")
+			ansi_color = get_ansi_code(message[2])
+			print(ansi_color + prepared_message, end="")
 
 			# Write the message to the log file
 			try:
