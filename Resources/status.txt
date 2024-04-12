@@ -1,0 +1,13 @@
+
+=== System Status Information ===
+CPU Information:
+- #a# usage
+- #b# cores
+
+Memory Information:
+- #c# usage
+- #d#GB total
+
+Disk Information:
+- #e# usage
+- #f#GB total

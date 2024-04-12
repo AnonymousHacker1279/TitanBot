@@ -172,20 +172,20 @@ class Utility(BasicCog):
 		if not failedPermissionCheck:
 			embed.title = "System Status"
 
-			cpuUsage = psutil.cpu_percent(interval=1)
-			cpuCount = psutil.cpu_count()
-			systemMemoryUsage = psutil.virtual_memory()[2]
-			totalSystemMemory = round(psutil.virtual_memory()[0] / (1024 * 1024 * 1024), 2)
+			cpu_usage = psutil.cpu_percent(interval=0.1)
+			cpu_count = psutil.cpu_count()
+			system_memory_usage = psutil.virtual_memory()[2]
+			total_system_memory = round(psutil.virtual_memory()[0] / (1024 * 1024 * 1024), 2)
 
 			embed.description = "CPU Information: **" \
-								+ str(cpuUsage) + "% usage, " \
-								+ str(cpuCount) + " cores**\n"
+								+ str(cpu_usage) + "% usage, " \
+								+ str(cpu_count) + " cores**\n"
 			embed.description += "Memory Information: **"\
-								+ str(systemMemoryUsage) + "% usage, "\
-								+ str(totalSystemMemory) + " total GB**\n"
+								+ str(system_memory_usage) + "% usage, "\
+								+ str(total_system_memory) + "GB total**\n"
 			embed.description += "Disk Information: **" \
 								+ str(psutil.disk_usage('/')[3]) + "% usage, " \
-								+ str(round(psutil.disk_usage('/')[0] / (1024 * 1024 * 1024), 2)) + " total GB**\n"
+								+ str(round(psutil.disk_usage('/')[0] / (1024 * 1024 * 1024), 2)) + "GB total**\n"
 
 			embed.description += "\nDiscord Metrics: **" \
 								+ str(len(ctx.bot.guilds)) + " servers, " \
@@ -196,9 +196,9 @@ class Utility(BasicCog):
 								+ "- Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]) + "\n" \
 								+ "- Pycord " + str(discord.__version__) + "**\n"
 
-			if cpuUsage > 70:
+			if cpu_usage > 70:
 				embed.description += ":warning: High CPU usage, responsiveness may be degraded.\n"
-			if systemMemoryUsage > 80:
+			if system_memory_usage > 80:
 				embed.description += ":warning: High memory usage, responsiveness may be degraded.\n"
 
 		await ctx.respond(embed=embed)

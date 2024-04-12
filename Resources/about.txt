@@ -1,0 +1,16 @@
+
+_/_/_/_/_/  _/    _/                          _/_/_/                _/
+   _/          _/_/_/_/    _/_/_/  _/_/_/    _/    _/    _/_/    _/_/_/_/
+  _/      _/    _/      _/    _/  _/    _/  _/_/_/    _/    _/    _/
+ _/      _/    _/      _/    _/  _/    _/  _/    _/  _/    _/    _/
+_/      _/      _/_/    _/_/_/  _/    _/  _/_/_/      _/_/        _/_/
+
+https://github.com/AnonymousHacker1279/TitanBot | https://titanbot.anonymoushacker1279.tech
+
+TitanBot, an intelligent software built by AnonymousHacker1279.
+Providing features to servers since 7/15/21.
+
+Setup Details:
+- Bot Version: #a#
+- Python Version: #b#
+- Pycord Version: #c#

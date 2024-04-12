@@ -1,8 +1,12 @@
+import os
 import socket
 import threading
 
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.IPC.BasicCommand import BasicCommand
+from Framework.IPC.CommandDirectory import CommandDirectory
+from Framework.ManagementPortal import management_portal_handler
 
 
 class IPCHandler:
@@ -10,41 +14,51 @@ class IPCHandler:
 
 	def __init__(self):
 		self.logger = ThreadedLogger("IPCHandler")
+		self.command_directory = CommandDirectory(os.getcwd() + "/Framework/IPC/Commands")
 
 	def handle_client(self, connection: socket.socket):
 		self.clients.append(connection)
 		while True:
-			# Receive a command from the client
 			try:
-				command = connection.recv(1024).decode('utf-8')
+				client_message = connection.recv(1024).decode('utf-8')
 			except ConnectionResetError:
 				self.logger.log_info("Client disconnected (" + str(connection.getpeername()) + ")")
 				self.clients.remove(connection)
 				break
 
-			if command == 'get_log':
-				# Read the log file and send its contents back to the client
-				with open(self.logger.log_file_path, 'r') as f:
-					log_contents = f.read()
+			# The command should be the first part of the string, split by spaces. Everything else is an arg
+			client_message = client_message.split(" ")
 
-				# Send the size of the log_contents before sending log_contents itself
-				self.send_update(("[bufSize:" + str(len(log_contents)) + "]"))
-				self.send_update(log_contents)
+			command = self.command_directory.get_command(client_message[0])
+			args = client_message[1:]
+
+			if command:
+				command_instance: BasicCommand = command(management_portal_handler.bot)
+				response = command_instance.execute(args)
+
+				metadata: dict[str, any] = {}
+
+				if command_instance.send_buffer_size != 1024:
+					metadata["buffer_size"] = command_instance.send_buffer_size
+				if command_instance.color != "white":
+					metadata["color"] = command_instance.color
+
+				if metadata:
+					self.send_update(f"!METADATA:{metadata}")
 			else:
-				print(f"Received command: {command}")
-				# TODO: Execute the command
+				response = f"Unable to find command: {client_message[0]}"
 
-				# TODO: Send proper updates to the client
-				update = f'Response from server: received command {command}'
-				self.send_update(update)
+			self.send_update(response)
 
 	def send_update(self, update: str):
 		"""Send an update to all connected clients."""
-		for conn in self.clients:
-			conn.sendall(update.encode('utf-8'))
+		for connection in self.clients:
+			connection.sendall(update.encode('utf-8'))
 
 	def start_server(self):
 		self.logger.log_info("Starting IPC server for local management connections, listening on " + ConfigurationValues.IPC_ADDRESS + ":" + str(ConfigurationValues.IPC_PORT) + "...")
+		self.command_directory.load_commands()
+
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			s.bind((ConfigurationValues.IPC_ADDRESS, ConfigurationValues.IPC_PORT))
 			s.listen()

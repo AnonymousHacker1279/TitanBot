@@ -6,7 +6,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, RichLog, Input
 
 from Framework.CLI.IPCClient import IPCClient
-from Framework.CLI.LogHighlighter import LogHighlighter
+from Framework.CLI.TBHighlighter import TBHighlighter
 from Framework.GeneralUtilities import GeneralUtilities
 
 
@@ -22,14 +22,18 @@ class TitanBotApp(App):
 	BINDINGS = [("e", "exit", "Exit")]
 	CSS_PATH = "Framework/CLI/app.tcss"
 
+	version = "v1.0.0"
+
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 
 		self.ipc_address = load_config()
 
 		self.client = IPCClient(self.ipc_address)
+
 		self.rich_log_widget = RichLog(highlight=True)
-		self.rich_log_widget.highlighter = LogHighlighter()
+		self.rich_log_widget.highlighter = TBHighlighter()
+
 		self.command_input_widget = Input(placeholder="Enter a command...")
 
 	def on_mount(self) -> None:
@@ -46,7 +50,11 @@ class TitanBotApp(App):
 
 	async def on_input_submitted(self, message: Input.Submitted):
 		"""Send commands to the IPC server."""
-		await self.client.send(message.value)
+		if message.value == "clear":
+			self.rich_log_widget.clear()
+		else:
+			await self.client.send(message.value)
+
 		self.command_input_widget.clear()
 
 	def action_exit(self) -> None:
@@ -56,15 +64,27 @@ class TitanBotApp(App):
 
 	def receive_updates(self):
 		while True:
-			update = self.client.recv()
+			try:
+				update = self.client.recv()
+			except ConnectionResetError:
+				self.app.exit(message="Connection to TitanBot lost.")
+				break
+
 			if update:
-				if update.startswith("[bufSize:"):
-					buf_size = int(update[9:-1])
-					update = self.client.recv(buf_size)
+				if update.startswith("!METADATA:"):
+					buffer_size = 1024
+					metadata: dict[str, any] = eval(update[10:])
+					if "buffer_size" in metadata:
+						buffer_size = metadata["buffer_size"]
+					if "color" in metadata:
+						self.rich_log_widget.highlighter.color_of_next_entry = metadata["color"]
+					update = self.client.recv(buffer_size)
+
 				self.rich_log_widget.write(update)
 
 
 if __name__ == "__main__":
 	app = TitanBotApp()
-	app.title = "TitanBot Management"
+	app.title = "TitanBot Management (CLI) @ " + app.ipc_address[0] + ":" + str(app.ipc_address[1])
+	app.sub_title = app.version
 	app.run()
