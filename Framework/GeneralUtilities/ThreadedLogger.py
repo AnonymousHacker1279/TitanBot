@@ -7,7 +7,7 @@ from multiprocessing import Queue
 from queue import Empty
 from threading import Thread
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
+from Framework.ConfigurationManager import ConfigurationValues
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
@@ -90,6 +90,15 @@ class ThreadedLogger:
 				self.loop.stop()
 				while self.loop.is_running():
 					time.sleep(0.1)
+
+				# Wait for all tasks to complete
+				pending = asyncio.all_tasks(self.loop)
+				while pending:
+					for task in pending:
+						if task.done():
+							pending.remove(task)
+					time.sleep(0.1)
+
 				self.loop.close()
 				break
 

@@ -2,7 +2,7 @@ import re
 
 import lyricsgenius
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
+from Framework.ConfigurationManager import ConfigurationValues
 
 genius = None
 is_initialized = False

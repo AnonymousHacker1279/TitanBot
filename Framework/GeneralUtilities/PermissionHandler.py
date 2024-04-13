@@ -1,6 +1,6 @@
 import discord
 
-from Framework.FileSystemAPI.ConfigurationManager import configuration_manager as cm
+from Framework.ConfigurationManager import configuration_manager as cm
 from Framework.ManagementPortal import management_portal_handler as mph
 
 

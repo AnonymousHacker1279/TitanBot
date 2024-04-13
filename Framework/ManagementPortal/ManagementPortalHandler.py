@@ -4,9 +4,9 @@ import aiohttp
 from aiohttp import ContentTypeError
 from discord.ext import tasks
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.ConfigurationManager import ConfigurationValues
 from Framework.GeneralUtilities import GeneralUtilities
+from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 

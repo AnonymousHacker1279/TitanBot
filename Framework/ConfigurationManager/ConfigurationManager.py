@@ -3,7 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues, BotStatus
+from Framework.ConfigurationManager import ConfigurationValues, BotStatus
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 

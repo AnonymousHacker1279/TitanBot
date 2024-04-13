@@ -1,8 +1,8 @@
 import os
 import time
 
-from Framework.FileSystemAPI.ConfigurationManager import configuration_manager
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.ConfigurationManager import configuration_manager
+from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC.BasicCommand import BasicCommand
 from Framework.ManagementPortal import management_portal_handler
 

@@ -3,7 +3,7 @@ import os
 import discord
 import psutil
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationManager
+from ConfigurationManager import ConfigurationManager
 from Framework.IPC.BasicCommand import BasicCommand
 
 

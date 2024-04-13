@@ -2,7 +2,7 @@ import discord
 from discord import errors
 from discord.ext import commands
 
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 
 
 async def handle_error(error: commands.CommandError, logger: ThreadedLogger):

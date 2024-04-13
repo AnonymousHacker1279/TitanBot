@@ -2,7 +2,7 @@ import aiohttp
 import discord
 from discord.ext import tasks
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
+from Framework.ConfigurationManager import ConfigurationValues
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 

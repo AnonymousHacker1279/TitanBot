@@ -3,8 +3,8 @@ import time
 import aiohttp
 import discord
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationManager
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
+from ConfigurationManager import ConfigurationManager
+from Framework.ConfigurationManager import ConfigurationValues
 from Framework.IPC.BasicCommand import BasicCommand
 
 

@@ -2,10 +2,12 @@ import asyncio
 import concurrent.futures
 import sys
 import threading
+import time
 
 import discord
 from discord.ext import commands
 
+import BotStatus
 from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.CurseForge import CurseForge
 from Framework.CommandGroups.Debugging import Debugging
@@ -14,9 +16,9 @@ from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.Utility import Utility
-from Framework.FileSystemAPI.ConfigurationManager import BotStatus, ConfigurationValues
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.ConfigurationManager import ConfigurationValues
 from Framework.GeneralUtilities import ErrorHandler, GeneralUtilities
+from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC import ipc_handler
 from Framework.ManagementPortal import management_portal_handler
 
@@ -63,7 +65,7 @@ if __name__ == "__main__":
 
 		# Update local configurations and load deferred config values
 		logger.log_info("Loading configuration data from the management portal")
-		from Framework.FileSystemAPI.ConfigurationManager import configuration_manager
+		from Framework.ConfigurationManager import configuration_manager
 		await configuration_manager.load_deferred_configs(bot.guilds)
 
 		# Send the ready status to the management portal
@@ -98,5 +100,7 @@ if __name__ == "__main__":
 				await management_portal_handler.cf_checker_api.check_for_updates.stop()
 				await bot.close()
 				break
+
+			time.sleep(1)
 
 	bot.run(ConfigurationValues.TOKEN)

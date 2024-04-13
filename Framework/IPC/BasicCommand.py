@@ -1,7 +1,7 @@
 import discord
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationManager
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from ConfigurationManager import ConfigurationManager
+from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 
 
 class BasicCommand:

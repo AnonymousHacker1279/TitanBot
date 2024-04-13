@@ -1,7 +1,7 @@
 import os
 import sys
 
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 

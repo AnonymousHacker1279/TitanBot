@@ -3,9 +3,9 @@ import os
 import socket
 import threading
 
-from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
-from Framework.FileSystemAPI.ConfigurationManager import configuration_manager
-from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.ConfigurationManager import ConfigurationValues
+from Framework.ConfigurationManager import configuration_manager
+from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC.BasicCommand import BasicCommand
 from Framework.IPC.CommandDirectory import CommandDirectory
 from Framework.ManagementPortal import management_portal_handler
@@ -42,7 +42,7 @@ class IPCHandler:
 
 			if command:
 				command_instance: BasicCommand = command(management_portal_handler.bot, configuration_manager)
-				response = asyncio.run_coroutine_threadsafe(command_instance.execute(args), self.loop).result(10)
+				response = self.loop.run_until_complete(command_instance.execute(args))
 
 				metadata: dict[str, any] = command_instance.extra_metadata.copy()
 
@@ -85,7 +85,8 @@ class IPCHandler:
 			connection.sendall(update.encode('utf-8'))
 
 	def start_server(self):
-		self.logger.log_info("Starting IPC server for local management connections, listening on " + ConfigurationValues.IPC_ADDRESS + ":" + str(ConfigurationValues.IPC_PORT) + "...")
+		self.logger.log_info("Starting IPC server for local management connections, listening on " + ConfigurationValues.IPC_ADDRESS + ":" + str(
+			ConfigurationValues.IPC_PORT) + "...")
 		self.command_directory.load_commands()
 
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

@@ -10,8 +10,8 @@ from discord import HTTPException
 from discord.ext import commands
 from requests import HTTPError
 
+from Framework.ConfigurationManager import ConfigurationValues
 from .BasicCog import BasicCog
-from ..FileSystemAPI.ConfigurationManager import ConfigurationValues
 from ..GeneralUtilities import PermissionHandler
 
 
