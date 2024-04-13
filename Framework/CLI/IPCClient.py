@@ -6,7 +6,7 @@ class IPCClient:
 		self.server = server
 		self.socket = None
 
-	async def connect(self):
+	def connect(self):
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket.connect(self.server)
 

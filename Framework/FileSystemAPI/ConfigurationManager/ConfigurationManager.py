@@ -1,3 +1,4 @@
+import json
 import os
 
 from dotenv import load_dotenv
@@ -9,44 +10,57 @@ from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 class ConfigurationManager:
 
 	def __init__(self):
-		self.global_config = {}
-		self.bot_config = {}
+		self.__global_config = {}
+		self.__bot_config = {}
+		self.mph = None
 
-	async def load_core_config(self):
+	def load_core_config(self):
 		# Core data will always remain in a .env file in the root directory of the project
 		# This data consists of the bot token and management portal information
 		load_dotenv()
-		self.bot_config["bot_token"] = os.getenv("DISCORD_TOKEN")
-		self.bot_config["management_portal_url"] = os.getenv("MANAGEMENT_PORTAL_URL")
-		self.bot_config["ipc_address"] = os.getenv("IPC_ADDRESS")
-		self.bot_config["ipc_port"] = int(os.getenv("IPC_PORT"))
+		self.__bot_config["bot_token"] = os.getenv("DISCORD_TOKEN")
+		self.__bot_config["management_portal_url"] = os.getenv("MANAGEMENT_PORTAL_URL")
+		self.__bot_config["ipc_address"] = os.getenv("IPC_ADDRESS")
+		self.__bot_config["ipc_port"] = int(os.getenv("IPC_PORT"))
 
-		ConfigurationValues.TOKEN = self.bot_config["bot_token"]
-		ConfigurationValues.MANAGEMENT_PORTAL_URL = self.bot_config["management_portal_url"]
-		ConfigurationValues.IPC_ADDRESS = self.bot_config["ipc_address"]
-		ConfigurationValues.IPC_PORT = self.bot_config["ipc_port"]
+		ConfigurationValues.TOKEN = self.__bot_config["bot_token"]
+		ConfigurationValues.MANAGEMENT_PORTAL_URL = self.__bot_config["management_portal_url"]
+		ConfigurationValues.IPC_ADDRESS = self.__bot_config["ipc_address"]
+		ConfigurationValues.IPC_PORT = self.__bot_config["ipc_port"]
 
 	async def load_deferred_configs(self, guilds):
-		from Framework.ManagementPortal import management_portal_handler as mph
+		from Framework.ManagementPortal import management_portal_handler
+		self.mph = management_portal_handler
 
-		self.global_config = await self.__get_configuration(mph, "global")
+		self.__global_config = await self.__pull_configuration("global")
 
-		self.bot_config["discord_status"] = self.global_config["discord_status"]
-		self.bot_config["superuser_list"] = self.global_config["superuser_configuration"]["superuser_list"]
-		self.bot_config["bot_update"] = self.global_config["bot_update"]
-		self.bot_config["log_level"] = self.global_config["logging"]["logging_level"]
-		self.bot_config["genius_api_token"] = self.global_config["genius_music"]["genius_api_key"]
-		self.bot_config["cf_api_token"] = self.global_config["curseforge"]["cf_api_key"]
+		self.__bot_config["discord_status"] = self.__global_config["discord_status"]
+
+		self.__bot_config["superuser_configuration"] = {}
+		self.__bot_config["superuser_configuration"]["superuser_list"] = self.__global_config["superuser_configuration"]["superuser_list"]
+
+		self.__bot_config["bot_update"] = self.__global_config["bot_update"]
+
+		self.__bot_config["logging"] = {}
+		self.__bot_config["logging"]["enable_logging"] = self.__global_config["logging"]["enable_logging"]
+		self.__bot_config["logging"]["logging_level"] = self.__global_config["logging"]["logging_level"]
+
+		self.__bot_config["genius_music"] = {}
+		self.__bot_config["genius_music"]["genius_api_key"] = self.__global_config["genius_music"]["genius_api_key"]
+
+		self.__bot_config["curseforge"] = {}
+		self.__bot_config["curseforge"]["cf_api_key"] = self.__global_config["curseforge"]["cf_api_key"]
+
+		self.__bot_config["enabled_modules"] = self.__global_config["enabled_modules"]
 
 		for guild in guilds:
-			server_config = await self.__get_configuration(mph, guild.id)
+			server_config = await self.__pull_configuration(guild.id)
 
-			self.bot_config[guild.id] = {}
-			self.bot_config[guild.id]["enable_logging"] = await self.__get_server_specific_config_value(server_config, "logging", "enable_logging")
-			self.bot_config[guild.id]["enabled_modules"] = server_config["enabled_modules"]
+			self.__bot_config[guild.id] = {}
+			self.__bot_config[guild.id]["enabled_modules"] = server_config["enabled_modules"]
 
-		await self.update_configuration_constants(mph)
-		await self.update_bot_status(mph)
+		await self.update_configuration_constants()
+		await self.update_bot_status()
 
 	async def __get_server_specific_config_value(self, server_config: dict, *sections):
 		"""
@@ -57,40 +71,98 @@ class ConfigurationManager:
 				server_config = server_config[section]
 			return server_config
 		except KeyError:
-			global_config = self.global_config
+			global_config = self.__global_config
 			for section in sections:
 				global_config = global_config[section]
 			return global_config
 
-	async def __get_configuration(self, mph, file_name: str) -> dict:
+	async def __pull_configuration(self, file_name: str) -> dict:
 		"""Get a configuration from the management portal."""
-		headers = mph.base_headers.copy()
+		headers = self.mph.base_headers.copy()
 		headers["name"] = file_name
-		return await mph.get(APIEndpoints.GET_CONFIGURATION, headers)
+		return await self.mph.get(APIEndpoints.GET_CONFIGURATION, headers)
 
-	async def update_bot_status(self, mph):
+	async def __push_configuration(self, file_name: str, data: dict) -> None:
+		"""Push a configuration to the management portal."""
+		headers = self.mph.base_headers.copy()
+		headers["name"] = file_name
+		headers["config"] = json.dumps(data)
+		await self.mph.post(APIEndpoints.WRITE_CONFIGURATION, headers)
+
+	async def update_bot_status(self):
 		# Update the bot status
 		status_config = await self.get_value("discord_status")
 		status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
 											status_config["activity_url"], status_config["activity_emoji"],
 											status_config["status_level"])
-		await mph.bot.change_presence(activity=status[0], status=status[1])
+		await self.mph.bot.change_presence(activity=status[0], status=status[1])
 
-	async def update_configuration_constants(self, mph):
-		ConfigurationValues.LOG_LEVEL = await self.get_value("log_level")
+	async def update_configuration_constants(self):
+		ConfigurationValues.LOG_LEVEL = await self.get_value("logging/logging_level")
 
 		bot_update = await self.get_value("bot_update")
 		ConfigurationValues.AUTO_UPDATE_ENABLED = bot_update["enable_updates"]
 		ConfigurationValues.UPDATE_REPOSITORY = bot_update["update_repository"]
 		ConfigurationValues.UPDATE_BRANCH = bot_update["update_branch"]
 		ConfigurationValues.UPDATE_CHECK_FREQUENCY = bot_update["update_check_frequency"]
-		mph.check_for_updates.change_interval(seconds=ConfigurationValues.UPDATE_CHECK_FREQUENCY)
 
-		ConfigurationValues.GENIUS_API_TOKEN = await self.get_value("genius_api_token")
-		ConfigurationValues.CF_API_TOKEN = await self.get_value("cf_api_token")
+		ConfigurationValues.GENIUS_API_TOKEN = await self.get_value("genius_music/genius_api_key")
+		ConfigurationValues.CF_API_TOKEN = await self.get_value("curseforge/cf_api_key")
 
-	async def get_guild_specific_value(self, guild_id, key):
-		return self.bot_config[guild_id][key]
+	async def get_guild_specific_value(self, guild_id, key) -> any:
+		return self.__bot_config[guild_id][key]
 
-	async def get_value(self, key):
-		return self.bot_config[key]
+	async def get_value(self, key) -> any:
+		"""Get a value from the bot configuration. Entry may be nested by using slashes."""
+		if "/" in key:
+			keys = key.split("/")
+			config = self.__bot_config
+			for k in keys:
+				config = config[k]
+			return config
+		else:
+			return self.__bot_config[key]
+
+	async def get_config(self) -> dict:
+		return self.__bot_config
+
+	async def set_value(self, key: str, value, update_mp=False) -> None:
+		"""
+		Set a value in the bot configuration. Note this does not propagate to the management portal by default.
+		:param key: The key to set. May be nested by using slashes.
+		:param value: The value to set
+		:param update_mp: Whether to update the management portal. Note that core values provided through the .env file will not be updated in the management portal regardless of this setting.
+		"""
+
+		# Check for nested entries
+		if "/" in key:
+			keys = key.split("/")
+			config = self.__bot_config
+			for k in keys[:-1]:
+				config = config[k]
+			config[keys[-1]] = value
+		else:
+			self.__bot_config[key] = value
+
+		disallowed_keys = ["bot_token", "management_portal_url", "ipc_address", "ipc_port"]
+		if update_mp and key not in disallowed_keys:
+			# Determine if the key was global or server-specific. A root-level entry that's a number should be tested to see if it is a guild ID
+			if key.isnumeric() and self.mph.bot.get_guild(int(key)) is not None:
+				await self.__push_configuration(key, self.__bot_config[key])
+			else:
+				# Strip all server-specific keys by removing all numeric keys
+				global_config = self.__bot_config.copy()
+				for k in global_config.keys():
+					try:
+						int(k)
+						disallowed_keys.append(k)
+					except ValueError:
+						pass
+
+				for k in disallowed_keys:
+					global_config.pop(k)
+
+				await self.__push_configuration("global", global_config)
+
+		await self.update_configuration_constants()
+		await self.update_bot_status()

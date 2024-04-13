@@ -3,19 +3,20 @@ import os
 import discord
 import psutil
 
-from BasicCommand import BasicCommand
+from Framework.FileSystemAPI.ConfigurationManager import ConfigurationManager
+from Framework.IPC.BasicCommand import BasicCommand
 
 
 class Status(BasicCommand):
 
-	def __init__(self, bot: discord.bot.Bot):
-		super().__init__(bot)
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
+		super().__init__(bot, config_manager)
 		self.friendly_name = "status"
 
 		with open(os.getcwd() + "/Resources/status.txt", 'r') as f:
 			self.status_text = f.read()
 
-	def execute(self, args: list[str]) -> str:
+	async def execute(self, args: list[str]) -> str:
 		cpu_usage = psutil.cpu_percent(0.1) / 100
 		cpu_color = self.get_color(cpu_usage)
 		cpu_info = f"[color={cpu_color}]{cpu_usage * 100}%[/color]"

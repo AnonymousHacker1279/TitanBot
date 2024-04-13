@@ -3,14 +3,15 @@ import sys
 
 import discord
 
-from BasicCommand import BasicCommand
+from Framework.FileSystemAPI.ConfigurationManager import ConfigurationManager
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
+from Framework.IPC.BasicCommand import BasicCommand
 
 
 class About(BasicCommand):
 
-	def __init__(self, bot: discord.bot.Bot):
-		super().__init__(bot)
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
+		super().__init__(bot, config_manager)
 		self.friendly_name = "about"
 		self.color = "#0047AB"
 
@@ -24,5 +25,5 @@ class About(BasicCommand):
 
 		self.send_buffer_size = len(self.about_text)
 
-	def execute(self, args: list[str]) -> str:
+	async def execute(self, args: list[str]) -> str:
 		return self.about_text

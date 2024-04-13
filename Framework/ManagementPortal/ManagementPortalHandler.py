@@ -20,7 +20,6 @@ class ManagementPortalHandler:
 	def __init__(self):
 		self.logger = ThreadedLogger("ManagementPortalHandler")
 		self.command_handler = None
-		self.update_manager = None
 		self.is_first_update_check = True
 
 	def initialize(self, bot):
@@ -75,7 +74,7 @@ class ManagementPortalHandler:
 			self.logger.log_error("Unable to connect to the management portal: Failed to authenticate")
 			self.logger.log_error("Endpoint URL: " + ConfigurationValues.MANAGEMENT_PORTAL_URL + endpoint)
 
-	async def on_ready(self, update_manager):
+	async def on_ready(self):
 		self.logger.log_info("Updating management portal with bot information")
 
 		headers = self.base_headers.copy()
@@ -91,11 +90,6 @@ class ManagementPortalHandler:
 		self.update_management_portal_latency.start()
 		self.check_management_portal_pending_commands.start()
 		self.cf_checker_api.check_for_updates.start()
-
-		self.update_manager = update_manager
-		if ConfigurationValues.AUTO_UPDATE_ENABLED:
-			self.check_for_updates.change_interval(seconds=ConfigurationValues.UPDATE_CHECK_FREQUENCY)
-			self.check_for_updates.start()
 
 	@tasks.loop(seconds=30)
 	async def update_management_portal_latency(self):
@@ -117,13 +111,3 @@ class ManagementPortalHandler:
 			self.command_handler = portal_command_handler
 
 		await self.command_handler.parse_pending_commands(response)
-
-	@tasks.loop(seconds=86400)
-	async def check_for_updates(self):
-		# The first check is ignored because this loop runs immediately on setup
-		# and the bot already checks on initialization
-		if self.is_first_update_check:
-			self.is_first_update_check = False
-			return
-
-		await self.update_manager.check_for_updates()

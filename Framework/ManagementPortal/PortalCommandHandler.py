@@ -1,8 +1,8 @@
 import os
 import sys
 
-from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
 class PortalCommandHandler:
@@ -31,23 +31,22 @@ class PortalCommandHandler:
 
 		if command == "shutdown":
 			# Shutdown the bot
-			self.logger.log_info("Shutdown command received from management portal, shutting down")
+			self.logger.log_info("Shutdown command received from management portal, shutting down...")
 			await self.__update_management_portal_command_completed(command)
 
 			exit(0)
 		elif command == "restart":
 			# Restart the bot
-			self.logger.log_info("Restart command received from management portal, restarting")
+			self.logger.log_info("Restart command received from management portal, restarting...")
 			await self.__update_management_portal_command_completed(command)
 
-			python = sys.executable
-			os.execl(python, python, *sys.argv)
+			os.execv(sys.executable, [sys.executable] + sys.argv)
 		elif command == "update_configuration":
 			# Update the bot configuration
 			self.logger.log_info("Update configuration command received from management portal, updating configuration")
 			await self.__update_management_portal_command_completed(command)
 
-			await self.mph.cm.load_deferred_configs(self.mph, self.mph.bot.guilds)
+			await self.mph.cm.load_deferred_configs(self.mph.bot.guilds)
 
 	async def __update_management_portal_command_completed(self, command: str):
 		headers = self.mph.base_headers.copy()

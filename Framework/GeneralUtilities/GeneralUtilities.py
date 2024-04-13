@@ -1,4 +1,3 @@
-import asyncio
 import subprocess
 from hashlib import sha256
 
@@ -13,13 +12,6 @@ async def generate_sha256(string: str) -> str:
 
 def generate_sha256_no_async(string: str) -> str:
 	return sha256(string.encode('utf-8')).hexdigest()
-
-
-def run_and_get(coro):
-	loop = asyncio.get_event_loop()
-	task = loop.create_task(coro)
-	loop.run_until_complete(task)
-	return task.result()
 
 
 def get_git_revision_short_hash() -> str:

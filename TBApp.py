@@ -7,7 +7,6 @@ from textual.widgets import Header, Footer, RichLog, Input
 
 from Framework.CLI.IPCClient import IPCClient
 from Framework.CLI.TBHighlighter import TBHighlighter
-from Framework.GeneralUtilities import GeneralUtilities
 
 
 def load_config() -> tuple[str, int]:
@@ -38,8 +37,8 @@ class TitanBotApp(App):
 
 	def on_mount(self) -> None:
 		"""Connect to the IPC server and start a thread to receive updates."""
-		GeneralUtilities.run_and_get(self.client.connect())
-		threading.Thread(target=self.receive_updates).start()
+		self.client.connect()
+		threading.Thread(target=self.receive_updates, name="IPC Listener").start()
 
 	def compose(self) -> ComposeResult:
 		"""Create child widgets."""
@@ -53,6 +52,8 @@ class TitanBotApp(App):
 		if message.value == "clear":
 			self.rich_log_widget.clear()
 		else:
+			# Write the command to the log
+			self.rich_log_widget.write(">>> " + message.value)
 			await self.client.send(message.value)
 
 		self.command_input_widget.clear()
@@ -74,6 +75,11 @@ class TitanBotApp(App):
 				if update.startswith("!METADATA:"):
 					buffer_size = 1024
 					metadata: dict[str, any] = eval(update[10:])
+					if "shutdown" in metadata:
+						self.client.close()
+						self.app.exit(message="TitanBot is shutting down.")
+						break
+						
 					if "buffer_size" in metadata:
 						buffer_size = metadata["buffer_size"]
 					if "color" in metadata:

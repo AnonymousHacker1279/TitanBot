@@ -1,15 +1,20 @@
 import discord
 
+from Framework.FileSystemAPI.ConfigurationManager import ConfigurationManager
+from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+
 
 class BasicCommand:
 
-	def __init__(self, bot: discord.bot.Bot):
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
 		self.bot = bot
+		self.config_manager = config_manager
 		self.friendly_name = self.__class__.__name__.lower()
 		self.send_buffer_size: int = 1024
+		self.extra_metadata: dict[str, any] = {}
 		self.color: str = "white"
 
-	def execute(self, args: list[str]) -> str:
+	async def execute(self, args: list[str]) -> str:
 		pass
 
 	def color_text(self, text: str, color: str):
@@ -29,3 +34,6 @@ class BasicCommand:
 
 		# Convert to hex and return
 		return '#{:02x}{:02x}{:02x}'.format(red, green, blue)
+
+	async def create_logger(self, name: str) -> ThreadedLogger:
+		return ThreadedLogger(name)

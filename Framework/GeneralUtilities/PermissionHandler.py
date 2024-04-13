@@ -40,7 +40,7 @@ async def check_permissions(ctx, embed: discord.Embed,
 
 async def is_superuser(user: int) -> bool:
 	# Check if a user is a superuser
-	superusers = await cm.get_value("superuser_list")
+	superusers = await cm.get_value("superuser_configuration/superuser_list")
 	return str(user) in superusers
 
 

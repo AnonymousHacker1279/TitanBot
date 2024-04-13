@@ -1,3 +1,5 @@
+import asyncio
+import concurrent.futures
 import sys
 import threading
 
@@ -12,13 +14,21 @@ from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.Utility import Utility
-from Framework.FileSystemAPI import FileAPI
 from Framework.FileSystemAPI.ConfigurationManager import BotStatus, ConfigurationValues
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
-from Framework.FileSystemAPI.UpdateManager.UpdateManager import UpdateManager
 from Framework.GeneralUtilities import ErrorHandler, GeneralUtilities
 from Framework.IPC import ipc_handler
 from Framework.ManagementPortal import management_portal_handler
+
+
+def start_watch_for_shutdown(loop: asyncio.AbstractEventLoop):
+	asyncio.set_event_loop(loop)
+	loop.run_until_complete(watch_for_shutdown())
+
+
+shutdown_loop = asyncio.new_event_loop()
+executor = concurrent.futures.ThreadPoolExecutor()
+
 
 if __name__ == "__main__":
 
@@ -32,8 +42,6 @@ if __name__ == "__main__":
 	# Perform initialization for the management portal
 	management_portal_handler.initialize(bot)
 	ThreadedLogger.initialize(management_portal_handler)
-
-	FileAPI.initialize()
 
 	logger = ThreadedLogger("TitanBot")
 	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
@@ -58,13 +66,8 @@ if __name__ == "__main__":
 		from Framework.FileSystemAPI.ConfigurationManager import configuration_manager
 		await configuration_manager.load_deferred_configs(bot.guilds)
 
-		# Initialize the update manager and check for updates if enabled
-		update_manager = UpdateManager(configuration_manager, bot)
-		if ConfigurationValues.AUTO_UPDATE_ENABLED:
-			await update_manager.check_for_updates()
-
 		# Send the ready status to the management portal
-		await management_portal_handler.on_ready(update_manager)
+		await management_portal_handler.on_ready()
 
 		# Set the bot status
 		status_config = await configuration_manager.get_value("discord_status")
@@ -74,7 +77,9 @@ if __name__ == "__main__":
 		await bot.change_presence(activity=status[0], status=status[1])
 
 		# Start the IPC server
-		threading.Thread(target=ipc_handler.start_server).start()
+		threading.Thread(target=ipc_handler.start_server, daemon=True).start()
+
+		executor.submit(start_watch_for_shutdown, shutdown_loop)
 
 		logger.log_info("TitanBot is ready to go!")
 
@@ -82,5 +87,16 @@ if __name__ == "__main__":
 	async def on_application_command_error(ctx: discord.ApplicationContext, error: commands.CommandError):
 		embed = await ErrorHandler.handle_error(error, logger)
 		await ctx.respond(embed=embed)
+
+	async def watch_for_shutdown():
+		# Monitor for shutdown events over IPC
+		while True:
+			if ipc_handler.shutdown_flag.is_set():
+				ThreadedLogger.should_shutdown = True
+				await management_portal_handler.update_management_portal_latency.stop()
+				await management_portal_handler.check_management_portal_pending_commands.stop()
+				await management_portal_handler.cf_checker_api.check_for_updates.stop()
+				await bot.close()
+				break
 
 	bot.run(ConfigurationValues.TOKEN)

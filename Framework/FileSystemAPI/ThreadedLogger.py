@@ -1,13 +1,13 @@
 import asyncio
 import datetime
+import os
+import time
 from enum import Enum
 from multiprocessing import Queue
 from queue import Empty
 from threading import Thread
 
-from Framework.FileSystemAPI import DatabaseObjects
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
-from Framework.GeneralUtilities import GeneralUtilities
 from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
@@ -45,6 +45,8 @@ class ThreadedLogger:
 	log_file_path = None
 	log_file_lock = None
 
+	should_shutdown = False
+
 	mph = None
 	ipc_handler = None
 
@@ -70,7 +72,11 @@ class ThreadedLogger:
 	def open_log_file(self):
 		# Open the log file
 		# The log file is stored in the bot log directory, with a name that is the current date
-		logs_directory = GeneralUtilities.run_and_get(DatabaseObjects.get_log_directory())
+		logs_directory = os.getcwd() + "/Storage/Logs"
+
+		# Create the logs directory if it doesn't exist
+		if not os.path.exists(logs_directory):
+			os.makedirs(logs_directory)
 
 		ThreadedLogger.log_file_path = logs_directory + "\\" + str(datetime.datetime.now().date()) + ".log"
 		ThreadedLogger.log_file_handle = open(ThreadedLogger.log_file_path, "ab", buffering=0)
@@ -80,6 +86,13 @@ class ThreadedLogger:
 		# This method is called in a separate thread
 		# It reads from the queue and writes to the log file
 		while True:
+			if self.should_shutdown:
+				self.loop.stop()
+				while self.loop.is_running():
+					time.sleep(0.1)
+				self.loop.close()
+				break
+
 			# Get the next message from the queue
 			# If the queue is empty, wait for 1 second and then try again
 			# If the queue is still empty, skip this iteration and try again

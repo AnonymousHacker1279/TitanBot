@@ -3,30 +3,30 @@ import time
 import aiohttp
 import discord
 
-from BasicCommand import BasicCommand
+from Framework.FileSystemAPI.ConfigurationManager import ConfigurationManager
 from Framework.FileSystemAPI.ConfigurationManager import ConfigurationValues
-from Framework.GeneralUtilities import GeneralUtilities
+from Framework.IPC.BasicCommand import BasicCommand
 
 
 class Ping(BasicCommand):
 
-	def __init__(self, bot: discord.bot.Bot):
-		super().__init__(bot)
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
+		super().__init__(bot, config_manager)
 		self.friendly_name = "ping"
 
-	def execute(self, args: list[str]) -> str:
+	async def execute(self, args: list[str]) -> str:
 		# If no arguments are provided, default to both sources
 		if not args:
-			return f"{self.discord_portal_ping()}\n{GeneralUtilities.run_and_get(self.management_portal_ping())}"
+			return f"{self.discord_portal_ping()}\n{await self.management_portal_ping()}"
 		else:
 			# Check the first argument to determine the source
 			match args[0]:
 				case "discord_portal" | "discord":
 					return self.discord_portal_ping()
 				case "management_portal" | "mp":
-					return GeneralUtilities.run_and_get(self.management_portal_ping())
+					return await self.management_portal_ping()
 				case "all":
-					return f"{self.discord_portal_ping()}\n{GeneralUtilities.run_and_get(self.management_portal_ping())}"
+					return f"{self.discord_portal_ping()}\n{await self.management_portal_ping()}"
 				case _:
 					return "Invalid source. Must be either 'discord_portal' (discord) or 'management_portal' (mp)."
 

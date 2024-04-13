@@ -1,8 +1,9 @@
 import os
 import time
 
-from BasicCommand import BasicCommand
+from Framework.FileSystemAPI.ConfigurationManager import configuration_manager
 from Framework.FileSystemAPI.ThreadedLogger import ThreadedLogger
+from Framework.IPC.BasicCommand import BasicCommand
 from Framework.ManagementPortal import management_portal_handler
 
 
@@ -24,7 +25,7 @@ class CommandDirectory:
 
 				# Check if the command is a subclass of BasicCommand
 				if issubclass(command_class, BasicCommand):
-					command_instance = command_class(management_portal_handler.bot)
+					command_instance = command_class(management_portal_handler.bot, configuration_manager)
 					friendly_name = command_instance.friendly_name
 					self.commands[friendly_name] = command_class
 
