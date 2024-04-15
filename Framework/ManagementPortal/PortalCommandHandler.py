@@ -49,7 +49,7 @@ class PortalCommandHandler:
 			await self.mph.cm.load_deferred_configs(self.mph.bot.guilds)
 
 	async def __update_management_portal_command_completed(self, command: str):
-		headers = self.mph.base_headers.copy()
-		headers["command"] = command
+		data = self.mph.base_data.copy()
+		data["command"] = command
 
-		await self.mph.post(APIEndpoints.UPDATE_COMMAND_COMPLETED, headers)
+		await self.mph.post(APIEndpoints.UPDATE_COMMAND_COMPLETED, data)

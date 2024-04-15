@@ -10,9 +10,9 @@ class BasicCog(commands.Cog):
 		self.mph = management_portal_handler
 
 	async def update_management_portal_command_used(self, module_name: str, command_name: str, guild_id: int):
-		headers = self.mph.base_headers.copy()
-		headers["module_name"] = module_name
-		headers["command_name"] = command_name
-		headers["guild_id"] = str(guild_id)
+		data = self.mph.base_data.copy()
+		data["module_name"] = module_name
+		data["command_name"] = command_name
+		data["guild_id"] = str(guild_id)
 
-		await self.mph.post(APIEndpoints.UPDATE_COMMAND_USED, headers)
+		await self.mph.post(APIEndpoints.UPDATE_COMMAND_USED, data)

@@ -54,7 +54,7 @@ class ConfigurationManager:
 		self.__bot_config["enabled_modules"] = self.__global_config["enabled_modules"]
 
 		for guild in guilds:
-			server_config = await self.__pull_configuration(guild.id)
+			server_config = await self.__pull_configuration(str(guild.id))
 
 			self.__bot_config[guild.id] = {}
 			self.__bot_config[guild.id]["enabled_modules"] = server_config["enabled_modules"]
@@ -78,16 +78,16 @@ class ConfigurationManager:
 
 	async def __pull_configuration(self, file_name: str) -> dict:
 		"""Get a configuration from the management portal."""
-		headers = self.mph.base_headers.copy()
-		headers["name"] = file_name
-		return await self.mph.get(APIEndpoints.GET_CONFIGURATION, headers)
+		data = self.mph.base_data.copy()
+		data["name"] = file_name
+		return await self.mph.get(APIEndpoints.GET_CONFIGURATION, data)
 
-	async def __push_configuration(self, file_name: str, data: dict) -> None:
+	async def __push_configuration(self, file_name: str, config: dict) -> None:
 		"""Push a configuration to the management portal."""
-		headers = self.mph.base_headers.copy()
-		headers["name"] = file_name
-		headers["config"] = json.dumps(data)
-		await self.mph.post(APIEndpoints.WRITE_CONFIGURATION, headers)
+		data = self.mph.base_data.copy()
+		data["name"] = file_name
+		data["config"] = json.dumps(config)
+		await self.mph.post(APIEndpoints.WRITE_CONFIGURATION, data)
 
 	async def update_bot_status(self):
 		# Update the bot status

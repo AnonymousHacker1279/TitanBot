@@ -1,14 +1,11 @@
-import json
 import sys
 from datetime import date
 from random import randint
 
-import aiohttp
 import discord
 import psutil as psutil
 from discord import HTTPException
 from discord.ext import commands
-from requests import HTTPError
 
 from Framework.ConfigurationManager import ConfigurationValues
 from .BasicCog import BasicCog
@@ -113,35 +110,14 @@ class Utility(BasicCog):
 			embed.title = "About Me"
 			embed.description = "I'm **TitanBot**, an intelligent software built by **AnonymousHacker1279.**\n"
 			embed.description += "Providing features to servers since 7/15/21.\n\n"
+
 			# Get the latest version from GitHub
-			try:
-				async with aiohttp.ClientSession() as session:
-					async with session.get("https://api.github.com/repos/{}/releases/latest"
-													.format(ConfigurationValues.UPDATE_REPOSITORY)) as response:
+			response = await self.mph.get(f"https://api.github.com/repos/{ConfigurationValues.UPDATE_REPOSITORY}/releases/latest", non_management_portal=True)
+			latest_version = response["tag_name"]
+			changelog = response["body"]
 
-						jsonResponse = json.loads(await response.text())
-						latestVersion = jsonResponse["tag_name"]
-						changelog = jsonResponse["body"]
-			except HTTPError:
-				latestVersion = "Unknown"
-				changelog = "Unknown"
-
-			if "-alpha" in latestVersion:
-				versionEmoji = ":bug:"
-				versionTag = "Alpha"
-			elif "-beta" in latestVersion:
-				versionEmoji = ":bug::hammer:"
-				versionTag = "Beta"
-			elif "-indev" in latestVersion:
-				versionEmoji = ":tools:"
-				versionTag = "In Development"
-			else:
-				versionEmoji = ":package:"
-				versionTag = "Release"
-			embed.description += "Current Version: **" + ConfigurationValues.VERSION + "**\n" \
-								"Latest Version: (" + versionEmoji + ", " + versionTag + ") **" + latestVersion + "**\n"
-			embed.description += "What's new, in the latest version: \n```txt\n" + \
-								changelog + "```\n"
+			embed.description += f"Current Version: **{ConfigurationValues.VERSION}**\nLatest Published Version: **{latest_version}**\n"
+			embed.description += f"What's new, in the latest version: \n```txt\n{changelog}\n```\n"
 			embed.description += "See the wiki for more information and help. https://github.com/AnonymousHacker1279/TitanBot/wiki"
 			embed.set_footer(text="AnonymousHacker1279, " + str(date.today().year))
 

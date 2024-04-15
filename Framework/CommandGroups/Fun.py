@@ -1,4 +1,3 @@
-import aiohttp
 import discord
 from discord import Spotify
 from discord.ext import commands
@@ -138,9 +137,7 @@ class Fun(BasicCog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
 		if not failedPermissionCheck:
 			# Get an image URL from InspiroBot
-			async with aiohttp.ClientSession() as session:
-				async with session.get("https://inspirobot.me/api?generate=true") as response:
-					image_url = await response.text()
+			image_url = await self.mph.get("https://inspirobot.me/api?generate=true", non_management_portal=True)
 
 			# Create the embed
 			embed.title = "InspiroBot Query"
@@ -159,14 +156,12 @@ class Fun(BasicCog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
 		if not failedPermissionCheck:
 			# Get a random fact
-			async with aiohttp.ClientSession() as session:
-				async with session.get("https://uselessfacts.jsph.pl/random.json?language=en") as response:
-					data = await response.json()
+			response = await self.mph.get("https://uselessfacts.jsph.pl/random.json?language=en", non_management_portal=True)
 
 			# Create the embed
 			embed.title = "Random Fact"
-			embed.description = data["text"]
-			embed.set_footer(text="Permalink: " + data["permalink"])
+			embed.description = response["text"]
+			embed.set_footer(text="Permalink: " + response["permalink"])
 
 		await ctx.respond(embed=embed)
 		await self.update_management_portal_command_used("fun", "random_fact", ctx.guild.id)

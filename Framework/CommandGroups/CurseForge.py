@@ -1,4 +1,3 @@
-import aiohttp
 import discord
 from discord.ext import commands
 
@@ -33,18 +32,17 @@ class CurseForge(BasicCog):
 		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "add_project")
 		if not failedPermissionCheck:
 
-			async with aiohttp.ClientSession() as session:
-				# Set the API key in headers
-				session.headers.update({"x-api-key": ConfigurationValues.CF_API_TOKEN})
-				async with session.get(f"https://api.curseforge.com/v1/mods/{project_id}") as response:
-					response = await response.json()
-					response = response["data"]
+			# Set the API key in headers
+			headers = {"x-api-key": ConfigurationValues.CF_API_TOKEN}
 
-					name = response["name"]
-					summary = response["summary"]
-					logo_url = response["logo"]["url"]
-					download_count = response["downloadCount"]
-					latest_file_id = response["latestFilesIndexes"][0]["fileId"]
+			response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project_id}", headers, True)
+			response = response["data"]
+
+			name = response["name"]
+			summary = response["summary"]
+			logo_url = response["logo"]["url"]
+			download_count = response["downloadCount"]
+			latest_file_id = response["latestFilesIndexes"][0]["fileId"]
 
 			await self.mph.cf_checker_api.add_project(ctx.guild_id, project_id, announcement_channel.id, latest_file_id)
 
@@ -103,14 +101,13 @@ class CurseForge(BasicCog):
 				embed.description = "The following projects are being checked for updates:"
 
 				for project in projects:
-					async with aiohttp.ClientSession() as session:
-						# Set the API key in headers
-						session.headers.update({"x-api-key": ConfigurationValues.CF_API_TOKEN})
-						async with session.get(f"https://api.curseforge.com/v1/mods/{project['project_id']}") as response:
-							response = await response.json()
-							response = response["data"]
+					# Set the API key in headers
+					headers = {"x-api-key": ConfigurationValues.CF_API_TOKEN}
 
-							name = response["name"]
+					response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project['project_id']}", headers, True)
+					response = response["data"]
+
+					name = response["name"]
 
 					embed.add_field(name=name, value=f"ID: `{project['project_id']}`\nChannel: {ctx.guild.get_channel(project['announcement_channel_id']).mention}", inline=False)
 

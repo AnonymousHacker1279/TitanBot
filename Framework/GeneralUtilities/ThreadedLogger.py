@@ -143,13 +143,13 @@ class ThreadedLogger:
 
 	async def __log_to_mp(self, source: str, level: str, message: str, timestamp: str):
 		"""Send a log entry to the management portal."""
-		headers = self.mph.base_headers.copy()
-		headers["source"] = source
-		headers["log_level"] = level
-		headers["message"] = message
-		headers["timestamp"] = timestamp
+		data = self.mph.base_data.copy()
+		data["source"] = source
+		data["log_level"] = level
+		data["message"] = message
+		data["timestamp"] = timestamp
 
-		await self.mph.post(APIEndpoints.LOG_DATA, headers)
+		await self.mph.post(APIEndpoints.LOG_DATA, data)
 
 	def log(self, level: LogLevel, message: str):
 		# Check if logging is enabled

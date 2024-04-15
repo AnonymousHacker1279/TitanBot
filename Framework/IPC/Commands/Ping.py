@@ -1,6 +1,5 @@
 import time
 
-import aiohttp
 import discord
 
 from ConfigurationManager import ConfigurationManager
@@ -37,13 +36,13 @@ class Ping(BasicCommand):
 	async def management_portal_ping(self) -> str:
 		start_time = time.time()
 
-		# Send a GET request to the management portal URL
-		async with aiohttp.ClientSession() as session:
-			async with session.get(ConfigurationValues.MANAGEMENT_PORTAL_URL):
-				end_time = time.time()
-				latency = round((end_time - start_time) * 1000)
+		# Send a POST request to the management portal URL
+		await self.config_manager.mph.post(ConfigurationValues.MANAGEMENT_PORTAL_URL)
 
-				return f"Management Portal Ping: {self.color_text(f"{latency} ms", self.get_color(latency))}"
+		end_time = time.time()
+		latency = round((end_time - start_time) * 1000)
+
+		return f"Management Portal Ping: {self.color_text(f"{latency} ms", self.get_color(latency))}"
 
 	def get_color(self, latency: int):
 		"""Calculate a color between green and red based on latency, normalized between 0 and 500."""

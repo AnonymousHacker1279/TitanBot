@@ -42,7 +42,7 @@ if __name__ == "__main__":
 	bot.help_command = Help()
 
 	# Perform initialization for the management portal
-	management_portal_handler.initialize(bot)
+	asyncio.run(management_portal_handler.initialize(bot))
 	ThreadedLogger.initialize(management_portal_handler)
 
 	logger = ThreadedLogger("TitanBot")
@@ -98,6 +98,7 @@ if __name__ == "__main__":
 				await management_portal_handler.update_management_portal_latency.stop()
 				await management_portal_handler.check_management_portal_pending_commands.stop()
 				await management_portal_handler.cf_checker_api.check_for_updates.stop()
+				await management_portal_handler.close_sessions()
 				await bot.close()
 				break
 
