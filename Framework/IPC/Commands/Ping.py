@@ -5,12 +5,13 @@ import discord
 from ConfigurationManager import ConfigurationManager
 from Framework.ConfigurationManager import ConfigurationValues
 from Framework.IPC.BasicCommand import BasicCommand
+from Framework.IPC.CommandDirectory import CommandDirectory
 
 
 class Ping(BasicCommand):
 
-	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
-		super().__init__(bot, config_manager)
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager, command_directory: CommandDirectory):
+		super().__init__(bot, config_manager, command_directory)
 		self.friendly_name = "ping"
 
 	async def execute(self, args: list[str]) -> str:
@@ -48,3 +49,27 @@ class Ping(BasicCommand):
 		"""Calculate a color between green and red based on latency, normalized between 0 and 500."""
 		percent = latency / 500
 		return super().get_color(percent)
+
+	async def get_help_message(self) -> str:
+		msg = "Get the latency between the bot and the Discord API Portal, and the bot and the Management Portal. If no source is provided, both sources will be checked."
+		args = {
+			"source": {
+				"description": "The source to check the latency for.",
+				"arguments": {
+					"discord_portal": {
+						"description": "Check the latency between the bot and the Discord API Portal.",
+						"arguments": {}
+					},
+					"management_portal": {
+						"description": "Check the latency between the bot and the Management Portal.",
+						"arguments": {}
+					},
+					"all": {
+						"description": "Check the latency between the bot and both portals. This is the default action.",
+						"arguments": {}
+					}
+				}
+			}
+		}
+
+		return await self.format_help_message(msg, args)

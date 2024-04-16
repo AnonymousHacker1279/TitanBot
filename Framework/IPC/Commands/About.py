@@ -6,12 +6,13 @@ import discord
 from ConfigurationManager import ConfigurationManager
 from Framework.ConfigurationManager import ConfigurationValues
 from Framework.IPC.BasicCommand import BasicCommand
+from Framework.IPC.CommandDirectory import CommandDirectory
 
 
 class About(BasicCommand):
 
-	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
-		super().__init__(bot, config_manager)
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager, command_directory: CommandDirectory):
+		super().__init__(bot, config_manager, command_directory)
 		self.friendly_name = "about"
 		self.color = "#0047AB"
 
@@ -27,3 +28,9 @@ class About(BasicCommand):
 
 	async def execute(self, args: list[str]) -> str:
 		return self.about_text
+
+	async def get_help_message(self) -> str:
+		msg = "Get information about the bot."
+		args = {}
+
+		return await self.format_help_message(msg, args)

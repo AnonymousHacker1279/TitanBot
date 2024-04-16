@@ -4,12 +4,13 @@ import discord
 
 from ConfigurationManager import ConfigurationManager
 from Framework.IPC.BasicCommand import BasicCommand
+from Framework.IPC.CommandDirectory import CommandDirectory
 
 
 class Configuration(BasicCommand):
 
-	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
-		super().__init__(bot, config_manager)
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager, command_directory: CommandDirectory):
+		super().__init__(bot, config_manager, command_directory)
 		self.friendly_name = "config"
 
 	async def execute(self, args: list[str]) -> str:
@@ -72,3 +73,32 @@ class Configuration(BasicCommand):
 			case "sync_from_portal" | "sync" | "sy":
 				await self.config_manager.load_deferred_configs(self.bot.guilds)
 				return "Reloaded configuration data from the management portal."
+
+	async def get_help_message(self) -> str:
+		msg = "Get or set configuration values. Keys may be nested using slashes."
+		args = {
+			"get_value | get | g": {
+				"description": "Get a configuration value by key.",
+				"arguments": {}
+			},
+			"dump_values | dump | d": {
+				"description": "Dump all configuration values.",
+				"arguments": {
+					"pretty | p": "Pretty print the output."
+				}
+			},
+			"set_value | set | s": {
+				"description": "Set a configuration value by key.",
+				"arguments": {
+					"key": "The key of the configuration value to set.",
+					"value": "The new value for the configuration key.",
+					"update | u": "Optional. Sync the changes with the management portal. By default, this is false."
+				}
+			},
+			"sync_from_portal | sync | sy": {
+				"description": "Sync configuration values from the management portal.",
+				"arguments": {}
+			}
+		}
+
+		return await self.format_help_message(msg, args)

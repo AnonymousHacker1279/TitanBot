@@ -13,7 +13,7 @@ class TBHighlighter(Highlighter):
 	def highlight(self, text):
 		lines = text.plain.splitlines()
 		current_position = 0
-		specific_highlights = {}
+		specific_highlights = []
 
 		# Process each line individually
 		for line in lines:
@@ -45,10 +45,15 @@ class TBHighlighter(Highlighter):
 					# Remove the color tag from the section
 					section_without_tags = re.sub(r'\[color=[^\]]*\](.*)\[/color\]', r'\1', section)
 
+					# Calculate the start and end indexes after removing the color tags
+					start = text.plain.find(section)
+					end = start + len(section_without_tags)
+
+					# Replace the section with the section without tags in text.plain
 					text.plain = text.plain.replace(section, section_without_tags)
 
 					# Add the section without tags and its style to the highlights dictionary
-					specific_highlights[section_without_tags] = color
+					specific_highlights.append((section_without_tags, color, start, end))
 				else:
 					# Update the start position to the end of the section
 					start += len(section)
@@ -57,8 +62,8 @@ class TBHighlighter(Highlighter):
 			current_position = end + 1
 
 		# Apply the highlights to the text
-		for highlight, color in specific_highlights.items():
-			text.highlight_words([highlight], style=color)
+		for highlight, color, start, end in specific_highlights:
+			text.stylize(color, start=start, end=end)
 
 	def style_log(self, log_level: re.Match[str]) -> str:
 		log_level = log_level.group(1)

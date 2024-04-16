@@ -5,12 +5,13 @@ import psutil
 
 from ConfigurationManager import ConfigurationManager
 from Framework.IPC.BasicCommand import BasicCommand
+from Framework.IPC.CommandDirectory import CommandDirectory
 
 
 class Status(BasicCommand):
 
-	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager):
-		super().__init__(bot, config_manager)
+	def __init__(self, bot: discord.bot.Bot, config_manager: ConfigurationManager, command_directory: CommandDirectory):
+		super().__init__(bot, config_manager, command_directory)
 		self.friendly_name = "status"
 
 		with open(os.getcwd() + "/Resources/status.txt", 'r') as f:
@@ -40,3 +41,9 @@ class Status(BasicCommand):
 		self.send_buffer_size = len(text)
 
 		return text
+
+	async def get_help_message(self) -> str:
+		msg = "Get system status information."
+		args = {}
+
+		return await self.format_help_message(msg, args)

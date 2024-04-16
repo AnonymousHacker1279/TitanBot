@@ -4,11 +4,8 @@ import socket
 import threading
 
 from Framework.ConfigurationManager import ConfigurationValues
-from Framework.ConfigurationManager import configuration_manager
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
-from Framework.IPC.BasicCommand import BasicCommand
 from Framework.IPC.CommandDirectory import CommandDirectory
-from Framework.ManagementPortal import management_portal_handler
 
 
 class IPCHandler:
@@ -41,18 +38,17 @@ class IPCHandler:
 			args = self.__parse_args(client_message.lstrip(command_name))
 
 			if command:
-				command_instance: BasicCommand = command(management_portal_handler.bot, configuration_manager)
-				response = self.loop.run_until_complete(command_instance.execute(args))
+				response = self.loop.run_until_complete(command.execute(args))
 
-				metadata: dict[str, any] = command_instance.extra_metadata.copy()
+				metadata: dict[str, any] = command.extra_metadata.copy()
 
 				if metadata.get("shutdown"):
 					self.shutdown_flag.set()
 
-				if command_instance.send_buffer_size != 1024:
-					metadata["buffer_size"] = command_instance.send_buffer_size
-				if command_instance.color != "white":
-					metadata["color"] = command_instance.color
+				if command.send_buffer_size != 1024:
+					metadata["buffer_size"] = command.send_buffer_size
+				if command.color != "white":
+					metadata["color"] = command.color
 
 				if metadata:
 					self.send_update(f"!METADATA:{metadata}")

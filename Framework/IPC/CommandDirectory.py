@@ -3,7 +3,6 @@ import time
 
 from Framework.ConfigurationManager import configuration_manager
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
-from Framework.IPC.BasicCommand import BasicCommand
 from Framework.ManagementPortal import management_portal_handler
 
 
@@ -14,7 +13,10 @@ class CommandDirectory:
 		self.directory = directory
 		self.commands = {}
 
-	def load_commands(self):
+	def load_commands(self) -> None:
+		"""Load all commands from the directory specified in the constructor."""
+		from Framework.IPC.BasicCommand import BasicCommand
+
 		start_time = time.time()
 
 		for file in os.listdir(self.directory):
@@ -25,9 +27,9 @@ class CommandDirectory:
 
 				# Check if the command is a subclass of BasicCommand
 				if issubclass(command_class, BasicCommand):
-					command_instance = command_class(management_portal_handler.bot, configuration_manager)
+					command_instance = command_class(management_portal_handler.bot, configuration_manager, self)
 					friendly_name = command_instance.friendly_name
-					self.commands[friendly_name] = command_class
+					self.commands[friendly_name] = command_instance
 
 					self.logger.log_debug("Loaded console command: " + friendly_name)
 
@@ -35,6 +37,13 @@ class CommandDirectory:
 		self.logger.log_debug("Loaded " + str(len(self.commands)) + " commands in " + load_time + " seconds")
 
 	def get_command(self, command):
+		"""
+		Get a command by its friendly name.
+
+		:param command: The friendly name of the command to get.
+		:return: The command object or None if the command does not exist.
+		"""
+
 		if command in self.commands:
 			return self.commands[command]
 		else:
