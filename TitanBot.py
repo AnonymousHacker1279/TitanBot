@@ -49,14 +49,18 @@ if __name__ == "__main__":
 	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
 	logger.log_info("Running on Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]))
 
-	bot.add_cog(Quotes())
-	bot.add_cog(Fun())
-	bot.add_cog(Utility())
-	bot.add_cog(Genius())
-	bot.add_cog(AccessControl())
-	bot.add_cog(CurseForge())
-	bot.add_cog(Debugging())
+	cogs = [
+		Quotes(),
+		Fun(),
+		Utility(),
+		Genius(),
+		AccessControl(),
+		CurseForge(),
+		Debugging()
+	]
 
+	for cog in cogs:
+		bot.add_cog(cog)
 
 	@bot.event
 	async def on_ready():
@@ -67,6 +71,10 @@ if __name__ == "__main__":
 		logger.log_info("Loading configuration data from the management portal")
 		from Framework.ConfigurationManager import configuration_manager
 		await configuration_manager.load_deferred_configs(bot.guilds)
+
+		# Perform post-init tasks for each cog
+		for cog in cogs:
+			await cog.post_init()
 
 		# Send the ready status to the management portal
 		await management_portal_handler.on_ready()

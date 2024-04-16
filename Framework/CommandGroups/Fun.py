@@ -2,8 +2,8 @@ import discord
 from discord import Spotify
 from discord.ext import commands
 
-from .BasicCog import BasicCog
-from ..GeneralUtilities import PermissionHandler
+from Framework.CommandGroups.BasicCog import BasicCog
+from Framework.GeneralUtilities import PermissionHandler
 
 
 class Fun(BasicCog):
@@ -23,8 +23,8 @@ class Fun(BasicCog):
 		"""Stab someone, or something."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "stab")
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "stab")
+		if not failed_permission_check:
 			if await PermissionHandler.is_superuser(user.id):
 				embed.title = "Refusing to Stab"
 				embed.description = "How dare you try to stab a superuser!"
@@ -47,8 +47,8 @@ class Fun(BasicCog):
 		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "spotify")
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "spotify")
+		if not failed_permission_check:
 			if user is None:
 				user = ctx.author
 			nonSpotifyActivities = 0
@@ -98,8 +98,8 @@ class Fun(BasicCog):
 		"""Make the bot say something in a channel."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
+		if not failed_permission_check:
 			user = ctx.author
 
 			if channel is None:
@@ -134,8 +134,8 @@ class Fun(BasicCog):
 		"""Generate a random image from InspiroBot."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
+		if not failed_permission_check:
 			# Get an image URL from InspiroBot
 			image_url = await self.mph.get("https://inspirobot.me/api?generate=true", non_management_portal=True)
 
@@ -153,8 +153,8 @@ class Fun(BasicCog):
 		"""Get a random and useless, but true, fact."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
+		if not failed_permission_check:
 			# Get a random fact
 			response = await self.mph.get("https://uselessfacts.jsph.pl/random.json?language=en", non_management_portal=True)
 

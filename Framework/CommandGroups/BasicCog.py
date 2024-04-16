@@ -16,3 +16,7 @@ class BasicCog(commands.Cog):
 		data["guild_id"] = str(guild_id)
 
 		await self.mph.post(APIEndpoints.UPDATE_COMMAND_USED, data)
+
+	async def post_init(self) -> None:
+		"""Runs during the bot on_ready event, after all configurations have loaded."""
+		pass

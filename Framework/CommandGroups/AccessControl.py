@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from .BasicCog import BasicCog
-from ..GeneralUtilities import PermissionHandler
+from Framework.CommandGroups.BasicCog import BasicCog
+from Framework.GeneralUtilities import PermissionHandler
 
 
 class AccessControl(BasicCog):
@@ -28,8 +28,8 @@ class AccessControl(BasicCog):
 		"""Toggle access to a specific command. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "toggle_command_access", True)
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "access_control", "toggle_command_access", True)
+		if not failed_permission_check:
 			await self.mph.access_control_api.toggle_command_access(user.id, ctx.guild_id, module, command)
 
 			embed.title = "Command Access Toggled"
@@ -56,8 +56,8 @@ class AccessControl(BasicCog):
 		"""Toggle access to a specific module. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "toggle_module_access", True)
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "access_control", "toggle_module_access", True)
+		if not failed_permission_check:
 			await self.mph.access_control_api.toggle_module_access(user.id, ctx.guild_id, module)
 
 			embed.title = "Module Access Toggled"
@@ -78,8 +78,8 @@ class AccessControl(BasicCog):
 		"""List all commands a user is banned from using. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "list_banned_commands", True)
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "access_control", "list_banned_commands", True)
+		if not failed_permission_check:
 			banned_commands = await self.mph.access_control_api.get_banned_commands(user.id, ctx.guild_id)
 			if len(banned_commands) == 0:
 				embed.title = "No Banned Commands"
@@ -111,8 +111,8 @@ class AccessControl(BasicCog):
 		"""List all modules a user is banned from using. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "access_control", "list_banned_modules", True)
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "access_control", "list_banned_modules", True)
+		if not failed_permission_check:
 			banned_modules = await self.mph.access_control_api.get_banned_modules(user.id, ctx.guild_id)
 			if len(banned_modules) == 0:
 				embed.title = "No Banned Modules"

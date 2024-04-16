@@ -8,11 +8,11 @@ from discord.errors import HTTPException, NotFound
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
-async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, author: int, content: str, quoteID: int, date: str, quotedBy: int) -> discord.Embed:
+async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, author: int, content: str, quoteID: int, date: str, quoted_by: int) -> discord.Embed:
 	embed.title = "Quote #" + str(quoteID)
 
 	links = re.findall('https://[a-zA-Z0-9-./_&]*', content)
-	contentExcludingLinks = ""
+	content_excluding_links = ""
 	iteration = 0
 
 	if date != "1970-01-01 00:00:00":
@@ -22,13 +22,13 @@ async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, a
 						":" + str(iso_date.minute) + ":" + str(iso_date.second)
 	else:
 		readable_date = "Unknown"
-		quotedBy = "Unknown"
+		quoted_by = "Unknown"
 
 	try:
-		int(quotedBy)
-		quoted_by_user = str(await ctx.bot.fetch_user(quotedBy))
+		int(quoted_by)
+		quoted_by_user = str(await ctx.bot.fetch_user(quoted_by))
 	except ValueError:
-		quoted_by_user = quotedBy
+		quoted_by_user = quoted_by
 
 	try:
 		author_user = await ctx.bot.fetch_user(author)
@@ -39,15 +39,15 @@ async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, a
 		author_user = str(author)
 
 	for _ in links:
-		contentExcludingLinks = re.sub(pattern=links[iteration], repl="", string=content)
+		content_excluding_links = re.sub(pattern=links[iteration], repl="", string=content)
 		iteration += 1
 	if len(links) != 0:
-		if contentExcludingLinks == "":
+		if content_excluding_links == "":
 			embed.set_image(url=links[0])
 			embed.description = author_user
 			embed.set_footer(text="Added " + readable_date + " by " + quoted_by_user)
 		else:
-			embed.description = '> "' + contentExcludingLinks + '"\n'
+			embed.description = '> "' + content_excluding_links + '"\n'
 			embed.description += " \\- " + author_user
 			embed.set_image(url=links[0])
 			embed.set_footer(text="Added " + str(readable_date) + " by " + quoted_by_user)
@@ -64,13 +64,13 @@ async def handle_searching_author(ctx: discord.ApplicationContext, mph: Manageme
 		embed.title = "Cannot search quotes"
 		embed.description = "Invalid page. The page must be greater than zero."
 	else:
-		authorDisplayName = quote_author
+		author_display_name = quote_author
 
 		# Try getting a profile picture for the author and a display name
 		try:
-			authorUser = await ctx.bot.fetch_user(quote_author)
-			authorDisplayName = authorUser.display_name
-			embed.set_thumbnail(url=authorUser.display_avatar.url)
+			author_user = await ctx.bot.fetch_user(quote_author)
+			author_display_name = author_user.display_name
+			embed.set_thumbnail(url=author_user.display_avatar.url)
 		except (NotFound, ValueError):
 			embed.set_footer(text="Cannot get the profile picture for this user. Ensure the author is a valid user.")
 
@@ -84,7 +84,7 @@ async def handle_searching_author(ctx: discord.ApplicationContext, mph: Manageme
 			embed.title = "No Quotes Found"
 			embed.description = "This author has no quotes."
 		else:
-			embed.title = "Quotes by " + authorDisplayName
+			embed.title = "Quotes by " + author_display_name
 
 			if page != 0:
 				embed.title += " (Page " + str(page) + ")"

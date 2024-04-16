@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from .BasicCog import BasicCog
-from ..GeneralUtilities import PermissionHandler
+from Framework.CommandGroups.BasicCog import BasicCog
+from Framework.GeneralUtilities import PermissionHandler
 
 
 class Debugging(BasicCog):
@@ -16,8 +16,8 @@ class Debugging(BasicCog):
 		"""Make the bot say something in a channel. Debug only, allows any channel ID."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
-		if not failedPermissionCheck:
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
+		if not failed_permission_check:
 			user = ctx.author
 
 			if channel is None:

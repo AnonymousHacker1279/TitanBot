@@ -1,14 +1,21 @@
 import discord
 from discord.ext import commands
 
-from .BasicCog import BasicCog
-from ..GeneralUtilities import GeniusQuery, PermissionHandler
+from Framework.CommandGroups.BasicCog import BasicCog
+from Framework.GeneralUtilities import GeniusAPI, PermissionHandler
 
 
 class Genius(BasicCog):
 	"""Interact with the Genius music API."""
 
 	genius = discord.SlashCommandGroup("genius", description="Interact with the Genius music API.")
+
+	def __init__(self):
+		super().__init__()
+		self.genius_api = GeniusAPI.GeniusAPI()
+
+	async def post_init(self):
+		await self.genius_api.initialize()
 
 	@discord.option(
 		name="artist",
@@ -28,15 +35,15 @@ class Genius(BasicCog):
 		"""Search for a song by artist and song name."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "genius", "search")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius", "search")
 
-		if not failedPermissionCheck:
+		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
 			await self.update_management_portal_command_used("genius", "search", ctx.guild.id)
 
 			embed.title = artist + " - " + song
-			result, geniusID = await GeniusQuery.search_songs(artist, song)
+			result, geniusID = await self.genius_api.search_songs(artist, song)
 			embed.description = result
 			embed.set_footer(text="Genius ID: " + str(geniusID))
 
@@ -56,15 +63,15 @@ class Genius(BasicCog):
 		"""Search for a song by its Genius URL."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "genius", "get_by_url")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius", "get_by_url")
 
-		if not failedPermissionCheck:
+		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
 			await self.update_management_portal_command_used("genius", "get_by_url", ctx.guild.id)
 
 			embed.title = "Lyrics by URL"
-			result = await GeniusQuery.get_lyrics_by_url(url)
+			result = await self.genius_api.get_lyrics_by_url(url)
 			embed.description = result
 
 			await ctx.edit(embed=embed)
@@ -83,16 +90,16 @@ class Genius(BasicCog):
 		"""Search for a song by its Genius ID."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failedPermissionCheck = await PermissionHandler.check_permissions(ctx, embed, "genius",
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius",
 																				"get_by_id")
 
-		if not failedPermissionCheck:
+		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
 			await self.update_management_portal_command_used("genius", "get_by_id", ctx.guild.id)
 
 			embed.title = "Lyrics by ID"
-			result = await GeniusQuery.get_lyrics_by_id(song_id)
+			result = await self.genius_api.get_lyrics_by_id(song_id)
 			embed.description = result
 
 			await ctx.edit(embed=embed)
