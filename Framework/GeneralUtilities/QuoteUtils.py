@@ -8,8 +8,20 @@ from discord.errors import HTTPException, NotFound
 from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
 
 
-async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, author: int, content: str, quoteID: int, date: str, quoted_by: int) -> discord.Embed:
-	embed.title = "Quote #" + str(quoteID)
+async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, author: int, content: str, quote_id: int, date: str, quoted_by: int) -> discord.Embed:
+	"""
+	Prepare a quote for display in an embed.
+	
+	:param ctx: The context of the command.
+	:param embed: The embed to prepare.
+	:param author: The author of the quote.
+	:param content: The content of the quote.
+	:param quote_id: The ID of the quote.
+	:param date: The date the quote was added.
+	:param quoted_by: The user who added the quote.
+	"""
+
+	embed.title = "Quote #" + str(quote_id)
 
 	links = re.findall('https://[a-zA-Z0-9-./_&]*', content)
 	content_excluding_links = ""
@@ -59,7 +71,17 @@ async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, a
 	return embed
 
 
-async def handle_searching_author(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, quote_author: int):
+async def handle_searching_author(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, quote_author: int) -> tuple[discord.Embed, int]:
+	"""
+	Handle searching for quotes by a specific author.
+
+	:param ctx: The context of the command.
+	:param mph: The ManagementPortalHandler instance.
+	:param page: The page of quotes to search for.
+	:param embed: The embed to display the quotes in.
+	:param quote_author: The author of the quotes.
+	"""
+
 	if page < 0:
 		embed.title = "Cannot search quotes"
 		embed.description = "Invalid page. The page must be greater than zero."
@@ -99,7 +121,17 @@ async def handle_searching_author(ctx: discord.ApplicationContext, mph: Manageme
 			return embed, total_quotes
 
 
-async def handle_searching_content(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, text: str):
+async def handle_searching_content(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, text: str) -> tuple[discord.Embed, int]:
+	"""
+	Handle searching for quotes containing specific text.
+
+	:param ctx: The context of the command.
+	:param mph: The ManagementPortalHandler instance.
+	:param page: The page of quotes to search for.
+	:param embed: The embed to display the quotes in.
+	:param text: The text to search for.
+	"""
+
 	if page < 0:
 		embed.title = "Cannot search quotes"
 		embed.description = "Invalid page. The page must be greater than zero."

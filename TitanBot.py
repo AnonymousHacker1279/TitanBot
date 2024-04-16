@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import subprocess
 import sys
 import threading
 import time
@@ -17,7 +18,7 @@ from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.Utility import Utility
 from Framework.ConfigurationManager import ConfigurationValues
-from Framework.GeneralUtilities import ErrorHandler, GeneralUtilities
+from Framework.GeneralUtilities import ErrorHandler
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC import ipc_handler
 from Framework.ManagementPortal import management_portal_handler
@@ -35,7 +36,7 @@ executor = concurrent.futures.ThreadPoolExecutor()
 if __name__ == "__main__":
 
 	ConfigurationValues.VERSION = "v3.0.0-indev"
-	ConfigurationValues.COMMIT = GeneralUtilities.get_git_revision_short_hash()
+	ConfigurationValues.COMMIT = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
 	intents = discord.Intents.all()
 	bot = discord.Bot(intents=intents)
@@ -80,10 +81,7 @@ if __name__ == "__main__":
 		await management_portal_handler.on_ready()
 
 		# Set the bot status
-		status_config = await configuration_manager.get_value("discord_status")
-		status = await BotStatus.get_status(status_config["activity_level"], status_config["activity_text"],
-											status_config["activity_url"], status_config["activity_emoji"],
-											status_config["status_level"])
+		status = await BotStatus.get_status_from_config(configuration_manager)
 		await bot.change_presence(activity=status[0], status=status[1])
 
 		# Start the IPC server
@@ -102,9 +100,8 @@ if __name__ == "__main__":
 		# Monitor for shutdown events over IPC
 		while True:
 			if ipc_handler.shutdown_flag.is_set():
-				ThreadedLogger.should_shutdown = True
+				ThreadedLogger.shutdown = True
 				await management_portal_handler.update_management_portal_latency.stop()
-				await management_portal_handler.check_management_portal_pending_commands.stop()
 				await management_portal_handler.cf_checker_api.check_for_updates.stop()
 				await management_portal_handler.close_sessions()
 				await bot.close()

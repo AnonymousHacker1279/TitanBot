@@ -4,10 +4,24 @@ from Framework.ConfigurationManager import configuration_manager as cm
 from Framework.ManagementPortal import management_portal_handler as mph
 
 
-async def check_permissions(ctx, embed: discord.Embed,
-							module: str, command: str,
-							should_check_for_admin=False,
-							should_check_for_module_enabled=True):
+async def check_permissions(ctx, embed: discord.Embed, module: str, command: str, should_check_for_admin=False) -> tuple[discord.Embed, bool]:
+	"""
+	Check if the user has permission to use a command. The check process is as follows:
+
+	1. Check if the user is a superuser. If so, they will always have access.
+	2. Check if the module is enabled. This is global for an entire guild.
+	3. Check if the user is banned from using the module.
+	4. Check if the user is banned from using the command.
+	5. Check if the user is an administrator (if the command requires it).
+
+	If any of these checks fail, the embed will be updated with the appropriate message and the calling command should exit early.
+
+	:param ctx: The context of the command.
+	:param embed: The embed to update if the permission check fails.
+	:param module: The module the command belongs to.
+	:param command: The command being executed.
+	:param should_check_for_admin: Whether the command requires administrator permissions.
+	"""
 
 	failed_permission_check = False
 	guild_id = ctx.guild.id
@@ -15,7 +29,7 @@ async def check_permissions(ctx, embed: discord.Embed,
 	if await is_superuser(ctx.author.id):
 		return embed, failed_permission_check
 
-	if should_check_for_module_enabled and not await check_module_enabled(module, guild_id):
+	if not await check_module_enabled(module, guild_id):
 		embed.title = "Cannot use this module"
 		embed.description = "This module has been disabled."
 		failed_permission_check = True

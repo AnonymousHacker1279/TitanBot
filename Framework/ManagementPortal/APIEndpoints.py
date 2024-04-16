@@ -6,7 +6,6 @@ class APIEndpoints(str, Enum):
 	UPDATE_LATENCY = "/v2/bot_update_latency.php"
 	UPDATE_COMMAND_USED = "/v2/bot_update_command_used.php"
 	LOG_DATA = "/v2/bot_log_data.php"
-	CHECK_PENDING_COMMANDS = "/v2/bot_check_pending_commands.php"
 	UPDATE_COMMAND_COMPLETED = "/v2/bot_update_command_completed.php"
 	GET_CONFIGURATION = "/v3/configurations/portal_get_configuration.php"
 	WRITE_CONFIGURATION = "/v3/configurations/bot_write_configuration.php"

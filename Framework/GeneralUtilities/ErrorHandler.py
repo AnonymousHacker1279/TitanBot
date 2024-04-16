@@ -5,7 +5,14 @@ from discord.ext import commands
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 
 
-async def handle_error(error: commands.CommandError, logger: ThreadedLogger):
+async def handle_error(error: commands.CommandError, logger: ThreadedLogger) -> discord.Embed:
+	"""
+	Handles an error that occurred during the execution of a command.
+
+	:param error: The error that occurred.
+	:param logger: The logger to use for writing the error.
+	"""
+
 	embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
 	should_log = True
