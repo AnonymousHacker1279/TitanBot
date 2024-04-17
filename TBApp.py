@@ -1,5 +1,4 @@
 import os
-import threading
 import time
 
 from dotenv import load_dotenv
@@ -77,7 +76,7 @@ class TitanBotApp(App):
 			except ConnectionRefusedError:
 				continue
 
-		threading.Thread(target=self.receive_updates, name="IPC Listener").start()
+		self.receive_messages()
 
 		self.command_input_widget.disabled = False
 		self.rich_log_widget.visible = True
@@ -85,10 +84,11 @@ class TitanBotApp(App):
 		if self.loading_label_widget.is_reconnecting:
 			self.rich_log_widget.write(f"Connection to TitanBot re-established at {time.strftime('%H:%M:%S')}.")
 
-	def receive_updates(self):
+	@work(exclusive=True, thread=True, name="IPC Listener")
+	def receive_messages(self):
 		while True:
 			try:
-				update = self.client.recv()
+				message = self.client.recv()
 			except ConnectionResetError:
 				self.client.is_connected = False
 				self.loading_label_widget.renderable = "Connection to TitanBot lost. Attempting to reconnect..."
@@ -102,10 +102,10 @@ class TitanBotApp(App):
 
 				break
 
-			if update:
-				if update.startswith("!METADATA:"):
+			if message:
+				if message.startswith("!METADATA:"):
 					buffer_size = 1024
-					metadata: dict[str, any] = eval(update[10:])
+					metadata: dict[str, any] = eval(message[10:])
 					if "shutdown" in metadata:
 						self.client.close()
 						self.app.exit(message="TitanBot is shutting down.")
@@ -115,9 +115,9 @@ class TitanBotApp(App):
 						buffer_size = metadata["buffer_size"]
 					if "color" in metadata:
 						self.rich_log_widget.highlighter.color_of_next_entry = metadata["color"]
-					update = self.client.recv(buffer_size)
+					message = self.client.recv(buffer_size)
 
-				self.rich_log_widget.write(update)
+				self.rich_log_widget.write(message)
 
 
 if __name__ == "__main__":

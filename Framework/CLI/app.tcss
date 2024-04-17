@@ -4,6 +4,10 @@ Input {
     height: 3;
 }
 
+RichLog {
+	padding-bottom: 1;
+}
+
 .loading_label {
 	color: #0047ab;
 	text-style: italic;

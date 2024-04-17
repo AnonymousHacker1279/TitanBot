@@ -27,10 +27,9 @@ class TBHighlighter(Highlighter):
 			if log_level:
 				text.stylize(self.style_log(log_level), start=start, end=end)
 			elif self.color_of_next_entry:
-				text.stylize(self.color_of_next_entry, start=start, end=end)
-				self.color_of_next_entry = None
+				text.stylize(self.color_of_next_entry)
 			else:
-				text.stylize("white", start=start, end=end)
+				text.stylize("white")
 
 			# Check for color tags in the line
 			sections = re.split(r'(\[color=[^\]]*\].*?\[/color\])', line)
@@ -64,6 +63,8 @@ class TBHighlighter(Highlighter):
 		# Apply the highlights to the text
 		for highlight, color, start, end in specific_highlights:
 			text.stylize(color, start=start, end=end)
+
+		self.color_of_next_entry = None
 
 	def style_log(self, log_level: re.Match[str]) -> str:
 		log_level = log_level.group(1)
