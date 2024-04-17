@@ -1,11 +1,14 @@
 import os
 import threading
+import time
 
 from dotenv import load_dotenv
+from textual import work
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, RichLog, Input
 
 from Framework.CLI.IPCClient import IPCClient
+from Framework.CLI.LoadingLabel import LoadingLabel
 from Framework.CLI.TBHighlighter import TBHighlighter
 
 
@@ -30,19 +33,22 @@ class TitanBotApp(App):
 
 		self.client = IPCClient(self.ipc_address)
 
+		self.loading_label_widget = LoadingLabel("Waiting for an IPC connection to TitanBot...", self.client)
+
 		self.rich_log_widget = RichLog(highlight=True)
 		self.rich_log_widget.highlighter = TBHighlighter()
+		self.rich_log_widget.visible = False
 
-		self.command_input_widget = Input(placeholder="Enter a command...")
+		self.command_input_widget = Input(placeholder="Enter a command...", disabled=True)
 
 	def on_mount(self) -> None:
 		"""Connect to the IPC server and start a thread to receive updates."""
-		self.client.connect()
-		threading.Thread(target=self.receive_updates, name="IPC Listener").start()
+		self.connect_to_server()
 
 	def compose(self) -> ComposeResult:
 		"""Create child widgets."""
 		yield Header(show_clock=True)
+		yield self.loading_label_widget
 		yield self.rich_log_widget
 		yield self.command_input_widget
 		yield Footer()
@@ -63,12 +69,37 @@ class TitanBotApp(App):
 		self.client.close()
 		self.exit()
 
+	@work(exclusive=True, thread=True, name="IPC Connection")
+	def connect_to_server(self):
+		while not self.client.is_connected:
+			try:
+				self.client.connect()
+			except ConnectionRefusedError:
+				continue
+
+		threading.Thread(target=self.receive_updates, name="IPC Listener").start()
+
+		self.command_input_widget.disabled = False
+		self.rich_log_widget.visible = True
+
+		if self.loading_label_widget.is_reconnecting:
+			self.rich_log_widget.write(f"Connection to TitanBot re-established at {time.strftime('%H:%M:%S')}.")
+
 	def receive_updates(self):
 		while True:
 			try:
 				update = self.client.recv()
 			except ConnectionResetError:
-				self.app.exit(message="Connection to TitanBot lost.")
+				self.client.is_connected = False
+				self.loading_label_widget.renderable = "Connection to TitanBot lost. Attempting to reconnect..."
+				self.loading_label_widget.is_reconnecting = True
+
+				self.command_input_widget.disabled = True
+				self.rich_log_widget.visible = False
+				self.rich_log_widget.write(f"Connection to TitanBot lost at {time.strftime('%H:%M:%S')}. Attempting to reconnect...")
+
+				self.connect_to_server()
+
 				break
 
 			if update:

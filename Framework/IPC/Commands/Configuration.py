@@ -2,7 +2,7 @@ import json
 
 import discord
 
-from ConfigurationManager import ConfigurationManager
+from Framework.ConfigurationManager import ConfigurationManager
 from Framework.IPC.BasicCommand import BasicCommand
 from Framework.IPC.CommandDirectory import CommandDirectory
 

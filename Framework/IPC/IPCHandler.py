@@ -26,7 +26,7 @@ class IPCHandler:
 			try:
 				client_message = connection.recv(1024).decode('utf-8')
 			except ConnectionResetError:
-				self.logger.log_info("Client disconnected (" + str(connection.getpeername()) + ")")
+				self.logger.log_info("Client disconnected " + str(connection.getpeername()))
 				self.clients.remove(connection)
 				break
 
@@ -38,7 +38,13 @@ class IPCHandler:
 			args = self.__parse_args(client_message.lstrip(command_name))
 
 			if command:
-				response = self.loop.run_until_complete(command.execute(args))
+				# Important to check if the loop is running here
+				if self.loop.is_running():
+					# This will work when outside a debugging environment but deadlock inside one
+					response = asyncio.run_coroutine_threadsafe(command.execute(args), self.loop).result()
+				else:
+					# This will work when debugging but crash outside a debugging environment
+					response = self.loop.run_until_complete(command.execute(args))
 
 				metadata: dict[str, any] = command.extra_metadata.copy()
 

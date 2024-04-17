@@ -1,6 +1,6 @@
 import discord
 
-from ConfigurationManager import ConfigurationManager
+from Framework.ConfigurationManager import ConfigurationManager
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC.BasicCommand import BasicCommand
 from Framework.IPC.CommandDirectory import CommandDirectory

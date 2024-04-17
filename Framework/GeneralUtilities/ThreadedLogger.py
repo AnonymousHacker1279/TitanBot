@@ -65,7 +65,13 @@ class ThreadedLogger:
 	def __init__(self, instance_name: str):
 		self.instance_name = instance_name
 		self.queue = Queue()
-		self.loop = asyncio.get_event_loop()
+
+		try:
+			self.loop = asyncio.get_event_loop()
+		except RuntimeError:
+			self.loop = asyncio.new_event_loop()
+			asyncio.set_event_loop(self.loop)
+
 		self.thread = Thread(target=self._threaded_logger, daemon=True, name="ThreadedLogger-" + instance_name)
 		self.thread.start()
 

@@ -5,10 +5,12 @@ class IPCClient:
 	def __init__(self, server):
 		self.server = server
 		self.socket = None
+		self.is_connected = False
 
 	def connect(self):
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket.connect(self.server)
+		self.is_connected = True
 
 	async def send(self, data):
 		self.socket.sendall(data.encode('utf-8'))
@@ -18,3 +20,4 @@ class IPCClient:
 
 	def close(self):
 		self.socket.close()
+		self.is_connected = False

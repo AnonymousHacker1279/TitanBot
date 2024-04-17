@@ -2,7 +2,7 @@ import time
 
 import discord
 
-from ConfigurationManager import ConfigurationManager
+from Framework.ConfigurationManager import ConfigurationManager
 from Framework.ConfigurationManager import ConfigurationValues
 from Framework.IPC.BasicCommand import BasicCommand
 from Framework.IPC.CommandDirectory import CommandDirectory

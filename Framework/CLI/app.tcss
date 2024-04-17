@@ -3,3 +3,11 @@ Input {
     margin-bottom: 2;
     height: 3;
 }
+
+.loading_label {
+	color: #0047ab;
+	text-style: italic;
+	content-align: center middle;
+    width: 100%;
+    height: 99%;
+}

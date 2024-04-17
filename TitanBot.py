@@ -8,7 +8,6 @@ import time
 import discord
 from discord.ext import commands
 
-import BotStatus
 from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.CurseForge import CurseForge
 from Framework.CommandGroups.Debugging import Debugging
@@ -17,7 +16,7 @@ from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.Utility import Utility
-from Framework.ConfigurationManager import ConfigurationValues
+from Framework.ConfigurationManager import BotStatus, ConfigurationValues
 from Framework.GeneralUtilities import ErrorHandler
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC import ipc_handler
