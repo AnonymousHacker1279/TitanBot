@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import os
 import subprocess
 import sys
 import threading
@@ -15,6 +16,7 @@ from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
 from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
+from Framework.CommandGroups.Statistics import Statistics
 from Framework.CommandGroups.Utility import Utility
 from Framework.ConfigurationManager import BotStatus, ConfigurationValues
 from Framework.GeneralUtilities import ErrorHandler
@@ -56,11 +58,21 @@ if __name__ == "__main__":
 		Genius(),
 		AccessControl(),
 		CurseForge(),
-		Debugging()
+		Debugging(),
+		Statistics()
 	]
 
 	for cog in cogs:
 		bot.add_cog(cog)
+
+	# Purge the temporary file directory
+	path = f"{os.getcwd()}/Storage/Temp"
+	temp_file_count = 0
+	for file in os.listdir(path):
+		logger.log_debug(f"Removing temporary file: {file}")
+		os.remove(f"{path}/{file}")
+		temp_file_count += 1
+	logger.log_info(f"Removed {temp_file_count} temporary files")
 
 	@bot.event
 	async def on_ready():

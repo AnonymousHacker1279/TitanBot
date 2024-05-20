@@ -23,3 +23,4 @@ class APIEndpoints(str, Enum):
 	TOGGLE_FEATURE_ACCESS = "/v3/modules/access_control/toggle_access.php"
 	GET_USER_BANNED_COMMANDS = "/v3/modules/access_control/get_banned_commands.php"
 	GET_USER_BANNED_MODULES = "/v3/modules/access_control/get_banned_modules.php"
+	GET_COMMAND_USAGE_ANALYTICS = "/v3/modules/statistics/get_command_usage_analytics.php"
