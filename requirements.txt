@@ -6,5 +6,6 @@ lyricsgenius>=3.0.1
 py-cord~=2.5.0
 nest_asyncio~=1.6.0
 semver>=3.0.2
-textual>=0.56.4
+textual>=0.62.0
 rich>=13.7.1
+matplotlib>=3.9.0
