@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from Framework.CommandGroups.BasicCog import BasicCog
 from Framework.ConfigurationManager import ConfigurationValues
@@ -44,17 +44,19 @@ class CurseForge(BasicCog):
 			download_count = response["downloadCount"]
 			latest_file_id = response["latestFilesIndexes"][0]["fileId"]
 
-			await self.mph.cf_checker_api.add_project(ctx.guild_id, project_id, announcement_channel.id, latest_file_id)
-
-			embed.title = "CurseForge Project Added: " + name
-			embed.set_thumbnail(url=logo_url)
-			embed.add_field(name="Downloads", value=f"{download_count:,}", inline=True)
-			embed.add_field(name="Project ID", value=project_id, inline=True)
-			embed.description = f"""
-			```{summary}```
-			The project will now be checked for updates every ten minutes.
-			New releases will be posted in {announcement_channel.mention}.
-			"""
+			if await self.sql_bridge.cf_module.add_project(ctx.guild_id, project_id, announcement_channel.id, latest_file_id):
+				embed.title = "CurseForge Project Added: " + name
+				embed.set_thumbnail(url=logo_url)
+				embed.add_field(name="Downloads", value=f"{download_count:,}", inline=True)
+				embed.add_field(name="Project ID", value=str(project_id), inline=True)
+				embed.description = f"""
+				```{summary}```
+				The project will now be checked for updates every ten minutes.
+				New releases will be posted in {announcement_channel.mention}.
+				"""
+			else:
+				embed.title = "CurseForge Project Already Added"
+				embed.description = f"Project `{project_id}` is already being checked for updates."
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("curseforge", "add_project", ctx.guild.id)
@@ -73,7 +75,7 @@ class CurseForge(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
 		if not failed_permission_check:
-			await self.mph.cf_checker_api.remove_project(ctx.guild_id, project_id)
+			await self.sql_bridge.cf_module.remove_project(ctx.guild_id, project_id)
 
 			embed.title = "CurseForge Project Removed"
 			embed.description = f"Project `{project_id}` will no longer be checked for updates."
@@ -89,13 +91,13 @@ class CurseForge(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
 		if not failed_permission_check:
-			projects = await self.mph.cf_checker_api.get_projects(ctx.guild_id)
+			projects = await self.sql_bridge.cf_module.get_projects(ctx.guild_id)
 
 			embed.title = "CurseForge Projects"
 
 			if len(projects) == 0:
 				embed.description = """
-				There are no projects being checked for updates. Use `/add_project` to add one.
+				There are no projects being checked for updates. Use `/curseforge add_project` to add one.
 				"""
 			else:
 				embed.description = "The following projects are being checked for updates:"
@@ -104,12 +106,12 @@ class CurseForge(BasicCog):
 					# Set the API key in headers
 					headers = {"x-api-key": ConfigurationValues.CF_API_TOKEN}
 
-					response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project['project_id']}", headers, True)
+					response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project[0]}", headers, True)
 					response = response["data"]
 
 					name = response["name"]
 
-					embed.add_field(name=name, value=f"ID: `{project['project_id']}`\nChannel: {ctx.guild.get_channel(project['announcement_channel_id']).mention}", inline=False)
+					embed.add_field(name=name, value=f"ID: `{project[0]}`\nChannel: {ctx.guild.get_channel(project[1]).mention}", inline=False)
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("curseforge", "list_projects", ctx.guild.id)
@@ -122,10 +124,60 @@ class CurseForge(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
 		if not failed_permission_check:
-			await self.mph.cf_checker_api.check_for_updates(ctx.guild_id)
+			await self.check_for_updates(ctx.guild_id)
 
 			embed.title = "CurseForge Update Check"
 			embed.description = "The update check has been manually run."
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("curseforge", "check_for_updates", ctx.guild.id)
+
+	@tasks.loop(seconds=600)
+	async def check_for_updates(self, guild_id: int = None):
+		# Get projects list
+		if guild_id is None:
+			projects = await self.sql_bridge.cf_module.get_projects()
+		else:
+			projects = await self.sql_bridge.cf_module.get_projects(guild_id)
+
+		# Compare the current file IDs with the latest ones on CF
+		for project in projects:
+			# Set the API key in headers
+			headers = {"x-api-key": ConfigurationValues.CF_API_TOKEN}
+
+			response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project[0]}", data=headers, non_management_portal=True)
+			response = response["data"]
+
+			latest_file_id = response["latestFilesIndexes"][0]["fileId"]
+
+			if project[2] != latest_file_id:
+				# Update the latest file ID
+				await self.sql_bridge.cf_module.update_project_version(project[0], latest_file_id)
+
+				# Get the announcement channel
+				announcement_channel = self.mph.bot.get_channel(project[1])
+
+				# Get the release type
+				release_type = response["latestFilesIndexes"][0]["releaseType"]
+				if release_type == 1:
+					release_type = "Release"
+				elif release_type == 2:
+					release_type = "Beta"
+				elif release_type == 3:
+					release_type = "Alpha"
+
+				# Create the embed
+				embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+				embed.title = "New Release: " + response["name"]
+				embed.set_thumbnail(url=response["logo"]["url"])
+				embed.add_field(name="Release Type", value=release_type, inline=True)
+				embed.add_field(name="File Name", value=response["latestFilesIndexes"][0]["filename"], inline=True)
+				embed.add_field(name="Downloads", value=f"{response['downloadCount']:,}", inline=True)
+				embed.add_field(name="Project ID", value=project[0], inline=True)
+				embed.description = f"""
+				```{response["summary"]}```
+				"""
+				embed.url = f"https://www.curseforge.com/minecraft/mc-mods/{response['slug']}/files/{latest_file_id}"
+
+				# Send the embed
+				await announcement_channel.send(embed=embed)

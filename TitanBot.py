@@ -110,7 +110,7 @@ if __name__ == "__main__":
 			if ipc_handler.shutdown_flag.is_set():
 				ThreadedLogger.shutdown = True
 				await management_portal_handler.update_management_portal_latency.stop()
-				await management_portal_handler.cf_checker_api.check_for_updates.stop()
+				await cogs[5].check_for_updates.stop()  # CF update checker
 				await management_portal_handler.close_sessions()
 				await bot.close()
 				break

@@ -1,12 +1,20 @@
 import os
 import sqlite3
 
+from Framework.SQLBridge.CFModule import CFModule
+
 
 class SQLBridge:
 
 	def __init__(self):
-		self.connection = sqlite3.connect(f"{os.getcwd()}/Storage/TitanBot.db")
+		if sqlite3.threadsafety == 3:
+			check_same_thread = False
+		else:
+			check_same_thread = True
+		self.connection = sqlite3.connect(f"{os.getcwd()}/Storage/TitanBot.db", check_same_thread=check_same_thread)
 		self.cursor = self.connection.cursor()
+
+		self.cf_module = CFModule(self.connection, self.cursor)
 
 	async def write_log_entry(self, source: str, level: str, message: str, timestamp: str) -> None:
 		"""Write a log entry into the `bot_logs` table."""

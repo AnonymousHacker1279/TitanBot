@@ -31,14 +31,12 @@ class ManagementPortalHandler:
 
 	async def initialize(self, bot) -> None:
 		"""Initialize core variables and API modules."""
-		from Framework.ManagementPortal.Modules import QuotesAPI, CFCheckerAPI
+		from Framework.ManagementPortal.Modules import QuotesAPI
 
 		self.bot = bot
 		self.base_data["bot_token"] = await generate_sha256(ConfigurationValues.TOKEN)
 
 		self.quotes_api = QuotesAPI.QuotesAPI(self)
-		self.cf_checker_api = CFCheckerAPI.CFCheckerAPI(self)
-
 		self.initialized = True
 
 	async def get_session(self) -> aiohttp.ClientSession:
@@ -150,7 +148,6 @@ class ManagementPortalHandler:
 		"""Start update loops."""
 
 		self.update_management_portal_latency.start()
-		self.cf_checker_api.check_for_updates.start()
 
 	@tasks.loop(seconds=30)
 	async def update_management_portal_latency(self) -> None:
