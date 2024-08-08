@@ -34,7 +34,7 @@ class Utility(BasicCog):
 			embed.set_footer(text="Born into the world on 7/15/21.")
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("utility", "age", ctx.guild.id)
+		await self.update_usage_analytics("utility", "age", ctx.guild.id)
 
 	@utility.command()
 	@commands.guild_only()
@@ -52,7 +52,7 @@ class Utility(BasicCog):
 			embed.description = "Result: **" + value + ".**"
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("utility", "coin_flip", ctx.guild.id)
+		await self.update_usage_analytics("utility", "coin_flip", ctx.guild.id)
 
 	@discord.option(
 		name="sides",
@@ -76,7 +76,7 @@ class Utility(BasicCog):
 				embed.description = "You must specify more than one side on the die."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("utility", "roll_die", ctx.guild.id)
+		await self.update_usage_analytics("utility", "roll_die", ctx.guild.id)
 
 	@utility.command()
 	@commands.guild_only()
@@ -97,7 +97,7 @@ class Utility(BasicCog):
 				embed.description += "Latency is extremely high. Delays and drops are nearly assured."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("utility", "ping", ctx.guild.id)
+		await self.update_usage_analytics("utility", "ping", ctx.guild.id)
 
 	@utility.command()
 	@commands.guild_only()
@@ -122,7 +122,7 @@ class Utility(BasicCog):
 			embed.set_footer(text="AnonymousHacker1279, " + str(date.today().year))
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("utility", "about", ctx.guild.id)
+		await self.update_usage_analytics("utility", "about", ctx.guild.id)
 
 	@utility.command()
 	@commands.guild_only()
@@ -136,7 +136,7 @@ class Utility(BasicCog):
 			embed.description = "There are **" + str(ctx.guild.member_count) + "** users here."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("utility", "total_users", ctx.guild.id)
+		await self.update_usage_analytics("utility", "total_users", ctx.guild.id)
 
 	@utility.command()
 	@commands.guild_only()
@@ -178,7 +178,7 @@ class Utility(BasicCog):
 				embed.description += ":warning: High memory usage, responsiveness may be degraded.\n"
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("utility", "status", ctx.guild.id)
+		await self.update_usage_analytics("utility", "status", ctx.guild.id)
 
 	@discord.option(
 		name="url",
@@ -226,4 +226,4 @@ class Utility(BasicCog):
 
 			await ctx.respond(embed=embed)
 
-		await self.update_management_portal_command_used("utility", "qr_generator", ctx.guild.id)
+		await self.update_usage_analytics("utility", "qr_generator", ctx.guild.id)

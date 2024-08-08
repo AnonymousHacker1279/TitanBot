@@ -40,7 +40,7 @@ class Genius(BasicCog):
 		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
-			await self.update_management_portal_command_used("genius", "search", ctx.guild.id)
+			await self.update_usage_analytics("genius", "search", ctx.guild.id)
 
 			embed.title = artist + " - " + song
 			result, geniusID = await self.genius_api.search_songs(artist, song)
@@ -68,7 +68,7 @@ class Genius(BasicCog):
 		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
-			await self.update_management_portal_command_used("genius", "get_by_url", ctx.guild.id)
+			await self.update_usage_analytics("genius", "get_by_url", ctx.guild.id)
 
 			embed.title = "Lyrics by URL"
 			result = await self.genius_api.get_lyrics_by_url(url)
@@ -96,7 +96,7 @@ class Genius(BasicCog):
 		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
 			await ctx.respond(embed=embed)
-			await self.update_management_portal_command_used("genius", "get_by_id", ctx.guild.id)
+			await self.update_usage_analytics("genius", "get_by_id", ctx.guild.id)
 
 			embed.title = "Lyrics by ID"
 			result = await self.genius_api.get_lyrics_by_id(song_id)

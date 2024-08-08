@@ -57,7 +57,7 @@ class CurseForge(BasicCog):
 			"""
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("curseforge", "add_project", ctx.guild.id)
+		await self.update_usage_analytics("curseforge", "add_project", ctx.guild.id)
 
 	@discord.option(
 		name="project_id",
@@ -79,7 +79,7 @@ class CurseForge(BasicCog):
 			embed.description = f"Project `{project_id}` will no longer be checked for updates."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("curseforge", "remove_project", ctx.guild.id)
+		await self.update_usage_analytics("curseforge", "remove_project", ctx.guild.id)
 
 	@curseforge.command()
 	@commands.guild_only()
@@ -112,7 +112,7 @@ class CurseForge(BasicCog):
 					embed.add_field(name=name, value=f"ID: `{project['project_id']}`\nChannel: {ctx.guild.get_channel(project['announcement_channel_id']).mention}", inline=False)
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("curseforge", "list_projects", ctx.guild.id)
+		await self.update_usage_analytics("curseforge", "list_projects", ctx.guild.id)
 
 	@curseforge.command()
 	@commands.guild_only()
@@ -128,4 +128,4 @@ class CurseForge(BasicCog):
 			embed.description = "The update check has been manually run."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("curseforge", "check_for_updates", ctx.guild.id)
+		await self.update_usage_analytics("curseforge", "check_for_updates", ctx.guild.id)

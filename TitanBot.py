@@ -88,7 +88,6 @@ if __name__ == "__main__":
 		for cog in cogs:
 			await cog.post_init()
 
-		# Send the ready status to the management portal
 		await management_portal_handler.on_ready()
 
 		# Set the bot status

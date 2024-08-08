@@ -51,7 +51,7 @@ class Quotes(BasicCog):
 				embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, quote_number, date, quoted_by)
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("quotes", "quote", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "quote", ctx.guild.id)
 
 	@quotes.command()
 	@commands.guild_only()
@@ -71,7 +71,7 @@ class Quotes(BasicCog):
 				embed.description = "I have " + str(total_quotes) + " quotes in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("quotes", "total", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "total", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -103,7 +103,7 @@ class Quotes(BasicCog):
 			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("quotes", "add", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "add", ctx.guild.id)
 
 	@commands.message_command(name='Add Quote')
 	@commands.guild_only()
@@ -123,7 +123,7 @@ class Quotes(BasicCog):
 			embed.title = "Quote Added: #" + str(quote_number)
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("quotes", "add", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "add", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -158,7 +158,7 @@ class Quotes(BasicCog):
 					embed.description = "The quote has been removed from my archives. There are now **" + str(remaining_quotes) + "** quotes in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("quotes", "remove", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "remove", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -201,7 +201,7 @@ class Quotes(BasicCog):
 				embed.description = "The quote has been edited in my archives."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("quotes", "edit", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "edit", ctx.guild.id)
 
 	@quotes.command()
 	@discord.option(
@@ -235,7 +235,7 @@ class Quotes(BasicCog):
 			view.next_page.disabled = True
 
 		await ctx.respond(embed=embed, view=view)
-		await self.update_management_portal_command_used("quotes", "search_author", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "search_author", ctx.guild.id)
 
 	@discord.option(
 		name="text",
@@ -269,7 +269,7 @@ class Quotes(BasicCog):
 			view.next_page.disabled = True
 
 		await ctx.respond(embed=embed, view=view)
-		await self.update_management_portal_command_used("quotes", "search_text", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "search_text", ctx.guild.id)
 
 	@quotes.command()
 	@commands.guild_only()
@@ -297,4 +297,4 @@ class Quotes(BasicCog):
 					embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("quotes", "list_recent", ctx.guild.id)
+		await self.update_usage_analytics("quotes", "list_recent", ctx.guild.id)

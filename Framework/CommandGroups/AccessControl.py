@@ -36,7 +36,7 @@ class AccessControl(BasicCog):
 			embed.description = f"Command access for {user.mention} has been toggled for `{command}` in `{module}`."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("access_control", "toggle_command_access", ctx.guild.id)
+		await self.update_usage_analytics("access_control", "toggle_command_access", ctx.guild.id)
 
 	@discord.option(
 		name="user",
@@ -64,7 +64,7 @@ class AccessControl(BasicCog):
 			embed.description = f"Module access for {user.mention} has been toggled for `{module}`."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("access_control", "toggle_module_access", ctx.guild.id)
+		await self.update_usage_analytics("access_control", "toggle_module_access", ctx.guild.id)
 
 	@discord.option(
 		name="user",
@@ -97,7 +97,7 @@ class AccessControl(BasicCog):
 					embed.description += f"- `{command}`\n"
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("access_control", "list_banned_commands", ctx.guild.id)
+		await self.update_usage_analytics("access_control", "list_banned_commands", ctx.guild.id)
 
 	@discord.option(
 		name="user",
@@ -130,4 +130,4 @@ class AccessControl(BasicCog):
 					embed.description += f"- `{module}`\n"
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("access_control", "list_banned_modules", ctx.guild.id)
+		await self.update_usage_analytics("access_control", "list_banned_modules", ctx.guild.id)

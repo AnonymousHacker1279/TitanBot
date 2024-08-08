@@ -33,7 +33,7 @@ class Fun(BasicCog):
 				embed.description = "*" + user.mention + " was stabbed by " + ctx.author.mention + "*"
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("fun", "stab", ctx.guild.id)
+		await self.update_usage_analytics("fun", "stab", ctx.guild.id)
 
 	@discord.option(
 		name="user",
@@ -72,7 +72,7 @@ class Fun(BasicCog):
 				embed.description = "The user is not listening to Spotify."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("fun", "spotify", ctx.guild.id)
+		await self.update_usage_analytics("fun", "spotify", ctx.guild.id)
 
 	@discord.option(
 		name="message",
@@ -126,7 +126,7 @@ class Fun(BasicCog):
 				embed.description = "I don't have permission to speak in that channel."
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("fun", "speak", ctx.guild.id)
+		await self.update_usage_analytics("fun", "speak", ctx.guild.id)
 
 	@fun.command()
 	@commands.guild_only()
@@ -145,7 +145,7 @@ class Fun(BasicCog):
 			embed.set_footer(text="Powered by InspiroBot")
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("fun", "inspirobot_query", ctx.guild.id)
+		await self.update_usage_analytics("fun", "inspirobot_query", ctx.guild.id)
 
 	@fun.command()
 	@commands.guild_only()
@@ -164,5 +164,5 @@ class Fun(BasicCog):
 			embed.set_footer(text="Permalink: " + response["permalink"])
 
 		await ctx.respond(embed=embed)
-		await self.update_management_portal_command_used("fun", "random_fact", ctx.guild.id)
+		await self.update_usage_analytics("fun", "random_fact", ctx.guild.id)
 		

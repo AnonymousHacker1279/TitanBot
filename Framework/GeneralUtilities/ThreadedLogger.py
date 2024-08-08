@@ -8,7 +8,7 @@ from queue import Empty
 from threading import Thread
 
 from Framework.ConfigurationManager import ConfigurationValues
-from Framework.ManagementPortal.APIEndpoints import APIEndpoints
+from Framework.SQLBridge import sql_bridge
 
 
 class LogLevel(Enum):
@@ -135,28 +135,10 @@ class ThreadedLogger:
 				ThreadedLogger.log_file_lock.release()
 
 			# Write the message to the management portal
-			asyncio.run_coroutine_threadsafe(self.__log_to_mp(self.instance_name, message[2].name, message[1], message[3]), self.loop)
+			asyncio.run_coroutine_threadsafe(sql_bridge.write_log_entry(self.instance_name, message[2].name, message[1], message[3]), self.loop)
 
 			# Send messages to connected IPC clients
 			self.ipc.send_update(prepared_message.rstrip("\n"))
-
-	async def __log_to_mp(self, source: str, level: str, message: str, timestamp: str) -> None:
-		"""
-		Send a log entry to the management portal.
-
-		:param source: The source of the log entry.
-		:param level: The log level.
-		:param message: The log message.
-		:param timestamp: The timestamp of the log entry.
-		"""
-
-		data = self.mph.base_data.copy()
-		data["source"] = source
-		data["log_level"] = level
-		data["message"] = message
-		data["timestamp"] = timestamp
-
-		await self.mph.post(APIEndpoints.LOG_DATA, data)
 
 	def log(self, level: LogLevel, message: str) -> None:
 		"""
@@ -175,7 +157,7 @@ class ThreadedLogger:
 
 		message = message + "\n"
 
-		timestamp = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+		timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		time_block = "[" + timestamp + "] "
 		source_block = "[" + self.instance_name + "/" + level.name + "]: "
 		prefix_block = time_block + source_block

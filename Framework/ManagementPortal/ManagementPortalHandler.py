@@ -149,18 +149,7 @@ class ManagementPortalHandler:
 			self.logger.log_error("Endpoint URL: " + url)
 
 	async def on_ready(self) -> None:
-		"""Update the management portal with bot information."""
-		self.logger.log_info("Updating management portal with bot information")
-
-		data = self.base_data.copy()
-		# Make a dictionary of all the guilds and their IDs
-		guilds = {}
-		for guild in self.bot.guilds:
-			guilds[guild.id] = guild.name
-		data["guilds"] = json.dumps(guilds)
-		data["version"] = ConfigurationValues.VERSION
-
-		await self.post(APIEndpoints.READY, data)
+		"""Start update loops."""
 
 		self.update_management_portal_latency.start()
 		self.cf_checker_api.check_for_updates.start()

@@ -2,9 +2,7 @@ from enum import Enum
 
 
 class APIEndpoints(str, Enum):
-	READY = "/v2/bot_ready.php"
 	UPDATE_LATENCY = "/v2/bot_update_latency.php"
-	UPDATE_COMMAND_USED = "/v2/bot_update_command_used.php"
 	LOG_DATA = "/v2/bot_log_data.php"
 	UPDATE_COMMAND_COMPLETED = "/v2/bot_update_command_completed.php"
 	GET_CONFIGURATION = "/v3/configurations/portal_get_configuration.php"

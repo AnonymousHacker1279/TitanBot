@@ -77,4 +77,4 @@ class Statistics(BasicCog):
 		else:
 			await ctx.respond(embed=embed)
 
-		await self.update_management_portal_command_used("statistics", "most_used_commands", ctx.guild.id)
+		await self.update_usage_analytics("statistics", "most_used_commands", ctx.guild.id)
