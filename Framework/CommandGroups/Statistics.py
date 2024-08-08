@@ -20,7 +20,7 @@ class Statistics(BasicCog):
 		"""Get the ten most used commands."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "statistics", "most_used_commands")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "statistics")
 		if not failed_permission_check:
 			data = self.mph.base_data.copy()
 			response = await self.mph.get(APIEndpoints.GET_COMMAND_USAGE_ANALYTICS, data=data)

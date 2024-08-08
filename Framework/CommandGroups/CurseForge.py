@@ -29,7 +29,7 @@ class CurseForge(BasicCog):
 		"""Add a new CF project to the update checker."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "add_project")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
 		if not failed_permission_check:
 
 			# Set the API key in headers
@@ -71,7 +71,7 @@ class CurseForge(BasicCog):
 		"""Remove a CF project from the update checker."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "remove_project")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
 		if not failed_permission_check:
 			await self.mph.cf_checker_api.remove_project(ctx.guild_id, project_id)
 
@@ -87,7 +87,7 @@ class CurseForge(BasicCog):
 		"""List all CF projects being checked for updates."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "list_projects")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
 		if not failed_permission_check:
 			projects = await self.mph.cf_checker_api.get_projects(ctx.guild_id)
 
@@ -120,7 +120,7 @@ class CurseForge(BasicCog):
 		"""Manually check for updates on CF projects."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge", "check_for_updates")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
 		if not failed_permission_check:
 			await self.mph.cf_checker_api.check_for_updates(ctx.guild_id)
 

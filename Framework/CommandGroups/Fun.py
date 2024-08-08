@@ -23,7 +23,7 @@ class Fun(BasicCog):
 		"""Stab someone, or something."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "stab")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
 		if not failed_permission_check:
 			if await PermissionHandler.is_superuser(user.id):
 				embed.title = "Refusing to Stab"
@@ -47,7 +47,7 @@ class Fun(BasicCog):
 		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "spotify")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
 		if not failed_permission_check:
 			if user is None:
 				user = ctx.author
@@ -98,7 +98,7 @@ class Fun(BasicCog):
 		"""Make the bot say something in a channel."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "speak")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
 		if not failed_permission_check:
 			user = ctx.author
 
@@ -134,7 +134,7 @@ class Fun(BasicCog):
 		"""Generate a random image from InspiroBot."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "inspirobot_query")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
 		if not failed_permission_check:
 			# Get an image URL from InspiroBot
 			image_url = await self.mph.get("https://inspirobot.me/api?generate=true", non_management_portal=True)
@@ -153,7 +153,7 @@ class Fun(BasicCog):
 		"""Get a random and useless, but true, fact."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun", "random_fact")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
 		if not failed_permission_check:
 			# Get a random fact
 			response = await self.mph.get("https://uselessfacts.jsph.pl/random.json?language=en", non_management_portal=True)

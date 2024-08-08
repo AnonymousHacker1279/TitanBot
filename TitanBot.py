@@ -9,7 +9,6 @@ import time
 import discord
 from discord.ext import commands
 
-from Framework.CommandGroups.AccessControl import AccessControl
 from Framework.CommandGroups.CurseForge import CurseForge
 from Framework.CommandGroups.Debugging import Debugging
 from Framework.CommandGroups.Fun import Fun
@@ -56,7 +55,6 @@ if __name__ == "__main__":
 		Fun(),
 		Utility(),
 		Genius(),
-		AccessControl(),
 		CurseForge(),
 		Debugging(),
 		Statistics()

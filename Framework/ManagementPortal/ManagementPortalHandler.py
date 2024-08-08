@@ -22,7 +22,6 @@ class ManagementPortalHandler:
 	sessions = {}
 	quotes_api = None
 	cf_checker_api = None
-	access_control_api = None
 
 	def __init__(self):
 		self.logger = ThreadedLogger("ManagementPortalHandler")
@@ -32,14 +31,13 @@ class ManagementPortalHandler:
 
 	async def initialize(self, bot) -> None:
 		"""Initialize core variables and API modules."""
-		from Framework.ManagementPortal.Modules import QuotesAPI, CFCheckerAPI, AccessControlAPI
+		from Framework.ManagementPortal.Modules import QuotesAPI, CFCheckerAPI
 
 		self.bot = bot
 		self.base_data["bot_token"] = await generate_sha256(ConfigurationValues.TOKEN)
 
 		self.quotes_api = QuotesAPI.QuotesAPI(self)
 		self.cf_checker_api = CFCheckerAPI.CFCheckerAPI(self)
-		self.access_control_api = AccessControlAPI.AccessControlAPI(self)
 
 		self.initialized = True
 

@@ -35,7 +35,7 @@ class Genius(BasicCog):
 		"""Search for a song by artist and song name."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius", "search")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius")
 
 		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
@@ -63,7 +63,7 @@ class Genius(BasicCog):
 		"""Search for a song by its Genius URL."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius", "get_by_url")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius")
 
 		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."
@@ -90,8 +90,7 @@ class Genius(BasicCog):
 		"""Search for a song by its Genius ID."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius",
-																				"get_by_id")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius")
 
 		if not failed_permission_check:
 			embed.description = "Searching Genius, please be patient..."

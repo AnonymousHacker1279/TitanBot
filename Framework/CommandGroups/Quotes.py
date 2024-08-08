@@ -2,6 +2,7 @@ import math
 from datetime import datetime
 
 import discord
+from discord import default_permissions
 from discord.ext import commands
 
 from Framework.CommandGroups.BasicCog import BasicCog
@@ -27,7 +28,7 @@ class Quotes(BasicCog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "quote")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 			# Check if a quote ID was provided
 			if quote_id is None:
@@ -59,7 +60,7 @@ class Quotes(BasicCog):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "total")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 			response = await self.mph.quotes_api.get_total_quotes(ctx.guild.id)
 			total_quotes = response["total_quotes"]
@@ -91,7 +92,7 @@ class Quotes(BasicCog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 			response = await self.mph.quotes_api.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
 			quote_number = response["quote_number"]
@@ -111,7 +112,7 @@ class Quotes(BasicCog):
 		"""Did someone say something stupid? Make them remember it with a quote."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "add")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 			response = await self.mph.quotes_api.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
 			quote_number = response["quote_number"]
@@ -133,11 +134,12 @@ class Quotes(BasicCog):
 		required=True
 	)
 	@commands.guild_only()
+	@default_permissions(administrator=True)
 	async def remove(self, ctx: discord.ApplicationContext, quote_id: int):
 		"""Need to purge a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "remove", True)
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 
 			if quote_id < 0:
@@ -180,11 +182,12 @@ class Quotes(BasicCog):
 		required=False
 	)
 	@commands.guild_only()
+	@default_permissions(administrator=True)
 	async def edit(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: discord.User = None):
 		"""Need to edit a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "edit", True)
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 
 			if quote_id < 0:
@@ -223,7 +226,7 @@ class Quotes(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		total_quotes = 0
 
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_author")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 			embed, total_quotes = await QuoteUtils.handle_searching_author(ctx, self.mph, page, embed, quote_author.id)
 
@@ -257,7 +260,7 @@ class Quotes(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		total_quotes = 0
 
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "search_text")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 			embed, total_quotes = await QuoteUtils.handle_searching_content(ctx, self.mph, page, embed, text)
 
@@ -278,7 +281,7 @@ class Quotes(BasicCog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes", "list_recent")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
 
 			# Get the quotes

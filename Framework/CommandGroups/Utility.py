@@ -23,7 +23,7 @@ class Utility(BasicCog):
 		"""See the length of time I have existed."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "age")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			birthDate = date(2021, 7, 15)
 			todayDate = date.today()
@@ -42,7 +42,7 @@ class Utility(BasicCog):
 		"""Flip a coin."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "coin_flip")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			embed.title = "Coin Flip"
 			if randint(0, 1) == 0:
@@ -66,7 +66,7 @@ class Utility(BasicCog):
 		"""Roll a die. Defaults to six sides if not specified."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "roll_die")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			embed.title = "Roll Die"
 			if sides > 0:
@@ -84,7 +84,7 @@ class Utility(BasicCog):
 		"""Get the latency of the bot."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "ping")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			embed.title = "Bot Latency"
 			latency = round(ctx.bot.latency * 1000)
@@ -105,7 +105,7 @@ class Utility(BasicCog):
 		"""Learn about me."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "about")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			embed.title = "About Me"
 			embed.description = "I'm **TitanBot**, an intelligent software built by **AnonymousHacker1279.**\n"
@@ -130,7 +130,7 @@ class Utility(BasicCog):
 		"""Get the total number of users in the server."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "total_users")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			embed.title = "Total Users"
 			embed.description = "There are **" + str(ctx.guild.member_count) + "** users here."
@@ -144,7 +144,7 @@ class Utility(BasicCog):
 		"""Get the current system status."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "status")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			embed.title = "System Status"
 
@@ -204,7 +204,7 @@ class Utility(BasicCog):
 		"""Generate a QR code containing a URL."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility", "qr_generator")
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "utility")
 		if not failed_permission_check:
 			# Build the API URL
 			api_url = "https://qrtag.net/api/qr"
