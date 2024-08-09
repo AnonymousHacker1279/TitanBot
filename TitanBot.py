@@ -86,8 +86,6 @@ if __name__ == "__main__":
 		for cog in cogs:
 			await cog.post_init()
 
-		await management_portal_handler.on_ready()
-
 		# Set the bot status
 		status = await BotStatus.get_status_from_config(configuration_manager)
 		await bot.change_presence(activity=status[0], status=status[1])
@@ -101,7 +99,7 @@ if __name__ == "__main__":
 
 	@bot.event
 	async def on_application_command_error(ctx: discord.ApplicationContext, error: commands.CommandError):
-		embed = await ErrorHandler.handle_error(error, logger)
+		embed = await ErrorHandler.handle_error(ctx, error, logger)
 		await ctx.respond(embed=embed)
 
 	async def watch_for_shutdown():
@@ -109,7 +107,6 @@ if __name__ == "__main__":
 		while True:
 			if ipc_handler.shutdown_flag.is_set():
 				ThreadedLogger.shutdown = True
-				await management_portal_handler.update_management_portal_latency.stop()
 				await cogs[5].check_for_updates.stop()  # CF update checker
 				await management_portal_handler.close_sessions()
 				await bot.close()

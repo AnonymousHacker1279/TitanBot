@@ -5,11 +5,9 @@ from hashlib import sha256
 import aiohttp
 from aiohttp import ContentTypeError
 from discord import Bot
-from discord.ext import tasks
 
 from Framework.ConfigurationManager import ConfigurationValues
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
-from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
 async def generate_sha256(string: str) -> str:
@@ -31,12 +29,10 @@ class ManagementPortalHandler:
 
 	async def initialize(self, bot) -> None:
 		"""Initialize core variables and API modules."""
-		from Framework.ManagementPortal.Modules import QuotesAPI
 
 		self.bot = bot
 		self.base_data["bot_token"] = await generate_sha256(ConfigurationValues.TOKEN)
 
-		self.quotes_api = QuotesAPI.QuotesAPI(self)
 		self.initialized = True
 
 	async def get_session(self) -> aiohttp.ClientSession:
@@ -143,21 +139,3 @@ class ManagementPortalHandler:
 		elif response_code == 403:
 			self.logger.log_error("Request failed: Failed to authenticate")
 			self.logger.log_error("Endpoint URL: " + url)
-
-	async def on_ready(self) -> None:
-		"""Start update loops."""
-
-		self.update_management_portal_latency.start()
-
-	@tasks.loop(seconds=30)
-	async def update_management_portal_latency(self) -> None:
-		"""Update the management portal with the bot's latency."""
-		data = self.base_data.copy()
-		try:
-			data["latency"] = str(round(self.bot.latency * 1000))
-		except (OverflowError, ValueError):
-			data["latency"] = str(9999)
-			self.logger.log_error(
-				"Unable to update management portal latency due to an overflow error, is the bot offline?")
-
-		await self.post(APIEndpoints.UPDATE_LATENCY, data)

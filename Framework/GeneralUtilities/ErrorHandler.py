@@ -5,7 +5,7 @@ from discord.ext import commands
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 
 
-async def handle_error(error: commands.CommandError, logger: ThreadedLogger) -> discord.Embed:
+async def handle_error(ctx: discord.ApplicationContext, error: commands.CommandError, logger: ThreadedLogger) -> discord.Embed:
 	"""
 	Handles an error that occurred during the execution of a command.
 
@@ -41,6 +41,6 @@ async def handle_error(error: commands.CommandError, logger: ThreadedLogger) -> 
 
 	if should_log:
 		embed.set_footer(text="This error has been logged and will be visible on the management portal.")
-		logger.log_error("Error running command: " + str(error))
+		logger.log_error(f"Error running command {ctx.command.name}: {error}")
 
 	return embed

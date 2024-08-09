@@ -33,43 +33,51 @@ class Quotes(BasicCog):
 			# Check if a quote ID was provided
 			if quote_id is None:
 				# Get a random quote
-				quote_json = await self.mph.quotes_api.get_quote(ctx.guild.id, -1)
+				response = await self.sql_bridge.quotes_module.get_quote(ctx.guild.id)
 			else:
 				# Get the quote with the provided ID
-				quote_json = await self.mph.quotes_api.get_quote(ctx.guild.id, quote_id)
+				response = await self.sql_bridge.quotes_module.get_quote(ctx.guild.id, quote_id)
 
 			# Check if the response is empty
-			if len(quote_json) == 0:
+			if len(response) == 0:
 				embed.title = "Failed to Get Quote"
 				embed.description = "You either provided an invalid quote ID, or there are no quotes in the database."
 
 			else:
-				content = quote_json["content"]
-				author = quote_json["author"]
-				date = quote_json["date"]
-				quoted_by = quote_json["quoted_by"]
-				quote_number = quote_json["quote_number"]
+				content = response[1]
+				author = response[2]
+				date = response[4]
+				quoted_by = response[3]
+				quote_number = response[0]
 				embed = await QuoteUtils.prepare_quote(ctx, embed, author, content, quote_number, date, quoted_by)
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("quotes", "quote", ctx.guild.id)
 
 	@quotes.command()
+	@discord.option(
+		name="get_global_count",
+		description="Get the total number of quotes across all guilds.",
+		type=bool,
+		required=False
+	)
 	@commands.guild_only()
-	async def total(self, ctx: discord.ApplicationContext):
+	async def total(self, ctx: discord.ApplicationContext, get_global_count: bool = False):
 		"""Get the total number of quotes available."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
-			response = await self.mph.quotes_api.get_total_quotes(ctx.guild.id)
-			total_quotes = response["total_quotes"]
+			count = await self.sql_bridge.quotes_module.get_total_quotes(ctx.guild.id, get_global_count)
 
 			embed.title = "Total Quotes"
-			if total_quotes == 0:
+			if count == 0:
 				embed.description = "I have do not have any quotes in my archives."
 			else:
-				embed.description = "I have " + str(total_quotes) + " quotes in my archives."
+				if get_global_count:
+					embed.description = "I have " + str(count) + " quotes in my archives across all guilds."
+				else:
+					embed.description = "I have " + str(count) + " quotes in my archives for this guild."
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("quotes", "total", ctx.guild.id)
@@ -94,8 +102,7 @@ class Quotes(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
-			response = await self.mph.quotes_api.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
-			quote_number = response["quote_number"]
+			quote_number = await self.sql_bridge.quotes_module.add_quote(ctx.guild.id, quote, author.id, ctx.author.id)
 
 			# Display the quote being added
 			current_date = str(datetime.now())
@@ -114,8 +121,7 @@ class Quotes(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
-			response = await self.mph.quotes_api.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
-			quote_number = response["quote_number"]
+			quote_number = await self.sql_bridge.quotes_module.add_quote(ctx.guild.id, message.content, message.author.id, ctx.author.id)
 
 			# Display the quote being added
 			current_date = str(datetime.now())
@@ -136,7 +142,7 @@ class Quotes(BasicCog):
 	@commands.guild_only()
 	@default_permissions(administrator=True)
 	async def remove(self, ctx: discord.ApplicationContext, quote_id: int):
-		"""Need to purge a quote? Use this. Only available to administrators."""
+		"""Need to purge a quote? Use this."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
@@ -146,18 +152,13 @@ class Quotes(BasicCog):
 				embed.title = "Failed to remove quote"
 				embed.description = "You cannot remove a quote with a negative ID."
 			else:
-				# Remove the quote with the provided ID
-				response = await self.mph.quotes_api.remove_quote(ctx.guild.id, quote_id)
-
 				# Check if the response is empty
-				if response is None or len(response) == 0:
+				if await self.sql_bridge.quotes_module.remove_quote(ctx.guild.id, quote_id):
+					embed.title = "Quote Removed"
+					embed.description = "The quote has been removed from my archives."
+				else:
 					embed.title = "Failed to remove quote"
 					embed.description = "You either provided an invalid quote ID (out of bounds), or there are no quotes in the database."
-				else:
-					remaining_quotes = response["quote_count"]
-
-					embed.title = "Quote Removed"
-					embed.description = "The quote has been removed from my archives. There are now **" + str(remaining_quotes) + "** quotes in my archives."
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("quotes", "remove", ctx.guild.id)
@@ -183,7 +184,7 @@ class Quotes(BasicCog):
 	)
 	@commands.guild_only()
 	@default_permissions(administrator=True)
-	async def edit(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = "", author: discord.User = None):
+	async def edit(self, ctx: discord.ApplicationContext, quote_id: int, quote: str = None, author: discord.User = None):
 		"""Need to edit a quote? Use this. Only available to administrators."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -194,14 +195,16 @@ class Quotes(BasicCog):
 				embed.title = "Failed to edit quote"
 				embed.description = "You must pass a valid quote ID to edit. It must be greater than 0 and less" \
 									" than the total number of quotes."
-			elif quote == "" and author is None:
+			elif quote is None and author is None:
 				embed.title = "Failed to edit quote"
 				embed.description = "You must pass a quote and/or author to edit."
 			else:
-				await self.mph.quotes_api.edit_quote(ctx.guild.id, quote_id, quote, author)
-
-				embed.title = "Quote Edited"
-				embed.description = "The quote has been edited in my archives."
+				if await self.sql_bridge.quotes_module.edit_quote(ctx.guild.id, quote_id, quote, author):
+					embed.title = "Quote Edited"
+					embed.description = "The quote has been edited in my archives."
+				else:
+					embed.title = "Failed to edit quote"
+					embed.description = "You either provided an invalid quote ID, or there are no quotes in the database."
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("quotes", "edit", ctx.guild.id)
@@ -219,8 +222,14 @@ class Quotes(BasicCog):
 		type=int,
 		required=False
 	)
+	@discord.option(
+		name="descending_order",
+		description="Sort the quotes in descending order.",
+		type=bool,
+		required=False
+	)
 	@commands.guild_only()
-	async def search_author(self, ctx: discord.ApplicationContext, quote_author: discord.User, page: int = 0):
+	async def search_author(self, ctx: discord.ApplicationContext, quote_author: discord.User, page: int = 0, descending_order: bool = False):
 		"""Search quotes by author. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -228,9 +237,9 @@ class Quotes(BasicCog):
 
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
-			embed, total_quotes = await QuoteUtils.handle_searching_author(ctx, self.mph, page, embed, quote_author.id)
+			embed, total_quotes = await QuoteUtils.handle_searching_author(ctx, self.sql_bridge, page, embed, quote_author.id, descending_order)
 
-		view = SearchQuotesView(ctx, self.mph, page, total_quotes, SearchTypes.AUTHOR, quote_author.id, None)
+		view = SearchQuotesView(ctx, self.sql_bridge, page, total_quotes, SearchTypes.AUTHOR, quote_author.id, None, descending_order)
 
 		if page <= 0:
 			view.previous_page.disabled = True
@@ -252,9 +261,15 @@ class Quotes(BasicCog):
 		type=int,
 		required=False
 	)
+	@discord.option(
+		name="descending_order",
+		description="Sort the quotes in descending order.",
+		type=bool,
+		required=False
+	)
 	@quotes.command()
 	@commands.guild_only()
-	async def search_text(self, ctx: discord.ApplicationContext, text: str, page: int = 0):
+	async def search_text(self, ctx: discord.ApplicationContext, text: str, page: int = 0, descending_order: bool = False):
 		"""Search quotes by text. Lists up to ten per page."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
@@ -262,9 +277,9 @@ class Quotes(BasicCog):
 
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
-			embed, total_quotes = await QuoteUtils.handle_searching_content(ctx, self.mph, page, embed, text)
+			embed, total_quotes = await QuoteUtils.handle_searching_content(ctx, self.sql_bridge, page, embed, text, descending_order)
 
-		view = SearchQuotesView(ctx, self.mph, page, total_quotes, SearchTypes.CONTENT, None, text)
+		view = SearchQuotesView(ctx, self.sql_bridge, page, total_quotes, SearchTypes.CONTENT, None, text, descending_order)
 
 		if page <= 0:
 			view.previous_page.disabled = True
@@ -285,8 +300,7 @@ class Quotes(BasicCog):
 		if not failed_permission_check:
 
 			# Get the quotes
-			response = await self.mph.quotes_api.list_recent_quotes(ctx.guild.id)
-			quotes = response["quotes"]
+			quotes = await self.sql_bridge.quotes_module.list_recent(ctx.guild.id)
 
 			# Check if the response is empty
 			if len(quotes) == 0:
@@ -297,7 +311,7 @@ class Quotes(BasicCog):
 
 				# Add the quotes to the embed
 				for quote in quotes:
-					embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
+					embed.add_field(name="Quote #" + str(quote[0]), value=quote[1])
 
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("quotes", "list_recent", ctx.guild.id)

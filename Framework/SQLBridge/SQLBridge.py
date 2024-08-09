@@ -2,6 +2,8 @@ import os
 import sqlite3
 
 from Framework.SQLBridge.CFModule import CFModule
+from Framework.SQLBridge.QuotesModule import QuotesModule
+from Framework.SQLBridge.StatisticsModule import StatisticsModule
 
 
 class SQLBridge:
@@ -15,6 +17,8 @@ class SQLBridge:
 		self.cursor = self.connection.cursor()
 
 		self.cf_module = CFModule(self.connection, self.cursor)
+		self.quotes_module = QuotesModule(self.connection, self.cursor)
+		self.statistics_module = StatisticsModule(self.connection, self.cursor)
 
 	async def write_log_entry(self, source: str, level: str, message: str, timestamp: str) -> None:
 		"""Write a log entry into the `bot_logs` table."""

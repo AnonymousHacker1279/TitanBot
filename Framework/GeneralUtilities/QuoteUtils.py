@@ -5,7 +5,7 @@ from datetime import datetime
 import discord
 from discord.errors import HTTPException, NotFound
 
-from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
+from SQLBridge import SQLBridge
 
 
 async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, author: int, content: str, quote_id: int, date: str, quoted_by: int) -> discord.Embed:
@@ -71,15 +71,16 @@ async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, a
 	return embed
 
 
-async def handle_searching_author(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, quote_author: int) -> tuple[discord.Embed, int]:
+async def handle_searching_author(ctx: discord.ApplicationContext, bridge: SQLBridge, page: int, embed: discord.Embed, quote_author: int, descending_order: bool = False) -> tuple[discord.Embed, int]:
 	"""
 	Handle searching for quotes by a specific author.
 
 	:param ctx: The context of the command.
-	:param mph: The ManagementPortalHandler instance.
+	:param bridge: The SQLBridge instance.
 	:param page: The page of quotes to search for.
 	:param embed: The embed to display the quotes in.
 	:param quote_author: The author of the quotes.
+	:param descending_order: Whether to sort the quotes descending
 	"""
 
 	if page < 0:
@@ -97,9 +98,7 @@ async def handle_searching_author(ctx: discord.ApplicationContext, mph: Manageme
 			embed.set_footer(text="Cannot get the profile picture for this user. Ensure the author is a valid user.")
 
 		# Get the quotes
-		response = await mph.quotes_api.search_quotes(ctx.guild.id, "author", author_id=quote_author, page=page)
-		quotes = response["quotes"]
-		total_quotes = response["total"]
+		quotes, total_quotes = await bridge.quotes_module.search_by_author(ctx.guild.id, quote_author, page, descending_order)
 
 		# Check if the response is empty
 		if total_quotes == 0:
@@ -116,20 +115,21 @@ async def handle_searching_author(ctx: discord.ApplicationContext, mph: Manageme
 
 			# Add the quotes to the embed
 			for quote in quotes:
-				embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
+				embed.add_field(name="Quote #" + str(quote[0]), value=quote[1])
 
-			return embed, total_quotes
+		return embed, total_quotes
 
 
-async def handle_searching_content(ctx: discord.ApplicationContext, mph: ManagementPortalHandler, page: int, embed: discord.Embed, text: str) -> tuple[discord.Embed, int]:
+async def handle_searching_content(ctx: discord.ApplicationContext, bridge: SQLBridge, page: int, embed: discord.Embed, text: str, descending_order: bool = False) -> tuple[discord.Embed, int]:
 	"""
 	Handle searching for quotes containing specific text.
 
 	:param ctx: The context of the command.
-	:param mph: The ManagementPortalHandler instance.
+	:param bridge: The SQLBridge instance.
 	:param page: The page of quotes to search for.
 	:param embed: The embed to display the quotes in.
 	:param text: The text to search for.
+	:param descending_order: Whether to sort the quotes descending
 	"""
 
 	if page < 0:
@@ -140,9 +140,7 @@ async def handle_searching_content(ctx: discord.ApplicationContext, mph: Managem
 		embed.title = "Quotes Containing '" + text + "'"
 
 		# Get the quotes
-		response = await mph.quotes_api.search_quotes(ctx.guild.id, "content", search_term=text, page=page)
-		quotes = response["quotes"]
-		total_quotes = response["total"]
+		quotes, total_quotes = await bridge.quotes_module.search_by_text(ctx.guild.id, text, page, descending_order)
 
 		# Check if the response is empty
 		if total_quotes == 0:
@@ -158,6 +156,6 @@ async def handle_searching_content(ctx: discord.ApplicationContext, mph: Managem
 
 			# Add the quotes to the embed
 			for quote in quotes:
-				embed.add_field(name="Quote #" + str(quote["quote_number"]), value=quote["content"])
+				embed.add_field(name="Quote #" + str(quote[0]), value=quote[1])
 
-			return embed, total_quotes
+		return embed, total_quotes

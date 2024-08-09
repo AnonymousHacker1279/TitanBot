@@ -4,7 +4,7 @@ from enum import Enum
 import discord.ui
 
 from Framework.GeneralUtilities import QuoteUtils
-from Framework.ManagementPortal.ManagementPortalHandler import ManagementPortalHandler
+from SQLBridge import SQLBridge
 
 
 class SearchTypes(str, Enum):
@@ -14,16 +14,18 @@ class SearchTypes(str, Enum):
 
 class SearchQuotesView(discord.ui.View):
 
-	def __init__(self, ctx: discord.ApplicationContext, mph: ManagementPortalHandler,
-				page: int, total_quotes: int, search_type: SearchTypes, author_id: int = None, content: str = None):
+	def __init__(self, ctx: discord.ApplicationContext, bridge: SQLBridge,
+				page: int, total_quotes: int, search_type: SearchTypes, author_id: int = None, content: str = None,
+				descending_order: bool = False):
 		super().__init__(timeout=180)
 		self.ctx = ctx
-		self.mph = mph
+		self.bridge = bridge
 		self.page = page
 		self.author_id = author_id
 		self.content = content
 		self.total_quotes = total_quotes
 		self.search_type = search_type
+		self.descending_order = descending_order
 
 	@discord.ui.button(label="Previous Page", style=discord.ButtonStyle.blurple, emoji="⏪")
 	async def previous_page(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -43,12 +45,12 @@ class SearchQuotesView(discord.ui.View):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 
 		if self.search_type == SearchTypes.AUTHOR:
-			return await QuoteUtils.handle_searching_author(self.ctx, self.mph, self.page, embed, self.author_id)
+			return await QuoteUtils.handle_searching_author(self.ctx, self.bridge, self.page, embed, self.author_id, self.descending_order)
 		elif self.search_type == SearchTypes.CONTENT:
-			return await QuoteUtils.handle_searching_content(self.ctx, self.mph, self.page, embed, self.content)
+			return await QuoteUtils.handle_searching_content(self.ctx, self.bridge, self.page, embed, self.content, self.descending_order)
 
 	async def get_view(self):
-		view = SearchQuotesView(self.ctx, self.mph, self.page, self.total_quotes, self.search_type, self.author_id, self.content)
+		view = SearchQuotesView(self.ctx, self.bridge, self.page, self.total_quotes, self.search_type, self.author_id, self.content, self.descending_order)
 
 		if self.page <= 0:
 			view.previous_page.disabled = True

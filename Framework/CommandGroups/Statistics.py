@@ -6,7 +6,6 @@ from discord.ext import commands
 
 from Framework.CommandGroups.BasicCog import BasicCog
 from Framework.GeneralUtilities import PermissionHandler
-from Framework.ManagementPortal.APIEndpoints import APIEndpoints
 
 
 class Statistics(BasicCog):
@@ -22,12 +21,11 @@ class Statistics(BasicCog):
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "statistics")
 		if not failed_permission_check:
-			data = self.mph.base_data.copy()
-			response = await self.mph.get(APIEndpoints.GET_COMMAND_USAGE_ANALYTICS, data=data)
+			data = await self.sql_bridge.statistics_module.get_top_ten_commands()
 
 			# Extract data
-			analytics = [f"{item['command_name']} [{item['module_name']}]" for item in response]
-			usage_counts = [item['total'] for item in response]
+			analytics = [f"{item[0]} [{item[1]}]" for item in data]
+			usage_counts = [item[2] for item in data]
 
 			# Convert usage_counts to integers
 			usage_counts = [int(count) for count in usage_counts]
