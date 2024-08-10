@@ -68,11 +68,11 @@ class Configuration(BasicCommand):
 
 				await self.config_manager.set_value(key, value, update)
 
-				return f"Set {key} to {value}. The management portal has " + ("not " if not update else "") + "been updated."
+				return f"Set {key} to {value}. The local configuration has " + ("not " if not update else "") + "been updated."
 
-			case "sync_from_portal" | "sync" | "sy":
+			case "sync_from_disk" | "sync" | "sy":
 				await self.config_manager.load_deferred_configs(self.bot.guilds)
-				return "Reloaded configuration data from the management portal."
+				return "Reloaded configuration data from local storage."
 
 	async def get_help_message(self) -> str:
 		msg = "Get or set configuration values. Keys may be nested using slashes."
@@ -92,11 +92,11 @@ class Configuration(BasicCommand):
 				"arguments": {
 					"key": "The key of the configuration value to set.",
 					"value": "The new value for the configuration key.",
-					"update | u": "Optional. Sync the changes with the management portal. By default, this is false."
+					"update | u": "Optional. Sync the changes with the local storage. By default, this is false."
 				}
 			},
-			"sync_from_portal | sync | sy": {
-				"description": "Sync configuration values from the management portal.",
+			"sync_from_disc | sync | sy": {
+				"description": "Sync configuration values from local storage.",
 				"arguments": {}
 			}
 		}

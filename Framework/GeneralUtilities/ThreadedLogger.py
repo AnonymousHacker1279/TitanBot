@@ -59,8 +59,8 @@ class ThreadedLogger:
 
 	shutdown = False
 
-	mph = None
 	ipc_handler = None
+	configuration_manager = None
 
 	def __init__(self, instance_name: str):
 		self.instance_name = instance_name
@@ -80,11 +80,9 @@ class ThreadedLogger:
 			open_log_file()
 
 	@classmethod
-	def initialize(cls, management_portal_handler) -> None:
-		"""Initialize the ThreadedLogger class with the management portal handler."""
+	def initialize(cls) -> None:
+		"""Initialize the ThreadedLogger class."""
 		from Framework.IPC import ipc_handler
-
-		cls.mph = management_portal_handler
 		cls.ipc = ipc_handler
 
 	def _threaded_logger(self) -> None:
@@ -134,7 +132,7 @@ class ThreadedLogger:
 			if ThreadedLogger.log_file_lock.locked():
 				ThreadedLogger.log_file_lock.release()
 
-			# Write the message to the management portal
+			# Write the message to the log database
 			asyncio.run_coroutine_threadsafe(sql_bridge.write_log_entry(self.instance_name, message[2].name, message[1], message[3]), self.loop)
 
 			# Send messages to connected IPC clients

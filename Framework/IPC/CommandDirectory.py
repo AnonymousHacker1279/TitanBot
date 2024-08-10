@@ -1,9 +1,10 @@
 import os
 import time
 
+import discord
+
 from Framework.ConfigurationManager import configuration_manager
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
-from Framework.ManagementPortal import management_portal_handler
 
 
 class CommandDirectory:
@@ -13,7 +14,7 @@ class CommandDirectory:
 		self.directory = directory
 		self.commands = {}
 
-	def load_commands(self) -> None:
+	def load_commands(self, bot: discord.Bot) -> None:
 		"""Load all commands from the directory specified in the constructor."""
 		from Framework.IPC.BasicCommand import BasicCommand
 
@@ -27,7 +28,7 @@ class CommandDirectory:
 
 				# Check if the command is a subclass of BasicCommand
 				if issubclass(command_class, BasicCommand):
-					command_instance = command_class(management_portal_handler.bot, configuration_manager, self)
+					command_instance = command_class(bot, configuration_manager, self)
 					friendly_name = command_instance.friendly_name
 					self.commands[friendly_name] = command_instance
 

@@ -18,10 +18,10 @@ from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.Statistics import Statistics
 from Framework.CommandGroups.Utility import Utility
 from Framework.ConfigurationManager import BotStatus, ConfigurationValues
+from Framework.ConfigurationManager import configuration_manager
 from Framework.GeneralUtilities import ErrorHandler
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC import ipc_handler
-from Framework.ManagementPortal import management_portal_handler
 
 
 def start_watch_for_shutdown(loop: asyncio.AbstractEventLoop):
@@ -42,22 +42,20 @@ if __name__ == "__main__":
 	bot = discord.Bot(intents=intents)
 	bot.help_command = Help()
 
-	# Perform initialization for the management portal
-	asyncio.run(management_portal_handler.initialize(bot))
-	ThreadedLogger.initialize(management_portal_handler)
+	ThreadedLogger.initialize()
 
 	logger = ThreadedLogger("TitanBot")
 	logger.log_info("TitanBot " + ConfigurationValues.VERSION + " @ " + ConfigurationValues.COMMIT + " starting up")
 	logger.log_info("Running on Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]))
 
 	cogs = [
-		Quotes(),
-		Fun(),
-		Utility(),
-		Genius(),
-		CurseForge(),
-		Debugging(),
-		Statistics()
+		Quotes(bot, configuration_manager),
+		Fun(bot, configuration_manager),
+		Utility(bot, configuration_manager),
+		Genius(bot, configuration_manager),
+		CurseForge(bot, configuration_manager),
+		Debugging(bot, configuration_manager),
+		Statistics(bot, configuration_manager)
 	]
 
 	for cog in cogs:
@@ -66,20 +64,24 @@ if __name__ == "__main__":
 	# Purge the temporary file directory
 	path = f"{os.getcwd()}/Storage/Temp"
 	temp_file_count = 0
-	for file in os.listdir(path):
-		logger.log_debug(f"Removing temporary file: {file}")
-		os.remove(f"{path}/{file}")
-		temp_file_count += 1
-	logger.log_info(f"Removed {temp_file_count} temporary files")
+	try:
+		for file in os.listdir(path):
+			logger.log_debug(f"Removing temporary file: {file}")
+			os.remove(f"{path}/{file}")
+			temp_file_count += 1
+			logger.log_info(f"Removed {temp_file_count} temporary files")
+	except FileNotFoundError:
+		# Create the directory
+		os.makedirs(path)
 
 	@bot.event
 	async def on_ready():
 		logger.log_info("TitanBot has connected to Discord")
 		await bot.change_presence(activity=discord.CustomActivity(name="Initializing..."), status=discord.Status.dnd)
 
-		# Update local configurations and load deferred config values
-		logger.log_info("Loading configuration data from the management portal")
-		from Framework.ConfigurationManager import configuration_manager
+		# Update local configurations
+		logger.log_info("Loading configuration data...")
+		configuration_manager.bot = bot
 		await configuration_manager.load_deferred_configs(bot.guilds)
 
 		# Perform post-init tasks for each cog
@@ -91,7 +93,7 @@ if __name__ == "__main__":
 		await bot.change_presence(activity=status[0], status=status[1])
 
 		# Start the IPC server
-		threading.Thread(target=ipc_handler.start_server, daemon=True).start()
+		threading.Thread(target=ipc_handler.start_server, args=[bot], daemon=True).start()
 
 		executor.submit(start_watch_for_shutdown, shutdown_loop)
 
@@ -108,7 +110,6 @@ if __name__ == "__main__":
 			if ipc_handler.shutdown_flag.is_set():
 				ThreadedLogger.shutdown = True
 				await cogs[5].check_for_updates.stop()  # CF update checker
-				await management_portal_handler.close_sessions()
 				await bot.close()
 				break
 

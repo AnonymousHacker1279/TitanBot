@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands, tasks
 
 from Framework.CommandGroups.BasicCog import BasicCog
-from Framework.ConfigurationManager import ConfigurationValues
 from Framework.GeneralUtilities import PermissionHandler
 
 
@@ -30,12 +29,14 @@ class CurseForge(BasicCog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
-		if not failed_permission_check:
+		embed, has_key = await self.check_for_api_key(embed)
+
+		if not failed_permission_check and has_key:
 
 			# Set the API key in headers
-			headers = {"x-api-key": ConfigurationValues.CF_API_TOKEN}
+			headers = {"x-api-key": self.cm.get_value("curseforge/cf_api_key")}
 
-			response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project_id}", headers, True)
+			response = await self.wbh.get(f"https://api.curseforge.com/v1/mods/{project_id}", headers)
 			response = response["data"]
 
 			name = response["name"]
@@ -74,7 +75,9 @@ class CurseForge(BasicCog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
-		if not failed_permission_check:
+		embed, has_key = await self.check_for_api_key(embed)
+
+		if not failed_permission_check and has_key:
 			await self.sql_bridge.cf_module.remove_project(ctx.guild_id, project_id)
 
 			embed.title = "CurseForge Project Removed"
@@ -90,7 +93,9 @@ class CurseForge(BasicCog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
-		if not failed_permission_check:
+		embed, has_key = await self.check_for_api_key(embed)
+
+		if not failed_permission_check and has_key:
 			projects = await self.sql_bridge.cf_module.get_projects(ctx.guild_id)
 
 			embed.title = "CurseForge Projects"
@@ -104,9 +109,9 @@ class CurseForge(BasicCog):
 
 				for project in projects:
 					# Set the API key in headers
-					headers = {"x-api-key": ConfigurationValues.CF_API_TOKEN}
+					headers = {"x-api-key": self.cm.get_value("curseforge/cf_api_key")}
 
-					response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project[0]}", headers, True)
+					response = await self.wbh.get(f"https://api.curseforge.com/v1/mods/{project[0]}", headers)
 					response = response["data"]
 
 					name = response["name"]
@@ -123,7 +128,9 @@ class CurseForge(BasicCog):
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "curseforge")
-		if not failed_permission_check:
+		embed, has_key = await self.check_for_api_key(embed)
+
+		if not failed_permission_check and has_key:
 			await self.check_for_updates(ctx.guild_id)
 
 			embed.title = "CurseForge Update Check"
@@ -143,9 +150,9 @@ class CurseForge(BasicCog):
 		# Compare the current file IDs with the latest ones on CF
 		for project in projects:
 			# Set the API key in headers
-			headers = {"x-api-key": ConfigurationValues.CF_API_TOKEN}
+			headers = {"x-api-key": self.cm.get_value("curseforge/cf_api_key")}
 
-			response = await self.mph.get(f"https://api.curseforge.com/v1/mods/{project[0]}", data=headers, non_management_portal=True)
+			response = await self.wbh.get(f"https://api.curseforge.com/v1/mods/{project[0]}", data=headers)
 			response = response["data"]
 
 			latest_file_id = response["latestFilesIndexes"][0]["fileId"]
@@ -155,7 +162,7 @@ class CurseForge(BasicCog):
 				await self.sql_bridge.cf_module.update_project_version(project[0], latest_file_id)
 
 				# Get the announcement channel
-				announcement_channel = self.mph.bot.get_channel(project[1])
+				announcement_channel = self.bot.get_channel(project[1])
 
 				# Get the release type
 				release_type = response["latestFilesIndexes"][0]["releaseType"]
@@ -181,3 +188,13 @@ class CurseForge(BasicCog):
 
 				# Send the embed
 				await announcement_channel.send(embed=embed)
+
+	async def check_for_api_key(self, embed: discord.Embed) -> (discord.Embed, bool):
+		"""Check if a CurseForge API key exists, returning an error message in the provided embed if it doesn't."""
+		if self.cm.get_value("curseforge/cf_api_key") == "":
+			embed.title = "CurseForge API Key Required"
+			embed.description = "No CurseForge API key found. Please ask an administrator to set one in the bot configuration."
+
+			return embed, False
+
+		return embed, True

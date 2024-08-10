@@ -3,7 +3,7 @@ from typing import Optional
 
 import lyricsgenius
 
-from Framework.ConfigurationManager import ConfigurationValues
+from Framework.ConfigurationManager import ConfigurationManager
 
 
 async def cleanup(lyrics) -> str:
@@ -29,9 +29,12 @@ class GeniusAPI:
 	def __init__(self):
 		self.genius: Optional[lyricsgenius.Genius] = None
 
-	async def initialize(self) -> None:
+	async def initialize(self, configuration_manager: ConfigurationManager) -> None:
 		"""Initialize the Genius API."""
-		self.genius = lyricsgenius.Genius(ConfigurationValues.GENIUS_API_TOKEN, verbose=False)
+		try:
+			self.genius = lyricsgenius.Genius(await configuration_manager.get_value("genius/genius_api_key"), verbose=False)
+		except TypeError:
+			self.genius = None
 
 	async def search_songs(self, artist: str, song: str) -> tuple[str, int]:
 		"""Search for a song by an artist."""

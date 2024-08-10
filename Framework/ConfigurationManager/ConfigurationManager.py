@@ -6,7 +6,60 @@ from discord import Guild
 from dotenv import load_dotenv
 
 from Framework.ConfigurationManager import ConfigurationValues, BotStatus
-from Framework.ManagementPortal.APIEndpoints import APIEndpoints
+
+
+async def build_default_global_config() -> dict:
+	"""
+	Build a default global configuration.
+	"""
+
+	return {
+		"discord_status": {
+			"activity_type": 4,
+			"activity_text": "",
+			"activity_url": "",
+			"status_type": 0
+		},
+		"superuser_configuration": {
+			"superuser_list": []
+		},
+		"logging": {
+			"enable_logging": True,
+			"logging_level": 0
+		},
+		"curseforge": {
+			"cf_api_key": ""
+		},
+		"genius": {
+			"genius_api_key": ""
+		},
+		"enabled_modules": [
+			"curseforge",
+			"debugging",
+			"fun",
+			"genius",
+			"quotes",
+			"statistics",
+			"utility"
+		]
+	}
+
+async def build_default_guild_config() -> dict:
+	"""
+	Build a default guild configuration.
+	"""
+
+	return {
+		"enabled_modules": [
+			"curseforge",
+			"debugging",
+			"fun",
+			"genius",
+			"quotes",
+			"statistics",
+			"utility"
+		]
+	}
 
 
 class ConfigurationManager:
@@ -14,52 +67,46 @@ class ConfigurationManager:
 	def __init__(self):
 		self.__global_config = {}
 		self.__bot_config = {}
-		self.mph = None
+		self.bot = None
 
 	def load_core_config(self) -> None:
 		"""Load core data that is needed very early in the loading process. These values are stored in a .env file in the root directory."""
 		load_dotenv()
 		self.__bot_config["bot_token"] = os.getenv("DISCORD_TOKEN")
-		self.__bot_config["management_portal_url"] = os.getenv("MANAGEMENT_PORTAL_URL")
 		self.__bot_config["ipc_address"] = os.getenv("IPC_ADDRESS")
 		self.__bot_config["ipc_port"] = int(os.getenv("IPC_PORT"))
 
 		ConfigurationValues.TOKEN = self.__bot_config["bot_token"]
-		ConfigurationValues.MANAGEMENT_PORTAL_URL = self.__bot_config["management_portal_url"]
 		ConfigurationValues.IPC_ADDRESS = self.__bot_config["ipc_address"]
 		ConfigurationValues.IPC_PORT = self.__bot_config["ipc_port"]
 
 	async def load_deferred_configs(self, guilds: list[Guild]) -> None:
 		"""
-		Load configuration data stored in the management portal.
+		Load configuration data stored in local JSON files.
 
 		:param guilds: The guilds the bot is currently in.
 		"""
 
-		from Framework.ManagementPortal import management_portal_handler
-		self.mph = management_portal_handler
+		# Open the global config file. If it doesn't exist, create it
+		try:
+			with open(f"{os.getcwd()}/Storage/Config/global.json", "r") as file:
+				self.__global_config = json.load(file)
+		except FileNotFoundError:
+			self.__global_config = await build_default_global_config()
+			with open(f"{os.getcwd()}/Storage/Config/global.json", "w+") as file:
+				json.dump(self.__global_config, file, indent=4)
 
-		self.__global_config = await self.__pull_configuration("global")
+		self.__bot_config.update(self.__global_config)
 
-		self.__bot_config["discord_status"] = self.__global_config["discord_status"]
-
-		self.__bot_config["superuser_configuration"] = {}
-		self.__bot_config["superuser_configuration"]["superuser_list"] = self.__global_config["superuser_configuration"]["superuser_list"]
-
-		self.__bot_config["logging"] = {}
-		self.__bot_config["logging"]["enable_logging"] = self.__global_config["logging"]["enable_logging"]
-		self.__bot_config["logging"]["logging_level"] = self.__global_config["logging"]["logging_level"]
-
-		self.__bot_config["genius_music"] = {}
-		self.__bot_config["genius_music"]["genius_api_key"] = self.__global_config["genius_music"]["genius_api_key"]
-
-		self.__bot_config["curseforge"] = {}
-		self.__bot_config["curseforge"]["cf_api_key"] = self.__global_config["curseforge"]["cf_api_key"]
-
-		self.__bot_config["enabled_modules"] = self.__global_config["enabled_modules"]
-
+		# Merge guild-specific configurations
 		for guild in guilds:
-			server_config = await self.__pull_configuration(str(guild.id))
+			try:
+				with open(f"{os.getcwd()}/Storage/Config/{guild.id}.json", "r") as file:
+					server_config = json.load(file)
+			except FileNotFoundError:
+				server_config = await build_default_guild_config()
+				with open(f"{os.getcwd()}/Storage/Config/{guild.id}.json", "w+") as file:
+					json.dump(server_config, file, indent=4)
 
 			self.__bot_config[guild.id] = {}
 			self.__bot_config[guild.id]["enabled_modules"] = server_config["enabled_modules"]
@@ -86,41 +133,14 @@ class ConfigurationManager:
 				global_config = global_config[section]
 			return global_config
 
-	async def __pull_configuration(self, file_name: str) -> dict:
-		"""
-		Get a configuration from the management portal.
-
-		:param file_name: The name of the configuration file to get.
-		"""
-
-		data = self.mph.base_data.copy()
-		data["name"] = file_name
-		return await self.mph.get(APIEndpoints.GET_CONFIGURATION, data)
-
-	async def __push_configuration(self, file_name: str, config: dict) -> None:
-		"""
-		Push a configuration to the management portal.
-
-		:param file_name: The name of the configuration file to write.
-		:param config: The configuration data.
-		"""
-
-		data = self.mph.base_data.copy()
-		data["name"] = file_name
-		data["config"] = json.dumps(config)
-		await self.mph.post(APIEndpoints.WRITE_CONFIGURATION, data)
-
 	async def update_bot_status(self) -> None:
 		"""Update the bot's status based on the configuration."""
 		status = await BotStatus.get_status_from_config(self)
-		await self.mph.bot.change_presence(activity=status[0], status=status[1])
+		await self.bot.change_presence(activity=status[0], status=status[1])
 
 	async def update_configuration_constants(self):
 		"""Update the configuration constants stored in ConfigurationValues."""
 		ConfigurationValues.LOG_LEVEL = await self.get_value("logging/logging_level")
-
-		ConfigurationValues.GENIUS_API_TOKEN = await self.get_value("genius_music/genius_api_key")
-		ConfigurationValues.CF_API_TOKEN = await self.get_value("curseforge/cf_api_key")
 
 	async def get_guild_specific_value(self, guild_id: int, key: str) -> Any:
 		"""
@@ -166,13 +186,13 @@ class ConfigurationManager:
 
 		return self.__bot_config
 
-	async def set_value(self, key: str, value: Any, update_mp=False) -> None:
+	async def set_value(self, key: str, value: Any, update_local_config=False) -> None:
 		"""
-		Set a value in the bot configuration. Note this does not propagate to the management portal by default.
+		Set a value in the bot configuration. Note this does not save to disk by default.
 
 		:param key: The key to set. May be nested by using slashes.
 		:param value: The value to set
-		:param update_mp: Whether to update the management portal. Note that core values provided through the .env file will not be updated in the management portal regardless of this setting.
+		:param update_local_config: Whether to update the local config files. Note that core values provided through the .env file will not be updated regardless of this setting.
 		"""
 
 		# Check for nested entries
@@ -185,11 +205,12 @@ class ConfigurationManager:
 		else:
 			self.__bot_config[key] = value
 
-		disallowed_keys = ["bot_token", "management_portal_url", "ipc_address", "ipc_port"]
-		if update_mp and key not in disallowed_keys:
+		disallowed_keys = ["bot_token", "ipc_address", "ipc_port"]
+		if update_local_config and key not in disallowed_keys:
 			# Determine if the key was global or server-specific. A root-level entry that's a number should be tested to see if it is a guild ID
-			if key.isnumeric() and self.mph.bot.get_guild(int(key)) is not None:
-				await self.__push_configuration(key, self.__bot_config[key])
+			if key.isnumeric() and self.bot.get_guild(int(key)) is not None:
+				with open(f"{os.getcwd()}/Storage/Config/{key}.json", "w+") as file:
+					json.dump(self.__bot_config[key], file, indent=4)
 			else:
 				# Strip all server-specific keys by removing all numeric keys
 				global_config = self.__bot_config.copy()
@@ -203,7 +224,8 @@ class ConfigurationManager:
 				for k in disallowed_keys:
 					global_config.pop(k)
 
-				await self.__push_configuration("global", global_config)
+				with open(f"{os.getcwd()}/Storage/Config/global.json", "w+") as file:
+					json.dump(global_config, file, indent=4)
 
 		await self.update_configuration_constants()
 		await self.update_bot_status()

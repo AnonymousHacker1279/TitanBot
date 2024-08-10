@@ -3,6 +3,8 @@ import os
 import socket
 import threading
 
+import discord
+
 from Framework.ConfigurationManager import ConfigurationValues
 from Framework.GeneralUtilities.ThreadedLogger import ThreadedLogger
 from Framework.IPC.CommandDirectory import CommandDirectory
@@ -86,10 +88,10 @@ class IPCHandler:
 		for connection in self.clients:
 			connection.sendall(update.encode('utf-8'))
 
-	def start_server(self):
+	def start_server(self, bot: discord.Bot):
 		self.logger.log_info("Starting IPC server for local management connections, listening on " + ConfigurationValues.IPC_ADDRESS + ":" + str(
 			ConfigurationValues.IPC_PORT) + "...")
-		self.command_directory.load_commands()
+		self.command_directory.load_commands(bot)
 
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			s.bind((ConfigurationValues.IPC_ADDRESS, ConfigurationValues.IPC_PORT))

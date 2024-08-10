@@ -112,7 +112,7 @@ class Utility(BasicCog):
 			embed.description += "Providing features to servers since 7/15/21.\n\n"
 
 			# Get the latest version from GitHub
-			response = await self.mph.get(f"https://api.github.com/repos/{ConfigurationValues.UPDATE_REPOSITORY}/releases/latest", non_management_portal=True)
+			response = await self.wbh.get(f"https://api.github.com/repos/AnonymousHacker1279/TitanBot/releases/latest")
 			latest_version = response["tag_name"]
 			changelog = response["body"]
 

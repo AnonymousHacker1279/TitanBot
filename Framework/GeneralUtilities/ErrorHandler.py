@@ -40,7 +40,7 @@ async def handle_error(ctx: discord.ApplicationContext, error: commands.CommandE
 	embed.description += "```" + str(error) + "```"
 
 	if should_log:
-		embed.set_footer(text="This error has been logged and will be visible on the management portal.")
+		embed.set_footer(text="This error has been logged.")
 		logger.log_error(f"Error running command {ctx.command.name}: {error}")
 
 	return embed

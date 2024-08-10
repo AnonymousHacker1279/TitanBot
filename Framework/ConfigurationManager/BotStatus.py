@@ -14,10 +14,10 @@ async def get_status_from_config(configuration_manager: ConfigurationManager) ->
 	
 	config = await configuration_manager.get_value("discord_status")
 
-	activity = config["activity"]
+	activity = config["activity_type"]
 	activity_text = config["activity_text"]
 	activity_url = config["activity_url"]
-	status = config["status"]
+	status = config["status_type"]
 
 	if activity == 0:
 		return discord.Game(activity_text), __status_int_to_discord_object(status)

@@ -38,5 +38,6 @@ async def is_superuser(user: int) -> bool:
 
 
 async def check_module_enabled(module: str, guild: int) -> bool:
-	enabled_modules = await cm.get_guild_specific_value(guild, "enabled_modules")
-	return enabled_modules[module + "_enabled"]
+	global_enabled_modules = await cm.get_value("enabled_modules")
+	guild_enabled_modules = await cm.get_guild_specific_value(guild, "enabled_modules")
+	return module in global_enabled_modules and module in guild_enabled_modules

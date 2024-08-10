@@ -137,7 +137,7 @@ class Fun(BasicCog):
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
 		if not failed_permission_check:
 			# Get an image URL from InspiroBot
-			image_url = await self.mph.get("https://inspirobot.me/api?generate=true", non_management_portal=True)
+			image_url = await self.wbh.get("https://inspirobot.me/api?generate=true")
 
 			# Create the embed
 			embed.title = "InspiroBot Query"
@@ -156,7 +156,7 @@ class Fun(BasicCog):
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
 		if not failed_permission_check:
 			# Get a random fact
-			response = await self.mph.get("https://uselessfacts.jsph.pl/random.json?language=en", non_management_portal=True)
+			response = await self.wbh.get("https://uselessfacts.jsph.pl/random.json?language=en")
 
 			# Create the embed
 			embed.title = "Random Fact"
