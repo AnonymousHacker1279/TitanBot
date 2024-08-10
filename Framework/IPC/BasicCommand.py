@@ -18,7 +18,7 @@ class BasicCommand:
 		self.extra_metadata: dict[str, any] = {}
 		self.color: str = "white"
 
-	async def execute(self, args: list[str]) -> str:
+	async def execute(self, args: list[any]) -> str:
 		pass
 
 	@abstractmethod

@@ -40,13 +40,17 @@ class IPCHandler:
 			args = self.__parse_args(client_message.lstrip(command_name))
 
 			if command:
-				# Important to check if the loop is running here
-				if self.loop.is_running():
-					# This will work when outside a debugging environment but deadlock inside one
-					response = asyncio.run_coroutine_threadsafe(command.execute(args), self.loop).result()
-				else:
-					# This will work when debugging but crash outside a debugging environment
-					response = self.loop.run_until_complete(command.execute(args))
+				try:
+					# Important to check if the loop is running here
+					if self.loop.is_running():
+						# This will work when outside a debugging environment but deadlock inside one
+						response = asyncio.run_coroutine_threadsafe(command.execute(args), self.loop).result()
+					else:
+						# This will work when debugging but crash outside a debugging environment
+						response = self.loop.run_until_complete(command.execute(args))
+				except Exception as e:
+					response = f"An error occurred while executing the command. Details:\n{e}"
+					self.logger.log_error(f"An error occurred while executing the command. Details:\n{e}")
 
 				metadata: dict[str, any] = command.extra_metadata.copy()
 
@@ -63,9 +67,10 @@ class IPCHandler:
 			else:
 				response = f"Unable to find command: {command_name}"
 
-			self.send_update(response)
+			if response is not None:
+				self.send_update(response)
 
-	def __parse_args(self, message: str) -> list[str]:
+	def __parse_args(self, message: str) -> list[any]:
 		"""Parse the arguments from a message."""
 		args = []
 		quote = False
@@ -80,7 +85,16 @@ class IPCHandler:
 			else:
 				arg += char
 		if arg:
+			# Check if the argument is a type other than a string
+			if arg.lower() == "true":
+				arg = True
+			elif arg.lower() == "false":
+				arg = False
+			elif arg.isdigit():
+				arg = int(arg)
+
 			args.append(arg)
+
 		return args
 
 	def send_update(self, update: str):

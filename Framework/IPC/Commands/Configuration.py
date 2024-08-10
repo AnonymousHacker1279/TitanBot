@@ -13,7 +13,7 @@ class Configuration(BasicCommand):
 		super().__init__(bot, config_manager, command_directory)
 		self.friendly_name = "config"
 
-	async def execute(self, args: list[str]) -> str:
+	async def execute(self, args: list[any]) -> str:
 		bot_config = await self.config_manager.get_config()
 
 		match args[0]:
@@ -95,7 +95,7 @@ class Configuration(BasicCommand):
 					"update | u": "Optional. Sync the changes with the local storage. By default, this is false."
 				}
 			},
-			"sync_from_disc | sync | sy": {
+			"sync_from_disk | sync | sy": {
 				"description": "Sync configuration values from local storage.",
 				"arguments": {}
 			}
