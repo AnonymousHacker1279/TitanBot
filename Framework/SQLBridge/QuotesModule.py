@@ -9,9 +9,6 @@ class QuotesModule:
 		self.connection = connection
 		self.cursor = cursor
 
-	async def add_quote(self, guild_id: int, content: str, author: int, quoted_by: int) -> int:
-		"""Add a quote to the database."""
-
 		self.cursor.execute("""
 			CREATE TABLE IF NOT EXISTS quotes (
 				id INTEGER PRIMARY KEY,
@@ -23,6 +20,11 @@ class QuotesModule:
 					date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 				)
 		""")
+
+		self.connection.commit()
+
+	async def add_quote(self, guild_id: int, content: str, author: int, quoted_by: int) -> int:
+		"""Add a quote to the database."""
 
 		# Get the next quote number
 		next_quote_number = 0

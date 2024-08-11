@@ -69,7 +69,7 @@ if __name__ == "__main__":
 			logger.log_debug(f"Removing temporary file: {file}")
 			os.remove(f"{path}/{file}")
 			temp_file_count += 1
-			logger.log_info(f"Removed {temp_file_count} temporary files")
+		logger.log_info(f"Removed {temp_file_count} temporary files")
 	except FileNotFoundError:
 		# Create the directory
 		os.makedirs(path)

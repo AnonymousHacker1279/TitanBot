@@ -7,9 +7,6 @@ class CFModule:
 		self.connection = connection
 		self.cursor = cursor
 
-	async def add_project(self, guild_id: int, project_id: int, announcement_channel_id: int, latest_file_id: int) -> bool:
-		"""Add a CF project to the update checker."""
-
 		self.cursor.execute("""
 			CREATE TABLE IF NOT EXISTS cf_projects (
 				id INTEGER PRIMARY KEY,
@@ -19,6 +16,10 @@ class CFModule:
 					latest_file_id INTEGER
 				)
 		""")
+		self.connection.commit()
+
+	async def add_project(self, guild_id: int, project_id: int, announcement_channel_id: int, latest_file_id: int) -> bool:
+		"""Add a CF project to the update checker."""
 
 		# Do not add if an entry already exists
 		self.cursor.execute("""

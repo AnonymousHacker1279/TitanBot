@@ -20,12 +20,6 @@ class SQLBridge:
 		self.quotes_module = QuotesModule(self.connection, self.cursor)
 		self.statistics_module = StatisticsModule(self.connection, self.cursor)
 
-	async def write_log_entry(self, source: str, level: str, message: str, timestamp: str) -> None:
-		"""Write a log entry into the `bot_logs` table."""
-
-		# Remove any newlines at the end of the message
-		message = message.rstrip("\n")
-
 		self.cursor.execute("""
 			CREATE TABLE IF NOT EXISTS bot_logs (
 				id INTEGER PRIMARY KEY,
@@ -37,17 +31,6 @@ class SQLBridge:
 		""")
 
 		self.cursor.execute("""
-			INSERT INTO bot_logs (source, log_level, message, timestamp)
-			VALUES (?, ?, ?, ?)
-		""",
-		(source, level, message, timestamp))
-
-		self.connection.commit()
-
-	async def update_command_used(self, guild_id: int, command_name: str, module_name: str):
-		"""Update the analytics for the number of times a command has been used."""
-
-		self.cursor.execute("""
 			CREATE TABLE IF NOT EXISTS command_usage_analytics (
 				id INTEGER PRIMARY KEY,
 					guild_id INTEGER,
@@ -57,6 +40,25 @@ class SQLBridge:
 					UNIQUE(guild_id, command_name, module_name)
 				)
 		""")
+
+		self.connection.commit()
+
+	async def write_log_entry(self, source: str, level: str, message: str, timestamp: str) -> None:
+		"""Write a log entry into the `bot_logs` table."""
+
+		# Remove any newlines at the end of the message
+		message = message.rstrip("\n")
+
+		self.cursor.execute("""
+			INSERT INTO bot_logs (source, log_level, message, timestamp)
+			VALUES (?, ?, ?, ?)
+		""",
+		(source, level, message, timestamp))
+
+		self.connection.commit()
+
+	async def update_command_used(self, guild_id: int, command_name: str, module_name: str):
+		"""Update the analytics for the number of times a command has been used."""
 
 		self.cursor.execute("""
 			INSERT INTO command_usage_analytics (guild_id, command_name, module_name, count)

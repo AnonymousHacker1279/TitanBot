@@ -25,7 +25,7 @@ async def build_default_global_config() -> dict:
 		},
 		"logging": {
 			"enable_logging": True,
-			"logging_level": 0
+			"logging_level": 1
 		},
 		"curseforge": {
 			"cf_api_key": ""
