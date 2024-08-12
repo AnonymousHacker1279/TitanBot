@@ -13,7 +13,6 @@ from Framework.CommandGroups.CurseForge import CurseForge
 from Framework.CommandGroups.Debugging import Debugging
 from Framework.CommandGroups.Fun import Fun
 from Framework.CommandGroups.Genius import Genius
-from Framework.CommandGroups.Help import Help
 from Framework.CommandGroups.Quotes import Quotes
 from Framework.CommandGroups.Statistics import Statistics
 from Framework.CommandGroups.Utility import Utility
@@ -40,7 +39,6 @@ if __name__ == "__main__":
 
 	intents = discord.Intents.all()
 	bot = discord.Bot(intents=intents)
-	bot.help_command = Help()
 
 	ThreadedLogger.initialize()
 

@@ -72,30 +72,48 @@ class IPCHandler:
 
 	def __parse_args(self, message: str) -> list[any]:
 		"""Parse the arguments from a message."""
-		args = []
+		raw_args = []
 		quote = False
 		arg = ""
 		for char in message:
 			if char == " " and not quote:
 				if arg:
-					args.append(arg)
+					raw_args.append(arg)
 					arg = ""
 			elif char == "\"":
 				quote = not quote
 			else:
 				arg += char
+
 		if arg:
+			raw_args.append(arg)
+
+		proper_args = []
+		for arg in raw_args:
 			# Check if the argument is a type other than a string
-			if arg.lower() == "true":
-				arg = True
-			elif arg.lower() == "false":
-				arg = False
-			elif arg.isdigit():
-				arg = int(arg)
+			arg = self.__check_arg_type(arg)
+			# Check for list-type elements, and properly convert them to list objects
+			if isinstance(arg, str) and arg.startswith("[") and arg.endswith("]"):
+				# Remove the brackets and split the elements by comma
+				list_elements = arg[1:-1].split(",")
+				# Strip whitespace and check the type of each element
+				list_elements = [self.__check_arg_type(element.strip()) for element in list_elements]
+				arg = list_elements
 
-			args.append(arg)
+			proper_args.append(arg)
 
-		return args
+		return proper_args
+
+	def __check_arg_type(self, arg: str) -> any:
+		"""Check an argument type, in case it is anything other than string."""
+		if arg.lower() == "true":
+			arg = True
+		elif arg.lower() == "false":
+			arg = False
+		elif arg.isdigit():
+			arg = int(arg)
+
+		return arg
 
 	def send_update(self, update: str):
 		"""Send an update to all connected clients."""

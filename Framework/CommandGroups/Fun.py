@@ -41,16 +41,27 @@ class Fun(BasicCog):
 		type=discord.User,
 		required=False
 	)
+	@discord.option(
+		name="include_preview",
+		description="Include a preview link to the song.",
+		type=bool,
+		required=False
+	)
 	@fun.command()
 	@commands.guild_only()
-	async def spotify(self, ctx: discord.ApplicationContext, user: discord.User = None):
+	async def spotify(self, ctx: discord.ApplicationContext, user: discord.User = None, include_preview: bool = False):
 		"""Check the status of a user playing music via Spotify."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
+
+		send_preview_link = False
+		preview_link = ""
+
 		if not failed_permission_check:
 			if user is None:
 				user = ctx.author
+
 			nonSpotifyActivities = 0
 			if user.activities:
 				for activity in user.activities:
@@ -62,6 +73,10 @@ class Fun(BasicCog):
 						embed.add_field(name="Album", value=activity.album)
 						embed.add_field(name="Duration", value=str(activity.duration).split(".")[0])
 						embed.set_footer(text="Track ID: {}".format(activity.track_id))
+
+						if include_preview:
+							send_preview_link = True
+							preview_link = activity.track_url
 					else:
 						nonSpotifyActivities += 1
 						if nonSpotifyActivities == len(user.activities):
@@ -72,6 +87,10 @@ class Fun(BasicCog):
 				embed.description = "The user is not listening to Spotify."
 
 		await ctx.respond(embed=embed)
+
+		if send_preview_link:
+			await ctx.respond(f"Preview URL: {preview_link}")
+
 		await self.update_usage_analytics("fun", "spotify", ctx.guild.id)
 
 	@discord.option(
@@ -95,7 +114,7 @@ class Fun(BasicCog):
 	@fun.command()
 	@commands.guild_only()
 	async def speak(self, ctx: discord.ApplicationContext, message: str, channel: discord.TextChannel = None, hide_user: bool = False):
-		"""Make the bot say something in a channel."""
+		"""Make the bot say something in a channel. Typically useful for announcement messages."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "fun")
@@ -160,7 +179,7 @@ class Fun(BasicCog):
 
 			# Create the embed
 			embed.title = "Random Fact"
-			embed.description = response["text"]
+			embed.description = response["text"].replace("`", "'")
 			embed.set_footer(text="Permalink: " + response["permalink"])
 
 		await ctx.respond(embed=embed)

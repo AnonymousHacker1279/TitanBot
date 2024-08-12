@@ -34,7 +34,7 @@ async def check_permissions(ctx, embed: discord.Embed, module: str) -> tuple[dis
 
 async def is_superuser(user: int) -> bool:
 	superusers = await cm.get_value("superuser_configuration/superuser_list")
-	return str(user) in superusers
+	return user in superusers
 
 
 async def check_module_enabled(module: str, guild: int) -> bool:

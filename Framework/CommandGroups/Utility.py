@@ -30,7 +30,7 @@ class Utility(BasicCog):
 			delta = todayDate - birthDate
 
 			embed.title = "My Age"
-			embed.description = "I am **" + str(delta.days) + "** days old."
+			embed.description = f"I am **{"{:,}".format(delta.days)}** days old ({str(round(delta.days / 365, 2))} years)."
 			embed.set_footer(text="Born into the world on 7/15/21.")
 
 		await ctx.respond(embed=embed)
@@ -153,24 +153,19 @@ class Utility(BasicCog):
 			system_memory_usage = psutil.virtual_memory()[2]
 			total_system_memory = round(psutil.virtual_memory()[0] / (1024 * 1024 * 1024), 2)
 
-			embed.description = "CPU Information: **" \
-								+ str(cpu_usage) + "% usage, " \
-								+ str(cpu_count) + " cores**\n"
-			embed.description += "Memory Information: **"\
-								+ str(system_memory_usage) + "% usage, "\
-								+ str(total_system_memory) + "GB total**\n"
-			embed.description += "Disk Information: **" \
-								+ str(psutil.disk_usage('/')[3]) + "% usage, " \
-								+ str(round(psutil.disk_usage('/')[0] / (1024 * 1024 * 1024), 2)) + "GB total**\n"
+			embed.description = (f"CPU Information: **{str(cpu_usage)}% usage,"
+									f" {str(cpu_count)} cores**\n")
+			embed.description += (f"Memory Information: **{str(system_memory_usage)}% usage,"
+									f" {str(total_system_memory)}GB total**\n")
+			embed.description += (f"Disk Information: **{str(psutil.disk_usage('/')[3])}% usage,"
+									f" {str(round(psutil.disk_usage('/')[0] / (1024 * 1024 * 1024), 2))}GB total**\n")
 
-			embed.description += "\nDiscord Metrics: **" \
-								+ str(len(ctx.bot.guilds)) + " servers, " \
-								+ str(len(ctx.bot.users)) + " users**\n"
+			embed.description += (f"\nDiscord Metrics: **{str(len(ctx.bot.guilds))} servers, "
+									f"{str(len(ctx.bot.users))} users**\n")
 
-			embed.description += "\nBot Setup: **" \
-								+ "TitanBot " + ConfigurationValues.VERSION + "\n" \
-								+ "- Python " + str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2]) + "\n" \
-								+ "- Pycord " + str(discord.__version__) + "**\n"
+			embed.description += (f"\nBot Setup: **TitanBot {ConfigurationValues.VERSION}\n"
+									f"- Python {str(sys.version_info[0])}.{str(sys.version_info[1])}.{str(sys.version_info[2])}\n"
+									f"- Pycord {str(discord.__version__)}**")
 
 			if cpu_usage > 70:
 				embed.description += ":warning: High CPU usage, responsiveness may be degraded.\n"
