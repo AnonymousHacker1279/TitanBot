@@ -14,14 +14,20 @@ class Statistics(BasicCog):
 	statistics = discord.SlashCommandGroup("statistics", description="Get statistics and analytical data regarding the bot.")
 
 	@statistics.command()
+	@discord.option(
+		name="all_guilds",
+		description="Get the top commands across all guilds.",
+		type=bool,
+		required=False
+	)
 	@commands.guild_only()
-	async def most_used_commands(self, ctx: discord.ApplicationContext):
+	async def most_used_commands(self, ctx: discord.ApplicationContext, all_guilds: bool = False):
 		"""Get the ten most used commands."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "statistics")
 		if not failed_permission_check:
-			data = await self.sql_bridge.statistics_module.get_top_ten_commands()
+			data = await self.sql_bridge.statistics_module.get_top_ten_commands(ctx.guild_id, all_guilds)
 
 			# Extract data
 			analytics = [f"{item[0]} [{item[1]}]" for item in data]
@@ -69,6 +75,8 @@ class Statistics(BasicCog):
 
 			# Include the graph in the embed
 			embed.title = "Top Ten Most Used Commands"
+			if all_guilds:
+				embed.title += " (Global)"
 			file = discord.File(path, filename=path.split("/")[-1])
 			embed.set_image(url="attachment://" + path.split("/")[-1])
 

@@ -19,19 +19,31 @@ class StatisticsModule:
 		""")
 		self.connection.commit()
 
-	async def get_top_ten_commands(self) -> list:
+	async def get_top_ten_commands(self, guild_id: int = None, get_global: bool = False) -> list:
 		"""Get the top ten most used commands."""
 
-		self.cursor.execute("""
-			SELECT command_name, module_name, count
-			FROM command_usage_analytics
-			ORDER BY count DESC
-			LIMIT 10
-		""")
+		if get_global:
+			# There may be multiple entries with the same command and module name in different guilds, so add them up
+			self.cursor.execute("""
+				SELECT command_name, module_name, SUM(count)
+				FROM command_usage_analytics
+				GROUP BY command_name, module_name
+				ORDER BY SUM(count) DESC
+				LIMIT 10
+			""")
+		else:
+			self.cursor.execute("""
+				SELECT command_name, module_name, count
+				FROM command_usage_analytics
+				WHERE guild_id = ?
+				ORDER BY count DESC
+				LIMIT 10
+			""",
+			(guild_id,))
 
 		return self.cursor.fetchall()
 
-	async def get_top_quoted_users(self, guild_id: int, get_global: bool = False) -> list:
+	async def get_top_quoted_users(self, guild_id: int = None, get_global: bool = False) -> list:
 		"""Get the top three most quoted users in a guild or globally, and the total number of their quotes."""
 
 		if get_global:

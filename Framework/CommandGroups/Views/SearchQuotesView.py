@@ -4,7 +4,7 @@ from enum import Enum
 import discord.ui
 
 from Framework.GeneralUtilities import QuoteUtils
-from SQLBridge import SQLBridge
+from Framework.SQLBridge import SQLBridge
 
 
 class SearchTypes(str, Enum):

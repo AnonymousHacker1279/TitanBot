@@ -34,7 +34,7 @@ executor = concurrent.futures.ThreadPoolExecutor()
 
 if __name__ == "__main__":
 
-	ConfigurationValues.VERSION = "v3.0.0-indev"
+	ConfigurationValues.VERSION = "v3.0.0"
 	ConfigurationValues.COMMIT = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
 	intents = discord.Intents.all()

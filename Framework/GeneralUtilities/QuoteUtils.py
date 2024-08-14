@@ -5,7 +5,7 @@ from datetime import datetime
 import discord
 from discord.errors import HTTPException, NotFound
 
-from SQLBridge import SQLBridge
+from Framework.SQLBridge import SQLBridge
 
 
 async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, author: int, content: str, quote_id: int, date: str, quoted_by: int) -> discord.Embed:
