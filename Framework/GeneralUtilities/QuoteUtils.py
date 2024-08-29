@@ -23,7 +23,8 @@ async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, a
 
 	embed.title = "Quote #" + str(quote_id)
 
-	links = re.findall('https://[a-zA-Z0-9-./_&]*', content)
+	r = re.compile("https://[a-zA-Z0-9-./_&]*\\?ex=[a-zA-Z0-9]*\\&is=[a-zA-Z0-9]*\\&hm=[a-zA-Z0-9]*\\&=[a-zA-Z0-9]*\\&quality=[a-zA-Z]*")
+	links = re.findall(pattern=r, string=content)
 	content_excluding_links = ""
 	iteration = 0
 
@@ -51,8 +52,9 @@ async def prepare_quote(ctx: discord.ApplicationContext, embed: discord.Embed, a
 		author_user = str(author)
 
 	for _ in links:
-		content_excluding_links = re.sub(pattern=links[iteration], repl="", string=content)
+		content_excluding_links = content.replace(links[iteration], "")
 		iteration += 1
+
 	if len(links) != 0:
 		if content_excluding_links == "":
 			embed.set_image(url=links[0])
