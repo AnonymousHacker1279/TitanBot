@@ -10,6 +10,9 @@ class CurseForge(BasicCog):
 
 	curseforge = discord.SlashCommandGroup("curseforge", description="Automatically announce updates from CurseForge projects.")
 
+	async def post_init(self) -> None:
+		self.check.start()
+
 	@discord.option(
 		name="project_id",
 		description="The CurseForge project ID.",
@@ -34,7 +37,7 @@ class CurseForge(BasicCog):
 		if not failed_permission_check and has_key:
 
 			# Set the API key in headers
-			headers = {"x-api-key": self.cm.get_value("curseforge/cf_api_key")}
+			headers = {"x-api-key": await self.cm.get_value("curseforge/cf_api_key")}
 
 			response = await self.wbh.get(f"https://api.curseforge.com/v1/mods/{project_id}", headers)
 			response = response["data"]
@@ -109,7 +112,7 @@ class CurseForge(BasicCog):
 
 				for project in projects:
 					# Set the API key in headers
-					headers = {"x-api-key": self.cm.get_value("curseforge/cf_api_key")}
+					headers = {"x-api-key": await self.cm.get_value("curseforge/cf_api_key")}
 
 					response = await self.wbh.get(f"https://api.curseforge.com/v1/mods/{project[0]}", headers)
 					response = response["data"]
@@ -131,7 +134,7 @@ class CurseForge(BasicCog):
 		embed, has_key = await self.check_for_api_key(embed)
 
 		if not failed_permission_check and has_key:
-			await self.check_for_updates(ctx.guild_id)
+			await self.check(ctx.guild_id)
 
 			embed.title = "CurseForge Update Check"
 			embed.description = "The update check has been manually run."
@@ -140,7 +143,7 @@ class CurseForge(BasicCog):
 		await self.update_usage_analytics("curseforge", "check_for_updates", ctx.guild.id)
 
 	@tasks.loop(seconds=600)
-	async def check_for_updates(self, guild_id: int = None):
+	async def check(self, guild_id: int = None):
 		# Get projects list
 		if guild_id is None:
 			projects = await self.sql_bridge.cf_module.get_projects()
@@ -150,7 +153,7 @@ class CurseForge(BasicCog):
 		# Compare the current file IDs with the latest ones on CF
 		for project in projects:
 			# Set the API key in headers
-			headers = {"x-api-key": self.cm.get_value("curseforge/cf_api_key")}
+			headers = {"x-api-key": await self.cm.get_value("curseforge/cf_api_key")}
 
 			response = await self.wbh.get(f"https://api.curseforge.com/v1/mods/{project[0]}", data=headers)
 			response = response["data"]
@@ -191,7 +194,7 @@ class CurseForge(BasicCog):
 
 	async def check_for_api_key(self, embed: discord.Embed) -> (discord.Embed, bool):
 		"""Check if a CurseForge API key exists, returning an error message in the provided embed if it doesn't."""
-		if self.cm.get_value("curseforge/cf_api_key") == "":
+		if await self.cm.get_value("curseforge/cf_api_key") == "":
 			embed.title = "CurseForge API Key Required"
 			embed.description = "No CurseForge API key found. Please ask an administrator to set one in the bot configuration."
 

@@ -10,7 +10,7 @@ you will need to provide the server.
 
 #### What TitanBot needs:
 - A folder to operate in
-- A Python 3 installation (currently built with `3.12.2`, older versions may work but aren't verified)
+- A Python 3 installation (currently built with `3.12.5`, older versions may work but aren't verified)
 - Some `pip` modules. Those can be installed from the `requirements.txt` file in the repository.
 
 You will need to create a `.env` file in the root of the operating folder. This stores environment

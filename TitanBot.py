@@ -34,7 +34,7 @@ executor = concurrent.futures.ThreadPoolExecutor()
 
 if __name__ == "__main__":
 
-	ConfigurationValues.VERSION = "v3.0.0"
+	ConfigurationValues.VERSION = "v3.0.1"
 	ConfigurationValues.COMMIT = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
 	intents = discord.Intents.all()
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 		while True:
 			if ipc_handler.shutdown_flag.is_set():
 				ThreadedLogger.shutdown = True
-				await cogs[5].check_for_updates.stop()  # CF update checker
+				await cogs[5].check.stop()  # CF update checker
 				await bot.close()
 				break
 

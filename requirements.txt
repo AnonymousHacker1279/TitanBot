@@ -1,9 +1,9 @@
-aiohttp>=3.9.3
+aiohttp>=3.10.9
 psutil>=5.9.8
-requests>=2.31.0
+requests>=2.32.3
 python-dotenv>=1.0.1
 lyricsgenius>=3.0.1
-py-cord~=2.6.0
+py-cord~=2.6.1
 nest_asyncio~=1.6.0
 semver>=3.0.2
 textual>=0.62.0
