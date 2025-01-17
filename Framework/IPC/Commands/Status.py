@@ -18,15 +18,16 @@ class Status(BasicCommand):
 			self.status_text = f.read()
 
 	async def execute(self, args: list[str]) -> str:
-		cpu_usage = psutil.cpu_percent(0.1) / 100
+		# Avoid floating point precision errors
+		cpu_usage = round(psutil.cpu_percent(0.1) / 100, 2)
 		cpu_color = self.get_color(cpu_usage)
 		cpu_info = f"[color={cpu_color}]{cpu_usage * 100}%[/color]"
 
-		mem_usage = psutil.virtual_memory()[2] / 100
+		mem_usage = round(psutil.virtual_memory()[2] / 100, 2)
 		mem_color = self.get_color(mem_usage)
 		mem_info = f"[color={mem_color}]{mem_usage * 100}%[/color]"
 
-		disk_usage = psutil.disk_usage('/')[3] / 100
+		disk_usage = round(psutil.disk_usage('/')[3] / 100, 2)
 		disk_color = self.get_color(disk_usage)
 		disk_info = f"[color={disk_color}]{disk_usage * 100}%[/color]"
 

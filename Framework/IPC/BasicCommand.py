@@ -17,6 +17,8 @@ class BasicCommand:
 		self.send_buffer_size: int = 1024
 		self.extra_metadata: dict[str, any] = {}
 		self.color: str = "white"
+		self.command_context: str = ""
+		self.is_recursive: bool = False
 
 	async def execute(self, args: list[any]) -> str:
 		pass

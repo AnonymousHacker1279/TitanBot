@@ -23,7 +23,7 @@ class TitanBotApp(App):
 	BINDINGS = [("e", "exit", "Exit")]
 	CSS_PATH = "Framework/CLI/app.tcss"
 
-	version = "v1.0.0"
+	version = "v1.0.1"
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
@@ -37,6 +37,8 @@ class TitanBotApp(App):
 		self.rich_log_widget = RichLog(highlight=True)
 		self.rich_log_widget.highlighter = TBHighlighter()
 		self.rich_log_widget.visible = False
+
+		self.console_context: str = ""
 
 		self.command_input_widget = Input(placeholder="Enter a command...", disabled=True)
 
@@ -58,7 +60,13 @@ class TitanBotApp(App):
 			self.rich_log_widget.clear()
 		else:
 			# Write the command to the log
-			self.rich_log_widget.write(">>> " + message.value)
+			log_message = ">>>"
+			if self.console_context != "":
+				log_message += f" [{self.console_context}]"
+				self.console_context = ""
+			log_message += f" {message.value}"
+
+			self.rich_log_widget.write(log_message)
 			await self.client.send(message.value)
 
 		self.command_input_widget.clear()
@@ -115,6 +123,8 @@ class TitanBotApp(App):
 						buffer_size = metadata["buffer_size"]
 					if "color" in metadata:
 						self.rich_log_widget.highlighter.color_of_next_entry = metadata["color"]
+					if "context" in metadata:
+						self.console_context = metadata["context"]
 					message = self.client.recv(buffer_size)
 
 				self.rich_log_widget.write(message)

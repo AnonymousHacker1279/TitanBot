@@ -18,6 +18,8 @@ class IPCHandler:
 		self.logger = ThreadedLogger("IPCHandler")
 		self.command_directory = CommandDirectory(os.getcwd() + "/Framework/IPC/Commands")
 		self.loop = asyncio.get_event_loop()
+		self.last_command = None
+		self.last_args = None
 
 	def handle_client(self, connection: socket.socket):
 		self.clients.append(connection)
@@ -32,12 +34,16 @@ class IPCHandler:
 				self.clients.remove(connection)
 				break
 
-			# The command should be the first part of the string, split by a space.
-			command_name = client_message.split(" ")[0]
-			command = self.command_directory.get_command(command_name)
-
-			# Args are everything else and should be split by spaces. Quoted strings are supported.
-			args = self.__parse_args(client_message.lstrip(command_name))
+			if self.last_command and self.last_command.is_recursive:
+				# Treat the message as arguments for the last command
+				args = self.__parse_args(client_message)
+				command_name = self.last_command.friendly_name
+				command = self.last_command
+			else:
+				# The command should be the first part of the string, split by a space.
+				command_name = client_message.split(" ")[0]
+				command = self.command_directory.get_command(command_name)
+				args = self.__parse_args(client_message.lstrip(command_name))
 
 			if command:
 				try:
@@ -61,9 +67,18 @@ class IPCHandler:
 					metadata["buffer_size"] = command.send_buffer_size
 				if command.color != "white":
 					metadata["color"] = command.color
+				if command.command_context:
+					metadata["context"] = command.command_context
 
 				if metadata:
 					self.send_update(f"!METADATA:{metadata}")
+
+				if command.is_recursive:
+					self.last_command = command
+					self.last_args = args
+				else:
+					self.last_command = None
+					self.last_args = None
 			else:
 				response = f"Unable to find command: {command_name}"
 

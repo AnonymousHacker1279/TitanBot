@@ -5,7 +5,7 @@ _/_/_/_/_/  _/    _/                          _/_/_/                _/
  _/      _/    _/      _/    _/  _/    _/  _/    _/  _/    _/    _/
 _/      _/      _/_/    _/_/_/  _/    _/  _/_/_/      _/_/        _/_/
 
-https://github.com/AnonymousHacker1279/TitanBot | https://titanbot.anonymoushacker1279.tech
+https://github.com/AnonymousHacker1279/TitanBot | https://anonymoushacker1279.tech
 
 TitanBot, an intelligent software built by AnonymousHacker1279.
 Providing features to servers since 7/15/21.

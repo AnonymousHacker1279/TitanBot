@@ -1,11 +1,8 @@
 Input {
     dock: bottom;
-    margin-bottom: 2;
+    margin-bottom: 1;
     height: 3;
-}
-
-RichLog {
-	padding-bottom: 1;
+    border: solid green;
 }
 
 .loading_label {
