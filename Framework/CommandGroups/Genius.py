@@ -44,38 +44,15 @@ class Genius(BasicCog):
 			await ctx.respond(embed=embed)
 			await self.update_usage_analytics("genius", "search", ctx.guild.id)
 
-			embed.title = artist + " - " + song
 			result, geniusID = await self.genius_api.search_songs(artist, song)
+
+			if geniusID == 0:
+				embed.title = "An error occurred"
+			else:
+				embed.title = artist + " - " + song
+
 			embed.description = result
 			embed.set_footer(text="Genius ID: " + str(geniusID))
-
-			await ctx.edit(embed=embed)
-		else:
-			await ctx.respond(embed=embed)
-
-	@discord.option(
-		name="url",
-		description="The Genius URL of the song.",
-		type=str,
-		required=True
-	)
-	@genius.command()
-	@commands.guild_only()
-	async def get_by_url(self, ctx: discord.ApplicationContext, url: str):
-		"""Search for a song by its Genius URL."""
-
-		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
-		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "genius")
-		embed, has_key = await self.check_for_api_key(embed)
-
-		if not failed_permission_check and has_key:
-			embed.description = "Searching Genius, please be patient..."
-			await ctx.respond(embed=embed)
-			await self.update_usage_analytics("genius", "get_by_url", ctx.guild.id)
-
-			embed.title = "Lyrics by URL"
-			result = await self.genius_api.get_lyrics_by_url(url)
-			embed.description = result
 
 			await ctx.edit(embed=embed)
 		else:
@@ -101,9 +78,14 @@ class Genius(BasicCog):
 			await ctx.respond(embed=embed)
 			await self.update_usage_analytics("genius", "get_by_id", ctx.guild.id)
 
-			embed.title = "Lyrics by ID"
-			result = await self.genius_api.get_lyrics_by_id(song_id)
-			embed.description = result
+			artist, lyrics = await self.genius_api.get_lyrics_by_id(song_id)
+
+			if artist == "":
+				embed.title = "An error occurred"
+			else:
+				embed.title = artist
+
+			embed.description = lyrics
 
 			await ctx.edit(embed=embed)
 		else:

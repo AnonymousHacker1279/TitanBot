@@ -1,27 +1,10 @@
-import re
 from typing import Optional
 
 import lyricsgenius
+import requests
+from lyricsgenius.types import Artist, Song
 
 from Framework.ConfigurationManager import ConfigurationManager
-
-
-async def cleanup(lyrics) -> str:
-	"""Clean up the lyrics to remove unnecessary text."""
-	if lyrics is None:
-		return "No lyrics found."
-
-	lyrics = re.sub(r'[0-9]+EmbedShare URLCopyEmbedCopy', "", lyrics)
-	lyrics = re.sub(r'[0-9]+Embed', "", lyrics)
-	lyrics = re.sub(r'Embed', "", lyrics)
-	lyrics = re.sub(r'You might also like', "", lyrics)
-	lyrics = re.sub(r'(.*) (LiveGet tickets as low as \$)(\d*)', "", lyrics)
-
-	# Remove the first line, which is the song title
-	lyrics = lyrics.splitlines(True)[1:]
-	lyrics = ''.join(lyrics)
-
-	return lyrics
 
 
 class GeniusAPI:
@@ -32,24 +15,41 @@ class GeniusAPI:
 	async def initialize(self, configuration_manager: ConfigurationManager) -> None:
 		"""Initialize the Genius API."""
 		try:
-			self.genius = lyricsgenius.Genius(await configuration_manager.get_value("genius/genius_api_key"), verbose=False)
+			self.genius = lyricsgenius.Genius(await configuration_manager.get_value("genius/genius_api_key"), verbose=False, skip_non_songs=False)
 		except TypeError:
 			self.genius = None
 
-	async def search_songs(self, artist: str, song: str) -> tuple[str, int]:
+	async def search_songs(self, a: str, s: str) -> tuple[str, int]:
 		"""Search for a song by an artist."""
-		artist = self.genius.search_artist(artist, max_songs=1, sort="title")
-		song = artist.song(song)
+		artist: Artist = self.genius.search_artist(a, max_songs=1, sort="title")
 
-		lyrics = song.lyrics
-		lyrics = await cleanup(lyrics)
+		if artist is None:
+			return "Unable to find artist information.", 0
 
-		return lyrics, song.id
+		song: Song = artist.song(s)
 
-	async def get_lyrics_by_url(self, url: str) -> str:
-		"""Get lyrics by URL."""
-		return await cleanup(self.genius.lyrics(song_url=url))
+		if song is None:
+			return "Unable to find song information.", 0
 
-	async def get_lyrics_by_id(self, song_id: int) -> str:
+		if song.lyrics == "":
+			return "This song is an instrumental.", song.id
+
+		return song.lyrics, song.id
+
+	async def get_lyrics_by_id(self, song_id: int) -> tuple[str, str]:
 		"""Get lyrics by ID."""
-		return await cleanup(self.genius.lyrics(song_id=song_id))
+		if song_id == 0:
+			return "", "Invalid song ID."
+
+		try:
+			song: Song = self.genius.song(song_id=song_id)
+		except requests.HTTPError:
+			return "", "Failed to retrieve song information."
+
+		if song.lyrics is None:
+			return "", "Unable to find song information."
+
+		if song.lyrics == "":
+			return "", "This song is an instrumental."
+
+		return f"{song.artist} - {song.title}", song.lyrics
