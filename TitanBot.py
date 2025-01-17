@@ -9,6 +9,7 @@ import time
 import discord
 from discord.ext import commands
 
+from Framework.CommandGroups import custom_commands_loader
 from Framework.CommandGroups.CurseForge import CurseForge
 from Framework.CommandGroups.Debugging import Debugging
 from Framework.CommandGroups.Fun import Fun
@@ -34,7 +35,7 @@ executor = concurrent.futures.ThreadPoolExecutor()
 
 if __name__ == "__main__":
 
-	ConfigurationValues.VERSION = "v3.0.2"
+	ConfigurationValues.VERSION = "v3.1.0"
 	ConfigurationValues.COMMIT = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
 	intents = discord.Intents.all()
@@ -58,6 +59,9 @@ if __name__ == "__main__":
 
 	for cog in cogs:
 		bot.add_cog(cog)
+
+	# Load custom user cogs from the CustomCommands folder
+	custom_commands_loader.load_custom_cogs(bot, configuration_manager)
 
 	# Purge the temporary file directory
 	path = f"{os.getcwd()}/Storage/Temp"

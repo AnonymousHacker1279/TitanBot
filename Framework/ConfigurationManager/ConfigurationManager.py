@@ -40,9 +40,11 @@ async def build_default_global_config() -> dict:
 			"genius",
 			"quotes",
 			"statistics",
-			"utility"
+			"utility",
+			"custom"
 		]
 	}
+
 
 async def build_default_guild_config() -> dict:
 	"""
@@ -57,7 +59,8 @@ async def build_default_guild_config() -> dict:
 			"genius",
 			"quotes",
 			"statistics",
-			"utility"
+			"utility",
+			"custom"
 		]
 	}
 
