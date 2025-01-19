@@ -20,6 +20,7 @@ class BasicCommand:
 		self.command_context: str = ""
 		self.is_recursive: bool = False
 
+	@abstractmethod
 	async def execute(self, args: list[any]) -> str:
 		pass
 
@@ -67,3 +68,6 @@ class BasicCommand:
 
 	async def create_logger(self, name: str) -> ThreadedLogger:
 		return ThreadedLogger(name)
+
+	def reset_state(self):
+		pass

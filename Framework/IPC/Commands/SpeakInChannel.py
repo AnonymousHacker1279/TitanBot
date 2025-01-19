@@ -17,12 +17,7 @@ class SpeakInChannel(BasicCommand):
 		if not args:
 			return "No arguments provided."
 
-		if args[0] == "exit":
-			self.command_context = ""
-			self.is_recursive = False
-			return "Session ended."
-
-		if self.command_context == "" and len(args) < 2:
+		if self.channel is None and len(args) < 2:
 			return "Not enough arguments provided."
 		else:
 			if self.channel is None:
@@ -34,9 +29,9 @@ class SpeakInChannel(BasicCommand):
 				if not self.channel:
 					return "Channel not found."
 
-				message = " ".join(args[1:])
+				message = " ".join([str(arg) for arg in args[1:]])
 			else:
-				message = " ".join(args)
+				message = " ".join([str(arg) for arg in args])
 
 		await self.channel.send(message)
 		self.command_context = f"Speaking in {self.channel.guild.name}/{self.channel.name}"
@@ -62,3 +57,7 @@ class SpeakInChannel(BasicCommand):
 		}
 
 		return await self.format_help_message(msg, args)
+
+	def reset_state(self):
+		self.channel = None
+		self.command_context = ""

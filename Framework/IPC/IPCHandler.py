@@ -35,6 +35,14 @@ class IPCHandler:
 				break
 
 			if self.last_command and self.last_command.is_recursive:
+				# Check for the exit keyword to break out of recursion
+				if client_message.strip().lower() == "exit":
+					self.last_command.reset_state()
+					self.last_command = None
+					self.last_args = None
+					self.send_update("Recursive command exited.")
+					continue
+
 				# Treat the message as arguments for the last command
 				args = self.__parse_args(client_message)
 				command_name = self.last_command.friendly_name
