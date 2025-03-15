@@ -10,12 +10,12 @@ class StatisticsModule:
 		self.cursor.execute("""
 			CREATE TABLE IF NOT EXISTS command_usage_analytics (
 				id INTEGER PRIMARY KEY,
-					guild_id INTEGER,
-					command_name TEXT CHECK( length(command_name) <= 255 ),
-					module_name TEXT CHECK( length(module_name) <= 255 ),
-					count INTEGER,
-					UNIQUE(guild_id, command_name, module_name)
-				)
+				guild_id INTEGER,
+				command_name TEXT CHECK( length(command_name) <= 255 ),
+				module_name TEXT CHECK( length(module_name) <= 255 ),
+				count INTEGER,
+				UNIQUE(guild_id, command_name, module_name)
+			)
 		""")
 		self.connection.commit()
 
@@ -64,5 +64,47 @@ class StatisticsModule:
 				LIMIT 3
 			""",
 			(guild_id,))
+
+		return self.cursor.fetchall()
+
+	async def get_stab_analytics(self, guild_id: int = None, get_global: bool = False, inverse: bool = False) -> list:
+		"""Get the top five most stabbed users, or the top five users who have stabbed others."""
+
+		if get_global:
+			if inverse:
+				self.cursor.execute("""
+					SELECT author_id, SUM(times_stabbed_others)
+					FROM stab_analytics
+					GROUP BY author_id
+					ORDER BY SUM(times_stabbed_others) DESC
+					LIMIT 5
+				""")
+			else:
+				self.cursor.execute("""
+					SELECT author_id, SUM(times_stabbed)
+					FROM stab_analytics
+					GROUP BY author_id
+					ORDER BY SUM(times_stabbed) DESC
+					LIMIT 5
+				""")
+		else:
+			if inverse:
+				self.cursor.execute("""
+					SELECT author_id, times_stabbed_others
+					FROM stab_analytics
+					WHERE guild_id = ?
+					ORDER BY times_stabbed_others DESC
+					LIMIT 5
+				""",
+				(guild_id,))
+			else:
+				self.cursor.execute("""
+					SELECT author_id, times_stabbed
+					FROM stab_analytics
+					WHERE guild_id = ?
+					ORDER BY times_stabbed DESC
+					LIMIT 5
+				""",
+				(guild_id,))
 
 		return self.cursor.fetchall()

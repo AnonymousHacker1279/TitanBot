@@ -161,3 +161,90 @@ class Statistics(BasicCog):
 			await ctx.respond(embed=embed)
 
 		await self.update_usage_analytics("statistics", "top_quoted_users", ctx.guild.id)
+
+	@statistics.command()
+	@discord.option(
+		name="all_guilds",
+		description="Get the users stabbed the most (or who has stabbed the most) across all guilds.",
+		type=bool,
+		required=False
+	)
+	@discord.option(
+		name="inverse",
+		description="Get the users who have stabbed the most.",
+		type=bool,
+		required=False
+	)
+	@commands.guild_only()
+	async def stab_analytics(self, ctx: discord.ApplicationContext, all_guilds: bool = False, inverse: bool = False):
+		"""Get the top five most stabbed users, or the top five users who have stabbed others."""
+
+		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "statistics")
+		if not failed_permission_check:
+			data = await self.sql_bridge.statistics_module.get_stab_analytics(ctx.guild_id, all_guilds, inverse)
+
+			# Extract data
+			analytics = [f"{(await ctx.bot.fetch_user(item[0])).name}" for item in data]
+
+			times_stabbed = [item[1] for item in data]
+
+			# Convert to integers
+			times_stabbed = [int(count) for count in times_stabbed]
+
+			# Combine the analytics and times_stabbed into a list of tuples
+			data_tuples = list(zip(analytics, times_stabbed))
+
+			# Sort the data_tuples in ascending order of times_stabbed
+			data_tuples.sort(key=lambda x: x[1])
+
+			# Unzip the sorted data_tuples back into analytics and times_stabbed
+			analytics, times_stabbed = zip(*data_tuples)
+
+			# Create a bar graph
+			bars = plt.barh(analytics, times_stabbed, color="#0047AB")
+
+			# Add stab counts next to each bar
+			for bar in bars:
+				plt.text(bar.get_width(), bar.get_y() + bar.get_height() / 2,
+						f' {bar.get_width()}',
+						va='center', ha='left', color='white')
+
+			plt.xlabel('Times Stabbed', color='white')
+			title = "Top Stabbed Users"
+			if inverse:
+				title = "Top Stabbing Users"
+			if all_guilds:
+				title += " (Global)"
+			plt.title(title, color='white')
+
+			# Change the color of the axes and tick labels
+			plt.tick_params(colors='white')
+			plt.gca().spines['bottom'].set_color('#990000')
+			plt.gca().spines['left'].set_color('#990000')
+			plt.gca().spines['top'].set_color('#00000000')
+			plt.gca().spines['right'].set_color('#00000000')
+
+			# Save the graph as an image file - make a random name for the file based on the hash of the data
+			path = f"{os.getcwd()}/Storage/Temp/{str(hash(analytics))}.png"
+
+			# Ensure the directory exists
+			os.makedirs(os.path.dirname(path), exist_ok=True)
+
+			plt.savefig(path, bbox_inches='tight', transparent=True)
+			plt.close()
+
+			# Include the graph in the embed
+			embed.title = title
+			if inverse:
+				embed.title = "Top Stabbing Users"
+			if all_guilds:
+				embed.title += " (Global)"
+			file = discord.File(path, filename=path.split("/")[-1])
+			embed.set_image(url="attachment://" + path.split("/")[-1])
+
+			await ctx.respond(embed=embed, file=file)
+		else:
+			await ctx.respond(embed=embed)
+
+		await self.update_usage_analytics("statistics", "stab_analytics", ctx.guild.id)

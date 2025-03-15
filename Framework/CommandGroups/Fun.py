@@ -32,6 +32,10 @@ class Fun(BasicCog):
 				embed.title = "A BLOODY MASSACRE"
 				embed.description = "*" + user.mention + " was stabbed by " + ctx.author.mention + "*"
 
+				# Update the stab analytics
+				await self.sql_bridge.fun_module.update_user_stabbed(ctx.guild.id, user.id)
+				await self.sql_bridge.fun_module.update_user_stabbed(ctx.guild.id, ctx.author.id, inverse=True)
+
 		await ctx.respond(embed=embed)
 		await self.update_usage_analytics("fun", "stab", ctx.guild.id)
 

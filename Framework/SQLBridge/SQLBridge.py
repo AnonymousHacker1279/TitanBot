@@ -2,6 +2,7 @@ import os
 import sqlite3
 
 from Framework.SQLBridge.CFModule import CFModule
+from Framework.SQLBridge.FunModule import FunModule
 from Framework.SQLBridge.QuotesModule import QuotesModule
 from Framework.SQLBridge.StatisticsModule import StatisticsModule
 
@@ -18,6 +19,7 @@ class SQLBridge:
 
 		self.cf_module = CFModule(self.connection, self.cursor)
 		self.quotes_module = QuotesModule(self.connection, self.cursor)
+		self.fun_module = FunModule(self.connection, self.cursor)
 		self.statistics_module = StatisticsModule(self.connection, self.cursor)
 
 		self.cursor.execute("""
