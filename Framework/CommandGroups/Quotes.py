@@ -289,29 +289,35 @@ class Quotes(BasicCog):
 		await ctx.respond(embed=embed, view=view)
 		await self.update_usage_analytics("quotes", "search_text", ctx.guild.id)
 
+	@discord.option(
+		name="page",
+		description="The page of quotes to display. This is zero-indexed, so the first page is 0.",
+		type=int,
+		required=False
+	)
+	@discord.option(
+		name="descending_order",
+		description="Sort the quotes in descending order.",
+		type=bool,
+		required=False
+	)
 	@quotes.command()
 	@commands.guild_only()
-	async def list_recent(self, ctx: discord.ApplicationContext):
-		"""List ten of the most recent quotes"""
+	async def list_recent(self, ctx: discord.ApplicationContext, page: int = 0, descending_order: bool = False):
+		"""List ten of the most recent quotes. Supports pagination and ordering."""
 
 		embed = discord.Embed(color=discord.Color.dark_blue(), description='')
+		total_quotes = 0
 
 		embed, failed_permission_check = await PermissionHandler.check_permissions(ctx, embed, "quotes")
 		if not failed_permission_check:
+			embed, total_quotes = await QuoteUtils.handle_searching_recent(ctx, self.sql_bridge, page, embed, descending_order)
 
-			# Get the quotes
-			quotes = await self.sql_bridge.quotes_module.list_recent(ctx.guild.id)
+		view = SearchQuotesView(ctx, self.sql_bridge, page, total_quotes, SearchTypes.RECENT, None, None, descending_order)
+		if page <= 0:
+			view.previous_page.disabled = True
+		if page >= math.ceil(total_quotes / 10) - 1:
+			view.next_page.disabled = True
 
-			# Check if the response is empty
-			if len(quotes) == 0:
-				embed.title = "No Quotes Found"
-				embed.description = "No quotes have been added yet."
-			else:
-				embed.title = "Recent Quotes"
-
-				# Add the quotes to the embed
-				for quote in quotes:
-					embed.add_field(name="Quote #" + str(quote[0]), value=quote[1])
-
-		await ctx.respond(embed=embed)
+		await ctx.respond(embed=embed, view=view)
 		await self.update_usage_analytics("quotes", "list_recent", ctx.guild.id)

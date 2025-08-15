@@ -161,3 +161,41 @@ async def handle_searching_content(ctx: discord.ApplicationContext, bridge: SQLB
 				embed.add_field(name="Quote #" + str(quote[0]), value=quote[1])
 
 		return embed, total_quotes
+
+
+async def handle_searching_recent(ctx: discord.ApplicationContext, bridge: SQLBridge, page: int, embed: discord.Embed, descending_order: bool = False) -> tuple[discord.Embed, int]:
+	"""
+	Handle searching for quotes by most recent.
+
+	:param ctx: The context of the command.
+	:param bridge: The SQLBridge instance.
+	:param page: The page of quotes to search for.
+	:param embed: The embed to display the quotes in.
+	:param descending_order: Whether to sort the quotes descending
+	"""
+
+	if page < 0:
+		embed.title = "Cannot search quotes"
+		embed.description = "Invalid page. The page must be greater than zero."
+	else:
+
+		# Get the quotes
+		quotes, total_quotes = await bridge.quotes_module.search_by_recent(ctx.guild.id, page, descending_order)
+
+		# Check if the response is empty
+		if total_quotes == 0:
+			embed.title = "No Quotes Found"
+			embed.description = "No quotes were found."
+		else:
+
+			if page != 0:
+				embed.title = "Recent Quotes (Page " + str(page) + ")"
+
+			embed.description = "There are **" + str(total_quotes) + "** quotes " \
+								"(page " + str(page) + " of " + str(math.ceil(total_quotes / 10) - 1) + ")."
+
+			# Add the quotes to the embed
+			for quote in quotes:
+				embed.add_field(name="Quote #" + str(quote[0]), value=quote[1])
+
+		return embed, total_quotes

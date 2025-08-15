@@ -224,15 +224,33 @@ class QuotesModule:
 
 		return quotes, total
 
-	async def list_recent(self, guild_id: int) -> list:
+	async def search_by_recent(self, guild_id: int, page: int = 0, descending_order: bool = False) -> tuple[list, int]:
 		"""List the most recent quotes added to the database."""
 
-		self.cursor.execute("""
+		ordering = "ASC"
+		if descending_order:
+			ordering = "DESC"
+
+		self.cursor.execute(f"""
 			SELECT quote_number, content, author, quoted_by, date_added
 			FROM quotes
 			WHERE guild_id = ?
-			ORDER BY date_added DESC
-			LIMIT 10
+			ORDER BY date_added {ordering}
+			LIMIT 10 OFFSET ?
+		""",
+		(guild_id, page * 10))
+		quotes = self.cursor.fetchall()
+
+		self.cursor.execute("""
+			SELECT COUNT(*)
+			FROM quotes
+			WHERE guild_id = ?
 		""",
 		(guild_id,))
-		return self.cursor.fetchall()
+		total = self.cursor.fetchone()
+		if total is not None:
+			total = total[0]
+		else:
+			total = 0
+
+		return quotes, total

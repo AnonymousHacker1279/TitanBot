@@ -10,6 +10,7 @@ from Framework.SQLBridge import SQLBridge
 class SearchTypes(str, Enum):
 	AUTHOR = "author"
 	CONTENT = "content"
+	RECENT = "recent"
 
 
 class SearchQuotesView(discord.ui.View):
@@ -48,6 +49,8 @@ class SearchQuotesView(discord.ui.View):
 			return await QuoteUtils.handle_searching_author(self.ctx, self.bridge, self.page, embed, self.author_id, self.descending_order)
 		elif self.search_type == SearchTypes.CONTENT:
 			return await QuoteUtils.handle_searching_content(self.ctx, self.bridge, self.page, embed, self.content, self.descending_order)
+		elif self.search_type == SearchTypes.RECENT:
+			return await QuoteUtils.handle_searching_recent(self.ctx, self.bridge, self.page, embed, self.descending_order)
 
 	async def get_view(self):
 		view = SearchQuotesView(self.ctx, self.bridge, self.page, self.total_quotes, self.search_type, self.author_id, self.content, self.descending_order)
